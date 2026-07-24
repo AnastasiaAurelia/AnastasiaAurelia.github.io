@@ -72,7 +72,8 @@ export const SITE = {
     { label: 'Writing', href: '/articles' },
     { label: 'About', href: '/about' },
   ],
-  /** Placeholder — replace with the real production domain before launch.
-   *  Feeds canonical URLs, OG tags, and the generated sitemap. */
-  url: 'https://anastasia-aurelia.example',
+  /** The production GitHub Pages URL — no trailing slash, since every
+   *  route path already begins with `/`. Feeds canonical URLs, OG tags,
+   *  and the generated sitemap. */
+  url: 'https://anastasiaaurelia.github.io/anastasia-portfolio',
 } as const
