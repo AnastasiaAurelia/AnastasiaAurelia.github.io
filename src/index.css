@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens for a restrained technical-editorial aesthetic:
+ * warm near-black ink on warm paper (light), inverted for dark.
+ * A serif carries headings/editorial weight; a plain sans carries
+ * UI chrome and body copy. No gradients, no accent noise.
+ */
+@theme {
+  --font-sans:
+    'Inter var', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-serif:
+    'Source Serif 4', 'Iowan Old Style', Georgia, ui-serif, serif;
+  --font-mono: ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace;
+
+  /* Semantic tokens: indirected through --raw-* so a single
+     [data-theme] switch (below) re-themes every utility built
+     on top of these, with no dark: prefix needed at call sites. */
+  --color-paper: var(--raw-paper);
+  --color-ink: var(--raw-ink);
+  --color-ink-muted: var(--raw-ink-muted);
+  --color-ink-faint: var(--raw-ink-faint);
+  --color-line: var(--raw-line);
+  --color-surface: var(--raw-surface);
+  --color-accent: var(--raw-accent);
+  --color-accent-soft: var(--raw-accent-soft);
+  --color-focus: var(--raw-focus);
+}
+
+:root {
+  --raw-paper: #faf9f6;
+  --raw-ink: #17161a;
+  --raw-ink-muted: #565360;
+  --raw-ink-faint: #8b8794;
+  --raw-line: #dedad2;
+  --raw-surface: #f2f0ea;
+  --raw-accent: #8a3b12;
+  --raw-accent-soft: #f4e6da;
+  --raw-focus: #1d4ed8;
+}
+
+[data-theme='dark'] {
+  --raw-paper: #131217;
+  --raw-ink: #efece6;
+  --raw-ink-muted: #aaa5b3;
+  --raw-ink-faint: #726d7c;
+  --raw-line: #322f38;
+  --raw-surface: #1c1a21;
+  --raw-accent: #e08a4f;
+  --raw-accent-soft: #2b2018;
+  --raw-focus: #7ba7ff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --raw-paper: #131217;
+    --raw-ink: #efece6;
+    --raw-ink-muted: #aaa5b3;
+    --raw-ink-faint: #726d7c;
+    --raw-line: #322f38;
+    --raw-surface: #1c1a21;
+    --raw-accent: #e08a4f;
+    --raw-accent-soft: #2b2018;
+    --raw-focus: #7ba7ff;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-line);
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  html[data-theme='dark'] {
+    color-scheme: dark;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: inherit;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  ::selection {
+    background: var(--color-accent-soft);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  .skip-link {
+    position: absolute;
+    left: 1rem;
+    top: -3rem;
+    z-index: 100;
+    transition: top 0.15s ease;
+  }
+
+  .skip-link:focus {
+    top: 1rem;
+  }
+}
