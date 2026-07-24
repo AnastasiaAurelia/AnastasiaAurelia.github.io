@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { projects, getProjectBySlug } from '../projects'
+import { projects, getProjectBySlug, getEvidenceTypeCounts } from '../projects'
 import { TAGS } from '../tags'
+import { SITE } from '../site'
 
 describe('project content integrity', () => {
   it('ships at least the three initial projects', () => {
@@ -45,5 +46,30 @@ describe('project content integrity', () => {
     const [first] = projects
     expect(getProjectBySlug(first.slug)?.slug).toBe(first.slug)
     expect(getProjectBySlug('this-slug-does-not-exist')).toBeUndefined()
+  })
+
+  it('tallies evidence-type counts that agree with the raw project data', () => {
+    const counts = getEvidenceTypeCounts()
+
+    // Every project's own detail page counts as one case study.
+    expect(counts['case-study']).toBe(projects.length)
+
+    // Every other type is a straight tally of what's actually linked —
+    // never inflated with placeholder or invented entries.
+    const expectedRepository = projects.reduce(
+      (sum, project) => sum + project.evidence.filter((e) => e.type === 'repository').length,
+      0,
+    )
+    expect(counts.repository).toBe(expectedRepository)
+    expect(Object.values(counts).every((count) => count >= 0)).toBe(true)
+  })
+})
+
+describe('site content guards', () => {
+  it('never publishes a real personal email without explicit approval', () => {
+    // Regression guard: the brief requires a neutral placeholder here
+    // until a real address is explicitly supplied — this is a tripwire
+    // against silently reintroducing an account-derived address.
+    expect(SITE.email).toBe('your-email@gmail.com')
   })
 })

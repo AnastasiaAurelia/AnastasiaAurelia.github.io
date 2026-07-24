@@ -1,77 +1,220 @@
 # Portfolio — Anastasia Aurelia
 
-A static, content-driven portfolio positioned around AI product management
-across computer vision, applied AI, and agentic workflows. Built as an
-**evidence system**, not a blog: each project aggregates whatever proof of
-work exists for it — case study, repository, live product, documents,
-media — behind one URL, instead of scattering them as unrelated posts.
+A content-driven portfolio positioned around AI product management across
+computer vision, applied AI, and agentic workflows. Built as an **evidence
+system**, not a blog: each project aggregates whatever proof of work exists
+for it — case study, repository, live product — behind one URL, instead of
+scattering them as unrelated posts.
 
-## Stack
+## Architecture overview
 
-Vite + React 19 + TypeScript, Tailwind CSS v4, React Router, and
-`react-helmet-async` for per-route SEO metadata. No backend, no database,
-no CMS — see [Content model](#content-model) for why, and the migration
-path if that changes.
+- **GitHub** stores the application code (this repo) — the frontend and
+  the Sanity Studio configuration. It has no portfolio content in it.
+- **Sanity** (project `l3uxv1lk`, dataset `production`) stores the actual
+  portfolio content — projects, experience, site settings.
+- **Sanity Studio** (`/studio`) is the editing interface. It's a separate
+  app from the portfolio itself; deploying/running it doesn't touch the
+  frontend, and vice versa.
+- **The public frontend** (`/`, this repo's root) is a Vite + React 19 +
+  TypeScript SPA. It reads only **published** Sanity content over the
+  public, tokenless CDN API — it can never see a draft, and it never
+  needs write credentials.
 
-## Adding a project
+```
+src/content/**        old hard-coded content (kept, not deleted — see below)
+src/lib/sanity/**      client, image builder, GROQ queries, fetch fns, types
+src/hooks/use-*.ts     data hooks wrapping the fetch functions (loading/error/success)
+src/components/portable-text/**   renders Sanity's Portable Text (rich case-study content)
+studio/**              Sanity Studio: schemas, desk structure, config
+scripts/migrate-to-sanity.ts      one-time (repeatable) content migration
+```
 
-Adding a project should never require a new page or layout. It means:
+### On `src/content/**`
 
-1. Create `src/content/projects/<slug>.ts` exporting an object that
-   satisfies the `Project` type in `src/content/types.ts`.
-2. Add it to the array in `src/content/projects/index.ts`.
-3. If it needs a tag that doesn't exist yet, add it to
-   `src/content/tags.ts` first (tags are a closed, typed registry —
-   not free text — so labels can't drift across projects).
+This directory holds the portfolio's original hard-coded content and is
+**no longer imported by any page** — every page now reads from Sanity.
+It's kept, unmodified, as the reference the migration script was built
+from, per the "don't remove the old content until migration is verified"
+sequencing this integration was built under. Once you've run the
+migration, confirmed the site reads correctly from Sanity, and are
+comfortable Sanity is the sole source of truth, delete `src/content/**`
+and its tests (`src/content/__tests__/`) — nothing else depends on them.
 
-`/work/:slug` resolves against that array automatically. Every narrative
-field (`problem`, `ownership`, `decisions`, …) is optional — omit what
-hasn't been written yet rather than guessing at it. The detail page
-collects whichever fields are missing into one "not yet documented"
-notice instead of showing an empty section per field.
+## Environment variables
+
+Two separate `.env` files, because the frontend and Studio are two apps:
+
+**Frontend** — copy `.env.example` → `.env.local` (gitignored):
+```
+VITE_SANITY_PROJECT_ID=l3uxv1lk
+VITE_SANITY_DATASET=production
+```
+
+**Studio** — copy `studio/.env.example` → `studio/.env` (gitignored):
+```
+SANITY_STUDIO_PROJECT_ID=l3uxv1lk
+SANITY_STUDIO_DATASET=production
+```
+
+Project ID and dataset name are public identifiers, not secrets — but
+both real `.env` files stay local/gitignored anyway, for one consistent
+rule across the repo rather than a special case for "this one's fine to
+commit."
+
+**Never commit, log, or hard-code a write token anywhere in this repo.**
+The frontend and Studio dev/build never need one — only the migration
+script does, and it reads it from a separate gitignored file (below).
+
+## Local setup
+
+```bash
+npm install                      # frontend deps
+npm run dev                      # frontend at http://localhost:5173
+
+cd studio && npm install         # Studio deps
+npm run dev                      # Studio at http://localhost:3333
+```
+
+The Studio requires logging in the first time you open it in a browser
+(Google/GitHub/email — pick whichever your Sanity account uses). That's
+a separate login from the CLI's own `sanity login`, used below for
+deploy/migration.
+
+## Content-editing workflow
+
+1. Open Studio (locally at `localhost:3333`, or the deployed URL once
+   you've run `npm run deploy` inside `studio/` — see below).
+2. Edit **Site Settings** (a fixed singleton — there's no "create new"
+   for it), a **Project**, or an **Experience** entry.
+3. Sanity's native draft/publish workflow applies throughout: edits
+   autosave as a draft and are invisible to the public site until you
+   press **Publish**. **Unpublish** reverts a document to draft-only.
+   Document history is available via the Studio's history pane.
+4. Refresh the live frontend — published changes appear immediately (the
+   CDN cache is short-lived); nothing in the frontend code needs to change.
+
+## Content migration
+
+The three original hard-coded projects (Computer Vision and LPR
+Reliability, ResearchLens, Agentic Workflows) plus the original homepage
+copy are captured in `scripts/migrate-to-sanity.ts`, ready to run:
+
+```bash
+# 1. Create a token (Editor permission is enough) at:
+#    https://www.sanity.io/manage/project/l3uxv1lk/api#tokens
+# 2. Copy scripts/.env.migration.example -> scripts/.env.migration
+#    and paste the token in (gitignored — never commit this file)
+# 3. Run it:
+node --env-file=scripts/.env.migration scripts/migrate-to-sanity.ts
+```
+
+It's idempotent — deterministic document IDs, and every write uses
+`createIfNotExists`, so re-running it is a safe no-op against anything
+already there. Pass `--force` to explicitly overwrite instead. **Every
+migrated document lands as a draft** — open Studio and publish each one
+before it'll appear on the live site.
+
+**Status: prepared, not yet run** — this environment has no authenticated
+Sanity session, so the script above hasn't been executed against the
+real project. Run the three commands above once to complete it.
+
+## CORS
+
+Sanity's API only accepts browser requests from origins you've explicitly
+allowed. Add the local dev origin now, and the production origin once you
+have one (no deployment config exists in this repo yet, so it isn't
+knowable automatically — add whatever domain you deploy the frontend to).
+
+```bash
+cd studio
+npx sanity login                                  # one-time, opens a browser
+npx sanity cors add http://localhost:5173 --credentials false
+npx sanity cors add https://<your-production-domain> --credentials false
+```
+
+`--credentials false` because the frontend never sends auth (it's a
+public, tokenless CDN read) — there's no reason to widen the origin's
+permissions beyond that.
+
+**Status: not yet configured** — confirmed while building this: the
+local frontend currently gets a CORS-blocked network error against the
+live project (verified directly, not assumed). The site handles that
+gracefully (a clean error message, no crash), but nothing will actually
+load until the commands above are run once, by you, since they require
+an authenticated session this environment doesn't have.
+
+## Studio deployment
+
+```bash
+cd studio
+npx sanity login        # if you haven't already for the CORS step above
+npm run deploy           # prompts for a studio hostname the first time
+```
+
+**Status: not yet deployed** — same authentication gap as CORS/migration.
+The Studio has been verified to build, typecheck, and correctly resolve
+project `l3uxv1lk` (confirmed live, over a real API call — see
+Verification below); only the interactive login + hostname choice is
+outstanding.
+
+## Commands
+
+| Command | Where | Does |
+|---|---|---|
+| `npm run dev` | root | Frontend dev server |
+| `npm run build` | root | Typecheck, build, generate `dist/sitemap.xml` |
+| `npm run typecheck` | root | `tsc -b` (covers `src/` and `scripts/`) |
+| `npm run lint` | root | `oxlint` |
+| `npm test` | root | Vitest (content integrity, chapter-splitting, routing) |
+| `npm run dev` | `studio/` | Studio dev server |
+| `npm run build` | `studio/` | Studio production build |
+| `npm run typecheck` | `studio/` | `tsc --noEmit` over schemas/config |
+| `npm run deploy` | `studio/` | Deploy Studio to Sanity's hosting |
+| `node --env-file=scripts/.env.migration scripts/migrate-to-sanity.ts` | root | Run the content migration |
 
 ## Content model
 
-`src/content/types.ts` is the contract. A `Project` is:
+See `studio/schemaTypes/` for the authoritative schema. In short:
 
-- Card-level fields (`title`, `tagline`, `summary`, `tags`, `featured`) —
-  always present, used on the homepage and `/work` index.
-- A `narrative` object — the project's own case study, entirely optional
-  field-by-field.
-- An `evidence` array — supplementary external artifacts (repo, live
-  product, doc, video, article), each typed by `EvidenceType`.
+- **`project`** — title, slug, shortSummary, projectType, coverImage,
+  tags, featured, displayOrder, a Portable Text `content` field for the
+  full case study, gallery, externalUrl/githubUrl, SEO overrides.
+  `content` uses a `projectSection` marker block to delimit chapters
+  (Overview, Problem, My ownership, …) inline, plus custom blocks for
+  metric highlights, decision callouts, and architecture diagrams —
+  Portable Text models this more cleanly than one column per narrative
+  beat would.
+- **`experience`** — company, role, date range, achievements, ordering,
+  visibility.
+- **`siteSettings`** — a singleton: homepage headline/copy, credibility
+  points, about content, capability groups, contact/social links, default
+  SEO.
 
-## Future CMS migration
-
-If content volume grows past what's comfortable as code,
-`src/content/projects/index.ts` is the seam: replace the static array
-with a fetch against a headless CMS or Supabase table that resolves to
-`Project[]`. Nothing in `src/components` or `src/pages` needs to change,
-because they only ever consume the `Project` type, never the array's
-origin.
-
-## Scripts
-
-| Command | Does |
-|---|---|
-| `npm run dev` | Dev server |
-| `npm run build` | Typecheck, build, generate `dist/sitemap.xml` |
-| `npm run typecheck` | `tsc -b`, no emit |
-| `npm run lint` | `oxlint` |
-| `npm test` | Vitest (content integrity + routing smoke tests) |
-| `npm run preview` | Preview the production build |
+`src/lib/sanity/types.ts` mirrors these shapes on the frontend side, and
+`src/lib/sanity/split-project-content.ts` is the seam that turns a
+project's flat Portable Text array into the numbered chapters + sticky
+chapter nav the detail page renders — the same visual system as before
+the CMS integration, just driven by flexible content instead of fixed
+fields.
 
 ## SEO notes
 
-This ships as a client-rendered SPA (matching Lovable's default
-project shape) rather than statically prerendered/SSR'd. Per-route
-`<title>`/description/OG/JSON-LD are set via `react-helmet-async`,
-which Google's crawler picks up fine; social-preview crawlers that
-don't execute JavaScript (some Slack/LinkedIn unfurlers) may not.
-If that becomes a problem, prerendering each route to static HTML at
-build time is the natural next step and doesn't require touching the
-content model or components.
+Client-rendered SPA — per-route `<title>`/description/OG/JSON-LD are set
+via `react-helmet-async`, sourced from `siteSettings` and per-project
+`seoTitle`/`seoDescription` where set. Google's crawler executes JS fine;
+some non-JS social unfurlers may not. Prerendering to static HTML is the
+natural next step if that becomes a real problem — it wouldn't require
+touching the Sanity integration.
 
-`src/content/site.ts`'s `url` field is a placeholder — set it to the
-real production domain before launch; it feeds canonical URLs, Open
-Graph tags, and the generated sitemap.
+## Security notes
+
+- Public frontend reads use `perspective: 'published'` and no token
+  (`src/lib/sanity/client.ts`) — drafts are structurally invisible to it,
+  not just filtered by convention.
+- The only place a write token is ever read is the migration script, from
+  a gitignored local file (`scripts/.env.migration`), never from a
+  `VITE_`-prefixed variable (which would ship it into the browser bundle)
+  and never printed to a log.
+- Error messages shown in the UI never include the raw error (which can
+  contain a full request URL) — that's logged to the console instead,
+  once, centrally, in `src/hooks/use-async.ts`.

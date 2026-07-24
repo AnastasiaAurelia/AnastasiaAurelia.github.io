@@ -6,14 +6,17 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "postbuild": "node scripts/generate-sitemap.ts",
+    "postbuild": "node scripts/generate-sitemap.ts && node scripts/generate-spa-fallback.ts",
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc -b"
   },
   "dependencies": {
-    "class-variance-authority": "^0.7.1",
+    "@portabletext/react": "^7.0.1",
+    "@portabletext/types": "^4.0.2",
+    "@sanity/client": "^7.24.0",
+    "@sanity/image-url": "^2.1.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.26.0",
     "react": "^19.2.7",
