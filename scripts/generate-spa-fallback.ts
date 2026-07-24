@@ -4,7 +4,7 @@
  * TypeScript support, no bundler).
  *
  * GitHub Pages has no server-side rewrite rule, so a direct request for
- * /REPOSITORY/work/researchlens (a refresh, or a link opened in a new
+ * /anastasia-portfolio/work/researchlens (a refresh, or a link opened in a new
  * tab) 404s at the CDN before React Router ever sees it. GitHub Pages
  * does let a static 404.html handle that instead. This file reuses the
  * real build's <head> (so the tab title/favicon/fonts are correct even
@@ -21,9 +21,9 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 const INDEX_PATH = 'dist/index.html'
 const OUTPUT_PATH = 'dist/404.html'
 
-// This is a GitHub *project* site (served at /REPOSITORY/, one path
-// segment), not a user/org site or custom domain (served at /) — see
-// vite.config.ts, which is the single place the actual repo name lives.
+// This is a GitHub *project* site (served at /anastasia-portfolio/, one
+// path segment), not a user/org site or custom domain (served at /) —
+// see vite.config.ts, which is the single place the actual repo name lives.
 const PATH_SEGMENTS_TO_KEEP = 1
 
 if (!existsSync(INDEX_PATH)) {
