@@ -1,17 +1,22 @@
 @import "tailwindcss";
 
 /*
- * Design tokens for a restrained technical-editorial aesthetic:
- * warm near-black ink on warm paper (light), inverted for dark.
- * A serif carries headings/editorial weight; a plain sans carries
- * UI chrome and body copy. No gradients, no accent noise.
+ * Design tokens for a quiet-luxury technical-editorial aesthetic:
+ * warm bone paper with near-black ink (light), art-directed — not
+ * inverted — for dark. Three deliberate type registers do most of
+ * the identity work: a serif for editorial statements, a sans for
+ * body/UI, and a system monospace for metadata, tags, evidence
+ * types, and chapter numbers. No gradients, no accent noise.
  */
 @theme {
   --font-sans:
     'Inter var', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-serif:
     'Source Serif 4', 'Iowan Old Style', Georgia, ui-serif, serif;
-  --font-mono: ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace;
+  /* System stack only — a third remote font family would add another
+     render-blocking request for a register that reads fine in the
+     platform's own technical monospace (SF Mono / Consolas / etc). */
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 
   /* Semantic tokens: indirected through --raw-* so a single
      [data-theme] switch (below) re-themes every utility built
@@ -21,47 +26,57 @@
   --color-ink-muted: var(--raw-ink-muted);
   --color-ink-faint: var(--raw-ink-faint);
   --color-line: var(--raw-line);
+  --color-line-strong: var(--raw-line-strong);
   --color-surface: var(--raw-surface);
   --color-accent: var(--raw-accent);
   --color-accent-soft: var(--raw-accent-soft);
   --color-focus: var(--raw-focus);
+
+  --ease-editorial: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 :root {
-  --raw-paper: #faf9f6;
-  --raw-ink: #17161a;
-  --raw-ink-muted: #565360;
+  --raw-paper: #f6f3ec;
+  --raw-ink: #15141a;
+  --raw-ink-muted: #52505c;
   --raw-ink-faint: #8b8794;
-  --raw-line: #dedad2;
-  --raw-surface: #f2f0ea;
-  --raw-accent: #8a3b12;
-  --raw-accent-soft: #f4e6da;
+  --raw-line: #ded8c8;
+  --raw-line-strong: #b9b09a;
+  --raw-surface: #efe9db;
+  --raw-accent: #7a3418;
+  --raw-accent-soft: #ebdccb;
   --raw-focus: #1d4ed8;
 }
 
 [data-theme='dark'] {
-  --raw-paper: #131217;
-  --raw-ink: #efece6;
-  --raw-ink-muted: #aaa5b3;
-  --raw-ink-faint: #726d7c;
-  --raw-line: #322f38;
-  --raw-surface: #1c1a21;
-  --raw-accent: #e08a4f;
-  --raw-accent-soft: #2b2018;
-  --raw-focus: #7ba7ff;
+  /* Not an automatic inversion: dark mode leans warmer and darker
+     than a neutral gray-900, closer to charcoal ink than to slate,
+     so the accent (a warmed amber rather than the light-mode rust)
+     still reads as considered rather than auto-generated. */
+  --raw-paper: #121016;
+  --raw-ink: #ece7db;
+  --raw-ink-muted: #a49e9a;
+  --raw-ink-faint: #6b6660;
+  --raw-line: #2c2830;
+  --raw-line-strong: #423c46;
+  --raw-surface: #1a1720;
+  --raw-accent: #d99a5b;
+  --raw-accent-soft: #2a2118;
+  --raw-focus: #8fb4ff;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --raw-paper: #131217;
-    --raw-ink: #efece6;
-    --raw-ink-muted: #aaa5b3;
-    --raw-ink-faint: #726d7c;
-    --raw-line: #322f38;
-    --raw-surface: #1c1a21;
-    --raw-accent: #e08a4f;
-    --raw-accent-soft: #2b2018;
-    --raw-focus: #7ba7ff;
+    --raw-paper: #121016;
+    --raw-ink: #ece7db;
+    --raw-ink-muted: #a49e9a;
+    --raw-ink-faint: #6b6660;
+    --raw-line: #2c2830;
+    --raw-line-strong: #423c46;
+    --raw-surface: #1a1720;
+    --raw-accent: #d99a5b;
+    --raw-accent-soft: #2a2118;
+    --raw-focus: #8fb4ff;
   }
 }
 
@@ -138,5 +153,99 @@
 
   .skip-link:focus {
     top: 1rem;
+  }
+
+  /* Third type register: metadata, tags, evidence types, chapter
+     numbers — set apart from prose by face, size, and tracking
+     rather than by color or weight alone. */
+  .label-mono {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .container-editorial {
+    max-width: 72rem;
+    margin-inline: auto;
+    padding-inline: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .container-editorial {
+      padding-inline: 2rem;
+    }
+  }
+
+  /* Section rhythm: two consistent vertical cadences instead of
+     ad hoc py-* choices per section. */
+  .section-y {
+    padding-block: 5rem;
+  }
+  .section-y-tight {
+    padding-block: 3rem;
+  }
+  @media (min-width: 640px) {
+    .section-y {
+      padding-block: 8rem;
+    }
+    .section-y-tight {
+      padding-block: 4.5rem;
+    }
+  }
+
+  /* Scroll-entrance primitive. Driven by useReveal toggling
+     data-visible via IntersectionObserver; the reduced-motion
+     block above neutralizes the transition, and the element still
+     ends at its resting opacity/position either way. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      opacity 0.7s var(--ease-editorial),
+      transform 0.7s var(--ease-editorial);
+  }
+  .reveal[data-visible='true'] {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Hero signature visual: a viewfinder/reticle frame. See
+     HeroSignature.tsx for the entrance + pointer-parallax logic. */
+  .hero-reticle {
+    color: var(--color-line-strong);
+    transition: transform 0.4s var(--ease-editorial);
+  }
+  .hero-reticle-mark {
+    stroke-dasharray: 40;
+    stroke-dashoffset: 40;
+    animation: hero-reticle-draw 1s var(--ease-editorial) forwards;
+  }
+  @keyframes hero-reticle-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  /* Hero copy entrance: blur-to-sharp, staggered via inline
+     animation-delay per element. Plays once on load — the hero is
+     already in view, so no scroll observer is needed. `both` keeps
+     the pre-animation frame matching `from`, so nothing flashes at
+     full opacity before the animation starts. */
+  .hero-enter {
+    animation: hero-enter-in 0.9s var(--ease-editorial) both;
+  }
+  @keyframes hero-enter-in {
+    from {
+      opacity: 0;
+      filter: blur(8px);
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      filter: blur(0);
+      transform: translateY(0);
+    }
   }
 }

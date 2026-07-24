@@ -1,67 +1,78 @@
-import { Link } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
 import { Seo } from '@/components/seo/seo'
-import { WorkCard } from '@/components/work/work-card'
-import { getFeaturedProjects } from '@/content/projects'
+import { Hero } from '@/components/home/hero'
+import { Capabilities } from '@/components/home/capabilities'
+import { SelectedWork } from '@/components/home/selected-work'
+import { EvidenceIndex } from '@/components/home/evidence-index'
+import { ContactSection } from '@/components/home/contact-section'
+import { LoadingState, ErrorState, EmptyState } from '@/components/state/query-states'
+import { useSiteSettings } from '@/hooks/use-site-settings'
+import { useFeaturedProjects } from '@/hooks/use-projects'
 import { SITE } from '@/content/site'
 
 export function HomePage() {
-  const featured = getFeaturedProjects()
+  const settingsState = useSiteSettings()
+  const projectsState = useFeaturedProjects()
+
+  const loading = settingsState.status === 'loading' || projectsState.status === 'loading'
+  const hasError = settingsState.status === 'error' || projectsState.status === 'error'
+
+  const settings = settingsState.status === 'success' ? settingsState.data : null
+  const projects = projectsState.status === 'success' ? projectsState.data : []
 
   return (
     <>
       <Seo
-        title={`${SITE.name} — ${SITE.positioning}`}
-        description={SITE.tagline}
+        title={settings ? `${SITE.name} — ${SITE.positioning}` : SITE.name}
+        description={settings?.homepageSupportingCopy ?? SITE.tagline}
         path="/"
-        jsonLd={[
-          {
-            '@context': 'https://schema.org',
-            '@type': 'Person',
-            name: SITE.name,
-            jobTitle: SITE.positioning,
-            email: SITE.email,
-            url: SITE.url,
-          },
-        ]}
+        jsonLd={
+          settings
+            ? [
+                {
+                  '@context': 'https://schema.org',
+                  '@type': 'Person',
+                  name: SITE.name,
+                  jobTitle: SITE.positioning,
+                  email: settings.contactEmail,
+                  url: SITE.url,
+                },
+              ]
+            : []
+        }
       />
 
-      <section className="mx-auto max-w-6xl px-6 pt-16 pb-12 sm:pt-24 sm:pb-16">
-        <p className="text-sm font-medium text-accent">{SITE.positioning}</p>
-        <h1 className="mt-3 max-w-3xl text-4xl leading-tight sm:text-5xl">
-          {SITE.focusAreas}
-        </h1>
-        <p className="mt-5 max-w-2xl text-lg text-ink-muted">{SITE.tagline}</p>
-        <div className="mt-8 flex flex-wrap items-center gap-4">
-          <Link
-            to="/work"
-            className="inline-flex items-center gap-2 rounded-sm bg-ink px-4 py-2.5 text-sm font-medium text-paper transition-colors hover:bg-ink/85"
-          >
-            Review the work
-            <ArrowRight className="size-4" aria-hidden="true" />
-          </Link>
-          <Link
-            to="/about"
-            className="inline-flex items-center gap-2 rounded-sm px-4 py-2.5 text-sm font-medium text-ink-muted transition-colors hover:text-ink"
-          >
-            About
-          </Link>
-        </div>
-      </section>
+      {loading ? <LoadingState label="Loading homepage content" /> : null}
 
-      <section className="mx-auto max-w-6xl px-6 pb-24">
-        <div className="mb-6 flex items-baseline justify-between">
-          <h2 className="text-xl">Featured work</h2>
-          <Link to="/work" className="text-sm text-ink-muted hover:text-ink">
-            View all
-          </Link>
+      {hasError ? (
+        <div className="container-editorial section-y-tight">
+          <ErrorState message="Couldn't load homepage content. Check the console for details, or try refreshing." />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {featured.map((project) => (
-            <WorkCard key={project.slug} project={project} />
-          ))}
+      ) : null}
+
+      {!loading && !hasError && !settings ? (
+        <div className="container-editorial section-y-tight">
+          <EmptyState message="Site Settings hasn't been published in Sanity Studio yet — the homepage has nothing to show until it is." />
         </div>
-      </section>
+      ) : null}
+
+      {!loading && !hasError && settings ? (
+        <>
+          <Hero
+            headline={settings.homepageHeadline}
+            supportingCopy={settings.homepageSupportingCopy}
+            credibilityPoints={settings.credibilityPoints}
+          />
+          <Capabilities groups={settings.capabilityGroups ?? []} />
+          <SelectedWork projects={projects} />
+          <EvidenceIndex projects={projects} />
+          <ContactSection
+            email={settings.contactEmail}
+            linkedinUrl={settings.linkedinUrl}
+            githubUrl={settings.githubUrl}
+            resumeUrl={settings.resumeUrl}
+          />
+        </>
+      ) : null}
     </>
   )
 }

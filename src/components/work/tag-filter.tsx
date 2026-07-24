@@ -1,23 +1,21 @@
-import { tagLabel, type TagId } from '@/content/tags'
 import { cn } from '@/lib/utils'
 
 interface TagFilterProps {
-  tags: TagId[]
-  active: TagId | null
-  onChange: (tag: TagId | null) => void
+  tags: string[]
+  active: string | null
+  onChange: (tag: string | null) => void
 }
+
+const base = 'label-mono border-b-2 pb-1 transition-colors'
 
 export function TagFilter({ tags, active, onChange }: TagFilterProps) {
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label="Filter work by tag">
+    <div className="flex flex-wrap gap-x-5 gap-y-3" role="group" aria-label="Filter work by tag">
       <button
         type="button"
         onClick={() => onChange(null)}
         aria-pressed={active === null}
-        className={cn(
-          'rounded-sm border px-3 py-1.5 text-sm transition-colors',
-          active === null ? 'border-ink bg-ink text-paper' : 'border-line text-ink-muted hover:text-ink',
-        )}
+        className={cn(base, active === null ? 'border-ink text-ink' : 'border-transparent text-ink-faint hover:text-ink')}
       >
         All
       </button>
@@ -27,12 +25,9 @@ export function TagFilter({ tags, active, onChange }: TagFilterProps) {
           type="button"
           onClick={() => onChange(tag)}
           aria-pressed={active === tag}
-          className={cn(
-            'rounded-sm border px-3 py-1.5 text-sm transition-colors',
-            active === tag ? 'border-ink bg-ink text-paper' : 'border-line text-ink-muted hover:text-ink',
-          )}
+          className={cn(base, active === tag ? 'border-ink text-ink' : 'border-transparent text-ink-faint hover:text-ink')}
         >
-          {tagLabel(tag)}
+          {tag}
         </button>
       ))}
     </div>

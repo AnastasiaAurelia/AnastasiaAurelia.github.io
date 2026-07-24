@@ -13,7 +13,10 @@
     "typecheck": "tsc -b"
   },
   "dependencies": {
-    "class-variance-authority": "^0.7.1",
+    "@portabletext/react": "^7.0.1",
+    "@portabletext/types": "^4.0.2",
+    "@sanity/client": "^7.24.0",
+    "@sanity/image-url": "^2.1.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.26.0",
     "react": "^19.2.7",

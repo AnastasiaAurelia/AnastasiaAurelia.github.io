@@ -1,4 +1,4 @@
-import type { Project } from '../types.ts'
+import type { EvidenceType, Project } from '../types.ts'
 import { computerVisionLpr } from './computer-vision-lpr.ts'
 import { researchlens } from './researchlens.ts'
 import { agenticWorkflows } from './agentic-workflows.ts'
@@ -21,4 +21,29 @@ export function getProjectBySlug(slug: string): Project | undefined {
 
 export function getFeaturedProjects(): Project[] {
   return projects.filter((project) => project.featured)
+}
+
+/**
+ * Tallies real evidence by type across the whole catalogue, for the
+ * homepage's evidence-index section. Every project's own detail page
+ * counts as one "case study" — the rest reflect actual linked evidence,
+ * which is 0 for a type until it's genuinely supplied.
+ */
+export function getEvidenceTypeCounts(): Record<EvidenceType, number> {
+  const counts: Record<EvidenceType, number> = {
+    'case-study': projects.length,
+    repository: 0,
+    'live-product': 0,
+    article: 0,
+    video: 0,
+    document: 0,
+    'external-publication': 0,
+    experiment: 0,
+  }
+  for (const project of projects) {
+    for (const evidence of project.evidence) {
+      counts[evidence.type] += 1
+    }
+  }
+  return counts
 }

@@ -1,25 +1,12 @@
-import {
-  BookOpen,
-  ExternalLink,
-  FileText,
-  FlaskConical,
-  GitBranch,
-  Newspaper,
-  PlayCircle,
-  Rocket,
-} from 'lucide-react'
-import type { Evidence, EvidenceType } from '@/content/types'
+import { ExternalLink } from 'lucide-react'
+import { EVIDENCE_META, type EvidenceType } from './evidence-meta'
 import { PlaceholderNotice } from './placeholder-notice'
 
-const ICONS: Record<EvidenceType, typeof ExternalLink> = {
-  'case-study': BookOpen,
-  repository: GitBranch,
-  'live-product': Rocket,
-  article: Newspaper,
-  video: PlayCircle,
-  document: FileText,
-  'external-publication': Newspaper,
-  experiment: FlaskConical,
+export interface Evidence {
+  type: EvidenceType
+  label: string
+  url: string
+  description?: string
 }
 
 export function EvidenceList({ evidence }: { evidence: Evidence[] }) {
@@ -28,22 +15,26 @@ export function EvidenceList({ evidence }: { evidence: Evidence[] }) {
   }
 
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <ul className="grid gap-px overflow-hidden rounded-sm border border-line bg-line sm:grid-cols-2">
       {evidence.map((item) => {
-        const Icon = ICONS[item.type]
+        const meta = EVIDENCE_META[item.type]
+        const Icon = meta.icon
         return (
-          <li key={item.url}>
+          <li key={item.url} className="bg-paper">
             <a
               href={item.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex h-full flex-col gap-1 rounded-sm border border-line p-4 transition-colors hover:border-ink"
+              className="group flex h-full flex-col gap-1.5 p-5 transition-colors hover:bg-surface"
             >
-              <span className="flex items-center gap-2 text-sm font-medium">
-                <Icon className="size-4 shrink-0 text-ink-faint" aria-hidden="true" />
+              <span className="label-mono flex items-center gap-2 text-ink-faint">
+                <Icon className="size-3.5 shrink-0" aria-hidden="true" />
+                {meta.label}
+              </span>
+              <span className="flex items-center gap-1.5 text-sm font-medium">
                 {item.label}
                 <ExternalLink
-                  className="size-3.5 text-ink-faint opacity-0 transition-opacity group-hover:opacity-100"
+                  className="size-3.5 shrink-0 text-ink-faint transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                   aria-hidden="true"
                 />
               </span>

@@ -1,149 +1,143 @@
-import type { ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
+import { PortableText } from '@portabletext/react'
 import { Seo } from '@/components/seo/seo'
-import { Badge } from '@/components/ui/badge'
 import { NarrativeSection } from '@/components/work/narrative-section'
 import { PendingSections } from '@/components/work/pending-sections'
-import { DecisionList } from '@/components/work/decision-list'
-import { EvidenceList } from '@/components/work/evidence-list'
-import { PlaceholderNotice } from '@/components/work/placeholder-notice'
-import { getProjectBySlug } from '@/content/projects'
-import { tagLabel } from '@/content/tags'
+import { ChapterNav } from '@/components/work/chapter-nav'
+import { EvidenceList, type Evidence } from '@/components/work/evidence-list'
+import { LoadingState, ErrorState } from '@/components/state/query-states'
+import { portableTextComponents } from '@/components/portable-text/portable-text-components'
+import { splitProjectContent } from '@/lib/sanity/split-project-content'
+import { urlForImage } from '@/lib/sanity/image'
+import { useProject } from '@/hooks/use-project'
 import { SITE } from '@/content/site'
 import { NotFoundPage } from './not-found-page'
 
 /**
  * The single template every project renders through. Adding a project
  * never means writing a new page component — it means adding a new
- * entry to `content/projects` that satisfies the `Project` type.
+ * document in Sanity Studio; this page resolves it by slug.
  *
- * Each narrative field is either rendered as a full section or, if
- * absent, its title is collected into one consolidated "not yet
- * documented" notice at the end — see `PendingSections`.
+ * The Portable Text `content` field is split into numbered chapters at
+ * each "Project section" marker (see `splitProjectContent`); whichever
+ * of the eleven canonical beats weren't used is named once, at the
+ * end, by `PendingSections` — never left silently absent.
  */
 export function ProjectDetailPage() {
   const { slug } = useParams<{ slug: string }>()
-  const project = slug ? getProjectBySlug(slug) : undefined
+  const { status, data: project } = useProject(slug)
+
+  if (status === 'loading') {
+    return <LoadingState label="Loading project" />
+  }
+
+  if (status === 'error') {
+    return (
+      <div className="container-editorial section-y-tight">
+        <ErrorState message="Couldn't load this project. Check the console for details, or try refreshing." />
+      </div>
+    )
+  }
 
   if (!project) {
     return <NotFoundPage />
   }
 
-  const { narrative } = project
+  const { chapters, pendingTitles } = splitProjectContent(project.content)
 
-  const sections: { id: string; title: string; content: ReactNode | null }[] = [
-    { id: 'overview', title: 'Overview', content: narrative.overview ? <p>{narrative.overview}</p> : null },
-    { id: 'problem', title: 'Problem', content: narrative.problem ? <p>{narrative.problem}</p> : null },
+  const evidence: Evidence[] = [
+    ...(project.githubUrl ? [{ type: 'repository' as const, label: 'Repository', url: project.githubUrl }] : []),
+    ...(project.externalUrl
+      ? [{ type: 'live-product' as const, label: 'Live product', url: project.externalUrl }]
+      : []),
+  ]
+
+  const navChapters = [
+    ...chapters
+      .filter((c) => c.title)
+      .map((chapter, index) => ({ id: chapter.id, number: String(index + 1).padStart(2, '0'), title: chapter.title })),
     {
-      id: 'why-it-mattered',
-      title: 'Why it mattered',
-      content: narrative.whyItMattered ? <p>{narrative.whyItMattered}</p> : null,
-    },
-    { id: 'ownership', title: 'My ownership', content: narrative.ownership ? <p>{narrative.ownership}</p> : null },
-    {
-      id: 'context',
-      title: 'Context and constraints',
-      content: narrative.contextAndConstraints ? <p>{narrative.contextAndConstraints}</p> : null,
-    },
-    {
-      id: 'system',
-      title: 'System / workflow',
-      content: narrative.systemOrWorkflow ? <p>{narrative.systemOrWorkflow}</p> : null,
-    },
-    {
-      id: 'decisions',
-      title: 'Key product and technical decisions',
-      content: narrative.decisions?.length ? <DecisionList decisions={narrative.decisions} /> : null,
-    },
-    { id: 'execution', title: 'Execution', content: narrative.execution ? <p>{narrative.execution}</p> : null },
-    {
-      id: 'outcomes',
-      title: 'Evidence and outcomes',
-      content: narrative.evidenceAndOutcomes ? <p>{narrative.evidenceAndOutcomes}</p> : null,
-    },
-    { id: 'tradeoffs', title: 'Trade-offs', content: narrative.tradeoffs ? <p>{narrative.tradeoffs}</p> : null },
-    {
-      id: 'limitations',
-      title: 'Failures or limitations',
-      content: narrative.failuresAndLimitations?.length ? (
-        <ul className="list-disc space-y-1 pl-5">
-          {narrative.failuresAndLimitations.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      ) : null,
-    },
-    {
-      id: 'lessons',
-      title: 'Lessons learned',
-      content: narrative.lessonsLearned?.length ? (
-        <ul className="list-disc space-y-1 pl-5">
-          {narrative.lessonsLearned.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      ) : null,
+      id: 'evidence',
+      number: String(chapters.filter((c) => c.title).length + 1).padStart(2, '0'),
+      title: 'Evidence & related links',
     },
   ]
 
-  const populated = sections.filter((section) => section.content !== null)
-  const pending = sections.filter((section) => section.content === null)
+  const coverUrl = project.coverImage ? urlForImage(project.coverImage).auto('format').fit('max').width(1600).url() : null
 
   return (
     <>
       <Seo
-        title={project.title}
-        description={project.summary}
+        title={project.seoTitle || project.title}
+        description={project.seoDescription || project.shortSummary}
         path={`/work/${project.slug}`}
         jsonLd={[
           {
             '@context': 'https://schema.org',
             '@type': 'CreativeWork',
             name: project.title,
-            description: project.summary,
+            description: project.shortSummary,
             author: { '@type': 'Person', name: SITE.name },
           },
         ]}
       />
 
-      <article className="mx-auto max-w-3xl px-6 py-16">
-        <header className="mb-10 border-b border-line pb-8">
-          {project.timeframe ? (
-            <p className="text-sm text-ink-faint">{project.timeframe}</p>
+      <article>
+        <header className="container-editorial pt-14 pb-10">
+          <p className="label-mono flex flex-wrap items-center gap-x-3 text-ink-faint">
+            <span className="text-accent">Case study</span>
+            <span>{project.projectType}</span>
+          </p>
+          <h1 className="mt-3 max-w-3xl text-4xl leading-tight sm:text-5xl">{project.title}</h1>
+          <p className="mt-5 max-w-2xl font-serif text-2xl leading-snug text-ink-muted sm:text-3xl">
+            {project.shortSummary}
+          </p>
+          {project.tags?.length > 0 ? (
+            <p className="label-mono mt-6 text-ink-faint">{project.tags.join(' · ')}</p>
           ) : null}
-          <h1 className="mt-1 text-3xl">{project.title}</h1>
-          <p className="mt-3 text-lg text-ink-muted">{project.tagline}</p>
-          {project.tags.length > 0 ? (
-            <ul className="mt-4 flex flex-wrap gap-1.5">
-              {project.tags.map((tag) => (
-                <li key={tag}>
-                  <Badge>{tagLabel(tag)}</Badge>
-                </li>
-              ))}
-            </ul>
+
+          {coverUrl && project.coverImage ? (
+            <img
+              src={coverUrl}
+              alt={project.coverImage.alt}
+              className="mt-8 w-full rounded-sm border border-line"
+              loading="eager"
+            />
           ) : null}
         </header>
 
-        <div className="divide-y divide-line">
-          {populated.map((section) => (
-            <NarrativeSection key={section.id} id={section.id} title={section.title}>
-              {section.content}
-            </NarrativeSection>
-          ))}
+        <div className="container-editorial grid gap-10 border-t border-line pt-10 lg:grid-cols-[15rem_1fr] lg:gap-12">
+          <ChapterNav chapters={navChapters} />
 
-          <PendingSections titles={pending.map((section) => section.title)} />
+          <div className="min-w-0 divide-y divide-line lg:border-l lg:border-line lg:pl-14">
+            {chapters
+              .filter((chapter) => chapter.title)
+              .map((chapter, index) => (
+                <NarrativeSection
+                  key={chapter.id}
+                  id={chapter.id}
+                  number={String(index + 1).padStart(2, '0')}
+                  title={chapter.title}
+                >
+                  <PortableText value={chapter.blocks} components={portableTextComponents} />
+                </NarrativeSection>
+              ))}
 
-          <section className="py-6">
-            <h2 className="mb-3 text-xl">Evidence &amp; related links</h2>
-            <p className="mb-4 text-sm text-ink-muted">
-              Repository, live product, documentation, and media for this project.
-            </p>
-            {project.evidence.length > 0 ? (
-              <EvidenceList evidence={project.evidence} />
-            ) : (
-              <PlaceholderNotice label="No linked evidence yet" />
-            )}
-          </section>
+            <PendingSections titles={pendingTitles} />
+
+            <section id="evidence" className="scroll-mt-28 py-8">
+              <div className="mb-4 flex items-baseline gap-3">
+                <span className="label-mono text-accent">
+                  {String(chapters.filter((c) => c.title).length + 1).padStart(2, '0')}
+                </span>
+                <h2 className="text-xl">Evidence &amp; related links</h2>
+              </div>
+              <p className="mb-4 max-w-2xl text-sm text-ink-muted">
+                Repository, live product, and case-study material for this project.
+              </p>
+              <EvidenceList evidence={evidence} />
+            </section>
+          </div>
         </div>
       </article>
     </>

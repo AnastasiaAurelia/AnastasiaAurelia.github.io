@@ -1,0 +1,9 @@
+node_modules
+dist
+.sanity
+*.log
+
+# Real env values, even though project ID/dataset aren't secret —
+# only .env.example is committed.
+.env
+.env.local
