@@ -2,6 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script type="text/javascript">
+      // GitHub Pages SPA fallback — restore half. dist/404.html (generated
+      // by scripts/generate-spa-fallback.ts) redirects a deep-linked route
+      // like /REPOSITORY/work/researchlens here as
+      // /REPOSITORY/?/work/researchlens; this runs before React mounts and
+      // rewrites the URL back to the clean path via history.replaceState,
+      // so React Router sees the real route on first render.
+      // Pattern: https://github.com/rafgraph/spa-github-pages (MIT)
+      ;(function (l) {
+        if (l.search[1] === '/') {
+          var decoded = l.search
+            .slice(1)
+            .split('&')
+            .map(function (s) {
+              return s.replace(/~and~/g, '&')
+            })
+            .join('?')
+          window.history.replaceState(null, '', l.pathname.slice(0, -1) + decoded + l.hash)
+        }
+      })(window.location)
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta

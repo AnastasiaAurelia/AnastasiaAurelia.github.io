@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "postbuild": "node scripts/generate-sitemap.ts",
+    "postbuild": "node scripts/generate-sitemap.ts && node scripts/generate-spa-fallback.ts",
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
