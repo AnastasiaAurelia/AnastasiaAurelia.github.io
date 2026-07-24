@@ -18,6 +18,14 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Public Sanity identifiers only — project ID and dataset name, not
+      # secrets (see repo Settings → Variables). No write token is ever
+      # read here or passed to the build. Scoped to the whole job, not
+      # just the Build step: Test (Vitest) imports src/lib/sanity/client.ts
+      # transitively too, and needs these to be set before it runs.
+      VITE_SANITY_PROJECT_ID: ${{ vars.VITE_SANITY_PROJECT_ID }}
+      VITE_SANITY_DATASET: ${{ vars.VITE_SANITY_DATASET }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,12 +49,6 @@ jobs:
         run: npm test
 
       - name: Build
-        env:
-          # Public Sanity identifiers only — project ID and dataset name,
-          # not secrets (see repo Settings → Variables). No write token
-          # is ever read here or passed to the build.
-          VITE_SANITY_PROJECT_ID: ${{ vars.VITE_SANITY_PROJECT_ID }}
-          VITE_SANITY_DATASET: ${{ vars.VITE_SANITY_DATASET }}
         run: npm run build
 
       - name: Verify build output
