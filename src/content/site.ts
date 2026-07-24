@@ -17,7 +17,7 @@ export const SITE = {
   /** Used as the default meta description and homepage dek. */
   tagline:
     'Product leadership across computer vision, applied AI, and agentic systems — from problem framing to production reliability.',
-  email: 'aurelanas@gmail.com',
+  email: 'your-email@gmail.com',
   social: [] as SocialLink[],
   nav: [
     { label: 'Work', href: '/work' },
