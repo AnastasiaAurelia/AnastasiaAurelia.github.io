@@ -32,16 +32,51 @@ export const standardBlockStyle = defineArrayMember({
         icon: LinkIcon,
         fields: [
           defineField({
+            name: 'linkType',
+            title: 'Link type',
+            type: 'string',
+            options: {
+              list: [
+                { title: 'External URL', value: 'external' },
+                { title: 'Internal path', value: 'internal' },
+              ],
+              layout: 'radio',
+              direction: 'horizontal',
+            },
+            initialValue: 'external',
+          }),
+          defineField({
             name: 'href',
             title: 'URL',
             type: 'url',
-            validation: (Rule) => Rule.required().uri({ scheme: ['http', 'https', 'mailto'], allowRelative: false }),
+            hidden: ({ parent }) => (parent as { linkType?: string })?.linkType === 'internal',
+            validation: (Rule) =>
+              Rule.uri({ scheme: ['http', 'https', 'mailto'], allowRelative: false }).custom((value, context) => {
+                const parent = context.parent as { linkType?: string } | undefined
+                if (parent?.linkType === 'internal') return true
+                return value ? true : 'Required for an external link'
+              }),
+          }),
+          defineField({
+            name: 'internalPath',
+            title: 'Internal path',
+            type: 'string',
+            description: 'A relative path on this site, e.g. /work/researchlens or /articles/my-post',
+            hidden: ({ parent }) => (parent as { linkType?: string })?.linkType !== 'internal',
+            validation: (Rule) =>
+              Rule.custom((value, context) => {
+                const parent = context.parent as { linkType?: string } | undefined
+                if (parent?.linkType !== 'internal') return true
+                if (!value) return 'Required for an internal link'
+                return value.startsWith('/') ? true : 'Must start with / (a path relative to this site)'
+              }),
           }),
           defineField({
             name: 'newTab',
             title: 'Open in new tab',
             type: 'boolean',
             initialValue: true,
+            hidden: ({ parent }) => (parent as { linkType?: string })?.linkType === 'internal',
           }),
         ],
       }),

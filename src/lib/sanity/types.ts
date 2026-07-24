@@ -134,6 +134,58 @@ export interface CapabilityGroup {
   capabilities?: string[]
 }
 
+/** The inline image block for `article.body` — see `articleImage.ts`. Individual array member, freely reorderable. */
+export interface ArticleImageBlock extends SanityImageObject {
+  _type: 'articleImage'
+  _key: string
+  alt: string
+  caption?: string
+  source?: string
+  sourceUrl?: string
+  layout?: 'normal' | 'wide' | 'full'
+}
+
+/** Any member of `article.body` — standard blocks plus the custom ones. */
+export type ArticleContentBlock =
+  | PortableTextBlock
+  | ArticleImageBlock
+  | MetricHighlightBlock
+  | DecisionCalloutBlock
+  | ArchitectureDiagramBlock
+  | CodeBlock
+
+export type ArticleCategory =
+  | 'Applied AI'
+  | 'Product Management'
+  | 'Computer Vision'
+  | 'Research'
+  | 'Agentic Workflows'
+  | 'Career'
+  | 'Other'
+
+export interface SanityArticle {
+  _id: string
+  title: string
+  slug: string
+  excerpt: string
+  coverImage?: SanityImageWithAlt
+  publishedAt: string
+  updatedAtOverride?: string
+  tags: string[]
+  category?: ArticleCategory
+  featured: boolean
+  body: ArticleContentBlock[]
+  seoTitle?: string
+  seoDescription?: string
+  socialShareImage?: SanityImageWithAlt
+}
+
+/** Card-level projection used for listings — no `body`. */
+export type SanityArticleSummary = Pick<
+  SanityArticle,
+  '_id' | 'title' | 'slug' | 'excerpt' | 'coverImage' | 'publishedAt' | 'tags' | 'category' | 'featured'
+>
+
 export interface SanitySiteSettings {
   homepageHeadline: string
   homepageSupportingCopy: string

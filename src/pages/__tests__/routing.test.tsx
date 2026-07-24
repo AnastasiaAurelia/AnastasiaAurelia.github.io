@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 import { describe, expect, it } from 'vitest'
 import App from '../../App'
-import { fixtureProjects } from '@/test/fixtures'
+import { fixtureArticles, fixtureProjects } from '@/test/fixtures'
 
 function renderAt(path: string) {
   return render(
@@ -68,5 +68,32 @@ describe('routing', () => {
   it('shows the 404 page for an unknown project slug', async () => {
     renderAt('/work/this-slug-does-not-exist')
     expect(await screen.findByText('Page not found')).toBeInTheDocument()
+  })
+
+  it('renders the Writing index with a featured article and the rest listed, newest first', async () => {
+    renderAt('/articles')
+    expect(await screen.findByText('Featured Test Article')).toBeInTheDocument()
+    expect(screen.getByText('Second Test Article')).toBeInTheDocument()
+    // The featured article shouldn't be duplicated in the list below.
+    expect(screen.getAllByText('Featured Test Article')).toHaveLength(1)
+  })
+
+  it('renders an article detail page for a known slug', async () => {
+    const [first] = fixtureArticles
+    renderAt(`/articles/${first.slug}`)
+    expect(await screen.findByRole('heading', { level: 1, name: first.title })).toBeInTheDocument()
+    expect(screen.getByText('The article body renders here.')).toBeInTheDocument()
+  })
+
+  it('shows the 404 page for an unknown article slug', async () => {
+    renderAt('/articles/this-slug-does-not-exist')
+    expect(await screen.findByText('Page not found')).toBeInTheDocument()
+  })
+
+  it('shows Writing in the primary nav and the homepage Latest Writing section', async () => {
+    renderAt('/')
+    expect((await screen.findAllByRole('link', { name: 'Writing' })).length).toBeGreaterThan(0)
+    expect(await screen.findByText('Latest writing')).toBeInTheDocument()
+    expect(screen.getByText('Featured Test Article')).toBeInTheDocument()
   })
 })

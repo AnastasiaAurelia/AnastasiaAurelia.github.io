@@ -1,4 +1,10 @@
-import type { SanityExperience, SanityProjectSummary, SanitySiteSettings } from '@/lib/sanity/types'
+import type {
+  SanityArticle,
+  SanityArticleSummary,
+  SanityExperience,
+  SanityProjectSummary,
+  SanitySiteSettings,
+} from '@/lib/sanity/types'
 
 /** Shared fixtures for tests that mock `@/lib/sanity/fetch` — kept realistic so tests stay meaningful. */
 
@@ -80,6 +86,56 @@ export const fixtureProjects: SanityProjectSummary[] = [
     githubUrl: undefined,
   },
 ]
+
+export const fixtureArticles: SanityArticleSummary[] = [
+  {
+    _id: 'article-featured',
+    title: 'Featured Test Article',
+    slug: 'featured-test-article',
+    excerpt: 'This article is featured and should appear in the Writing index featured slot and on the homepage.',
+    coverImage: undefined,
+    publishedAt: '2026-06-01T00:00:00.000Z',
+    tags: ['test'],
+    category: 'Applied AI',
+    featured: true,
+  },
+  {
+    _id: 'article-second',
+    title: 'Second Test Article',
+    slug: 'second-test-article',
+    excerpt: 'A second, non-featured article for list/order/filter tests.',
+    coverImage: undefined,
+    publishedAt: '2026-05-01T00:00:00.000Z',
+    tags: ['test'],
+    category: 'Research',
+    featured: false,
+  },
+]
+
+export const fixtureArticleBody: SanityArticle = {
+  _id: 'article-featured',
+  title: 'Featured Test Article',
+  slug: 'featured-test-article',
+  excerpt: 'This article is featured and should appear in the Writing index featured slot and on the homepage.',
+  coverImage: undefined,
+  publishedAt: '2026-06-01T00:00:00.000Z',
+  updatedAtOverride: undefined,
+  tags: ['test'],
+  category: 'Applied AI',
+  featured: true,
+  body: [
+    {
+      _type: 'block',
+      _key: 'b1',
+      style: 'normal',
+      markDefs: [],
+      children: [{ _type: 'span', _key: 's1', text: 'The article body renders here.', marks: [] }],
+    } as never,
+  ],
+  seoTitle: undefined,
+  seoDescription: undefined,
+  socialShareImage: undefined,
+}
 
 export const fixtureExperience: SanityExperience[] = [
   {

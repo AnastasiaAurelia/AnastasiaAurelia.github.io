@@ -24,7 +24,7 @@ export function ContactSection({ email, linkedinUrl, githubUrl, resumeUrl }: Con
       data-visible={visible}
       className="reveal container-editorial section-y border-t border-line"
     >
-      <SectionKicker index="05" title="Contact" />
+      <SectionKicker index="06" title="Contact" />
       <p className="max-w-2xl font-serif text-3xl leading-snug sm:text-4xl">
         Reviewing candidates for a product role in computer vision or applied AI? Start here.
       </p>

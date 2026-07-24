@@ -69,6 +69,7 @@ export const SITE = {
   social: [] as SocialLink[],
   nav: [
     { label: 'Work', href: '/work' },
+    { label: 'Writing', href: '/articles' },
     { label: 'About', href: '/about' },
   ],
   /** Placeholder — replace with the real production domain before launch.

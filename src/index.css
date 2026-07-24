@@ -248,4 +248,27 @@
       transform: translateY(0);
     }
   }
+
+  /*
+   * Article body breakout grid: lets an inline image opt into a wider
+   * measure than the 42rem reading column without redesigning it. Every
+   * direct child defaults to the "normal" column (matching the reading
+   * width used elsewhere); an image can widen itself via
+   * .breakout-wide/.breakout-full. The side columns are `minmax(0, …)`,
+   * so they collapse toward 0 on narrow viewports — wide/full naturally
+   * converge on the same width as normal on mobile, never overflowing.
+   */
+  .article-body-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 7rem) min(42rem, 100%) minmax(0, 7rem) minmax(0, 1fr);
+  }
+  .article-body-grid > * {
+    grid-column: 3;
+  }
+  .article-body-grid > .breakout-wide {
+    grid-column: 2 / 5;
+  }
+  .article-body-grid > .breakout-full {
+    grid-column: 1 / 6;
+  }
 }

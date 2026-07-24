@@ -1,12 +1,24 @@
 import { sanityClient } from './client'
 import {
+  allArticlesQuery,
   allProjectsQuery,
+  articleBySlugQuery,
+  featuredArticlesQuery,
   featuredProjectsQuery,
+  latestArticlesQuery,
   projectBySlugQuery,
+  publishedArticleSlugsQuery,
   siteSettingsQuery,
   visibleExperienceQuery,
 } from './queries'
-import type { SanityExperience, SanityProject, SanityProjectSummary, SanitySiteSettings } from './types'
+import type {
+  SanityArticle,
+  SanityArticleSummary,
+  SanityExperience,
+  SanityProject,
+  SanityProjectSummary,
+  SanitySiteSettings,
+} from './types'
 
 export function getFeaturedProjects(): Promise<SanityProjectSummary[]> {
   return sanityClient.fetch(featuredProjectsQuery)
@@ -26,4 +38,25 @@ export function getVisibleExperience(): Promise<SanityExperience[]> {
 
 export function getSiteSettings(): Promise<SanitySiteSettings | null> {
   return sanityClient.fetch(siteSettingsQuery)
+}
+
+export function getAllArticles(): Promise<SanityArticleSummary[]> {
+  return sanityClient.fetch(allArticlesQuery)
+}
+
+export function getFeaturedArticles(): Promise<SanityArticleSummary[]> {
+  return sanityClient.fetch(featuredArticlesQuery)
+}
+
+export function getLatestArticles(limit = 3): Promise<SanityArticleSummary[]> {
+  return sanityClient.fetch(latestArticlesQuery, { limit })
+}
+
+export function getArticleBySlug(slug: string): Promise<SanityArticle | null> {
+  return sanityClient.fetch(articleBySlugQuery, { slug })
+}
+
+/** Published article slugs only — used by sitemap generation. */
+export function getPublishedArticleSlugs(): Promise<string[]> {
+  return sanityClient.fetch(publishedArticleSlugsQuery)
 }

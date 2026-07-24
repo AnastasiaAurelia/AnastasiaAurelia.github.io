@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { SITE } from '@/content/site'
 import { useSiteSettings } from '@/hooks/use-site-settings'
 
@@ -19,10 +20,19 @@ export function Footer() {
 
   return (
     <footer className="mt-auto border-t border-line">
-      <div className="container-editorial flex flex-col gap-3 py-8 text-sm text-ink-faint sm:flex-row sm:items-center sm:justify-between">
-        <p className="label-mono">
-          © {new Date().getFullYear()} {SITE.name}
-        </p>
+      <div className="container-editorial flex flex-col gap-4 py-8 text-sm text-ink-faint sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-4">
+          <p className="label-mono">
+            © {new Date().getFullYear()} {SITE.name}
+          </p>
+          <nav aria-label="Footer" className="flex flex-wrap items-center gap-4">
+            {SITE.nav.map((item) => (
+              <Link key={item.href} to={item.href} className="transition-colors hover:text-ink">
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
         <div className="flex flex-wrap items-center gap-4">
           {email ? (
             <a href={`mailto:${email}`} className="transition-colors hover:text-ink">

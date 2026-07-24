@@ -1,9 +1,11 @@
 import type { PortableTextComponents } from '@portabletext/react'
+import { Link } from 'react-router-dom'
 import { PortableImage } from './portable-image'
 import { MetricHighlight } from './metric-highlight'
 import { DecisionCallout } from './decision-callout'
 import { ArchitectureDiagram } from './architecture-diagram'
 import { CodeBlock } from './code-block'
+import { ArticleImage } from './article-image'
 
 /**
  * Everything Portable Text can render, mapped to the app's own styled
@@ -35,16 +37,27 @@ export const portableTextComponents: PortableTextComponents = {
       <code className="rounded-sm bg-surface px-1.5 py-0.5 font-mono text-[0.9em]">{children}</code>
     ),
     link: ({ children, value }) => {
+      const linkType = value?.linkType as string | undefined
+      const className = 'underline decoration-line-strong underline-offset-2 transition-colors hover:decoration-ink'
+
+      if (linkType === 'internal') {
+        const internalPath = value?.internalPath as string | undefined
+        if (!internalPath) return <>{children}</>
+        return (
+          <Link to={internalPath} className={className}>
+            {children}
+          </Link>
+        )
+      }
+
       const href = value?.href as string | undefined
       if (!href) return <>{children}</>
       const isExternal = /^https?:\/\//.test(href)
       return (
         <a
           href={href}
-          className="underline decoration-line-strong underline-offset-2 transition-colors hover:decoration-ink"
-          {...(isExternal && value?.newTab !== false
-            ? { target: '_blank', rel: 'noopener noreferrer' }
-            : {})}
+          className={className}
+          {...(isExternal && value?.newTab !== false ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
         >
           {children}
         </a>
@@ -53,6 +66,7 @@ export const portableTextComponents: PortableTextComponents = {
   },
   types: {
     image: PortableImage,
+    articleImage: ArticleImage,
     architectureDiagram: ArchitectureDiagram,
     metricHighlight: MetricHighlight,
     decisionCallout: DecisionCallout,

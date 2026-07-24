@@ -59,6 +59,52 @@ export const visibleExperienceQuery = `*[_type == "experience" && visible == tru
   displayOrder,
 }`
 
+const ARTICLE_SUMMARY_PROJECTION = `{
+  _id,
+  title,
+  "slug": slug.current,
+  excerpt,
+  coverImage,
+  publishedAt,
+  tags,
+  category,
+  featured,
+}`
+
+const ARTICLE_FULL_PROJECTION = `{
+  _id,
+  title,
+  "slug": slug.current,
+  excerpt,
+  coverImage,
+  publishedAt,
+  updatedAtOverride,
+  tags,
+  category,
+  featured,
+  body,
+  seoTitle,
+  seoDescription,
+  socialShareImage,
+}`
+
+const BY_FEATURED_THEN_PUBLISHED_DESC = 'order(featured desc, publishedAt desc)'
+
+export const allArticlesQuery = `*[_type == "article"] | ${BY_FEATURED_THEN_PUBLISHED_DESC} ${ARTICLE_SUMMARY_PROJECTION}`
+
+export const featuredArticlesQuery = `*[_type == "article" && featured == true] | ${BY_FEATURED_THEN_PUBLISHED_DESC} ${ARTICLE_SUMMARY_PROJECTION}`
+
+/** Latest N published articles, newest first — used by the homepage Latest Writing section. */
+export const latestArticlesQuery = `*[_type == "article"] | order(publishedAt desc) [0...$limit] ${ARTICLE_SUMMARY_PROJECTION}`
+
+export const articleBySlugQuery = `*[_type == "article" && slug.current == $slug][0] ${ARTICLE_FULL_PROJECTION}`
+
+/** Used by the migration/seed scripts to detect an existing document before writing. */
+export const articleSlugExistsQuery = `*[_type == "article" && slug.current == $slug][0]._id`
+
+/** Published article slugs only — used by sitemap generation. */
+export const publishedArticleSlugsQuery = `*[_type == "article"].slug.current`
+
 export const siteSettingsQuery = `*[_type == "siteSettings"][0] {
   homepageHeadline,
   homepageSupportingCopy,

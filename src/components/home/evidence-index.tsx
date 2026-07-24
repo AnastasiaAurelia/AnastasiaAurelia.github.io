@@ -27,7 +27,7 @@ export function EvidenceIndex({ projects }: { projects: SanityProjectSummary[] }
       data-visible={visible}
       className="reveal container-editorial scroll-mt-24 section-y-tight border-t border-line"
     >
-      <SectionKicker index="04" title="Evidence index" />
+      <SectionKicker index="05" title="Evidence index" />
       <p className="max-w-2xl text-ink-muted">
         Each project aggregates whichever of these exist for it — a case study, a repository, a
         live product — behind one page, rather than as separate posts.

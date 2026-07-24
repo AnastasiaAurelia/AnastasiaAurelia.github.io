@@ -1,8 +1,9 @@
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { PortableText } from '@portabletext/react'
 import { describe, expect, it } from 'vitest'
 import { portableTextComponents } from '../portable-text-components'
-import type { ProjectContentBlock } from '@/lib/sanity/types'
+import type { ArticleContentBlock, ProjectContentBlock } from '@/lib/sanity/types'
 
 // A syntactically valid Sanity asset ref (image-<id>-<dimensions>-<format>)
 // so @sanity/image-url can build a URL without a real uploaded asset.
@@ -143,5 +144,96 @@ describe('portableTextComponents', () => {
     render(<PortableText value={sampleContent} components={portableTextComponents} />)
     expect(screen.getByText('const x = 1')).toBeInTheDocument()
     expect(screen.getByText('typescript')).toBeInTheDocument()
+  })
+})
+
+describe('articleImage rendering', () => {
+  const articleBody: ArticleContentBlock[] = [
+    {
+      _type: 'block',
+      _key: 'p1',
+      style: 'normal',
+      markDefs: [],
+      children: [{ _type: 'span', _key: 's1', text: 'Paragraph before the image.', marks: [] }],
+    } as ArticleContentBlock,
+    {
+      _type: 'articleImage',
+      _key: 'img-normal',
+      alt: 'A normal-layout test image',
+      caption: 'Normal caption',
+      source: 'Test Source',
+      sourceUrl: 'https://example.com/credit',
+      layout: 'normal',
+      asset: { _ref: fixtureAssetRef, _type: 'reference' },
+    } as ArticleContentBlock,
+    {
+      _type: 'block',
+      _key: 'p2',
+      style: 'normal',
+      markDefs: [],
+      children: [{ _type: 'span', _key: 's2', text: 'Paragraph after the image.', marks: [] }],
+    } as ArticleContentBlock,
+    {
+      _type: 'articleImage',
+      _key: 'img-wide',
+      alt: 'A wide-layout test image',
+      layout: 'wide',
+      asset: { _ref: fixtureAssetRef, _type: 'reference' },
+    } as ArticleContentBlock,
+    {
+      _type: 'articleImage',
+      _key: 'img-full',
+      alt: 'A full-width test image',
+      layout: 'full',
+      asset: { _ref: fixtureAssetRef, _type: 'reference' },
+    } as ArticleContentBlock,
+  ]
+
+  it('renders alt text, caption, and a linked source credit', () => {
+    render(<PortableText value={articleBody} components={portableTextComponents} />)
+    expect(screen.getByAltText('A normal-layout test image')).toBeInTheDocument()
+    expect(screen.getByText('Normal caption', { exact: false })).toBeInTheDocument()
+    const credit = screen.getByRole('link', { name: 'Test Source' })
+    expect(credit).toHaveAttribute('href', 'https://example.com/credit')
+  })
+
+  it('applies the correct breakout class per layout variant', () => {
+    render(<PortableText value={articleBody} components={portableTextComponents} />)
+    const normalFigure = screen.getByAltText('A normal-layout test image').closest('figure')
+    const wideFigure = screen.getByAltText('A wide-layout test image').closest('figure')
+    const fullFigure = screen.getByAltText('A full-width test image').closest('figure')
+    expect(normalFigure?.className).not.toMatch(/breakout/)
+    expect(wideFigure?.className).toContain('breakout-wide')
+    expect(fullFigure?.className).toContain('breakout-full')
+  })
+
+  it('preserves body order: paragraph, image, paragraph, image, image', () => {
+    const { container } = render(<PortableText value={articleBody} components={portableTextComponents} />)
+    const topLevelNodes = Array.from(container.children)
+    const kinds = topLevelNodes.map((node) => (node.tagName === 'FIGURE' ? 'image' : 'text'))
+    expect(kinds).toEqual(['text', 'image', 'text', 'image', 'image'])
+  })
+})
+
+describe('internal link rendering', () => {
+  it('renders an internal-path link via React Router Link, not a plain anchor reload', () => {
+    const content: ArticleContentBlock[] = [
+      {
+        _type: 'block',
+        _key: 'b1',
+        style: 'normal',
+        markDefs: [{ _key: 'link1', _type: 'link', linkType: 'internal', internalPath: '/articles/other-post' }],
+        children: [{ _type: 'span', _key: 's1', text: 'an internal link', marks: ['link1'] }],
+      } as ArticleContentBlock,
+    ]
+    render(
+      <MemoryRouter>
+        <PortableText value={content} components={portableTextComponents} />
+      </MemoryRouter>,
+    )
+    const link = screen.getByRole('link', { name: 'an internal link' })
+    expect(link).toHaveAttribute('href', '/articles/other-post')
+    // Internal links never get target=_blank — they're same-site navigation.
+    expect(link).not.toHaveAttribute('target')
   })
 })

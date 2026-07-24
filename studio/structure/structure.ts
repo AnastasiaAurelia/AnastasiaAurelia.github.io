@@ -2,6 +2,7 @@ import type { StructureResolver } from 'sanity/structure'
 import { CogIcon } from '@sanity/icons/Cog'
 import { CaseIcon } from '@sanity/icons/Case'
 import { UsersIcon } from '@sanity/icons/Users'
+import { DocumentIcon } from '@sanity/icons/Document'
 
 /**
  * Custom navigation: Site Settings is a fixed link straight to its one
@@ -24,6 +25,17 @@ export const structure: StructureResolver = (S) =>
           S.documentTypeList('project')
             .title('Projects')
             .defaultOrdering([{ field: 'displayOrder', direction: 'asc' }]),
+        ),
+      S.listItem()
+        .title('Articles')
+        .icon(DocumentIcon)
+        .child(
+          S.documentTypeList('article')
+            .title('Articles')
+            .defaultOrdering([
+              { field: 'featured', direction: 'desc' },
+              { field: 'publishedAt', direction: 'desc' },
+            ]),
         ),
       S.listItem()
         .title('Experience')
