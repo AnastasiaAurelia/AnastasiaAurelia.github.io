@@ -27,3 +27,9 @@ dist-ssr
 *.sln
 *.sw?
 scripts/.env.migration
+
+# Claude Code local runtime state
+.claude/settings.local.json
+.claude/costs.jsonl
+.claude/**/*.bak.*
+CLAUDE.md.bak.*
