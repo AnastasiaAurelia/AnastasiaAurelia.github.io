@@ -45,22 +45,28 @@ export function HeroSignature() {
       style={{ transform: 'translate(var(--px, 0), var(--py, 0))' }}
     >
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="size-full">
+        {/* Corner arm length in viewBox units — bumped from the original
+            10 so the frame reads clearly around the (now much tighter)
+            headline block it's mounted in, instead of as a faint tick
+            lost in a much larger box. Each entry is [translateX,
+            translateY, path] with every path drawn as one continuous
+            arm-end → true-corner → other-arm-end stroke. */}
         {(
           [
-            ['5', '5', 'M0,10 L0,0 L10,0'],
-            ['95', '5', 'M0,0 L10,0 L10,10'],
-            ['5', '95', 'M0,0 L0,10 L10,10'],
-            ['95', '95', 'M0,0 L10,0 M10,0 L10,10'],
+            [0, 0, 'M0,13 L0,0 L13,0'],
+            [87, 0, 'M0,0 L13,0 L13,13'],
+            [0, 87, 'M0,0 L0,13 L13,13'],
+            [87, 87, 'M0,13 L13,13 L13,0'],
           ] as const
-        ).map(([x, y, d], i) => (
-          <g key={i} transform={`translate(${Number(x) - 5}, ${Number(y) - 5})`}>
+        ).map(([tx, ty, d], i) => (
+          <g key={i} transform={`translate(${tx}, ${ty})`}>
             <path
               d={d}
               className="hero-reticle-mark"
               style={{ animationDelay: `${i * 90}ms` }}
               fill="none"
               stroke="currentColor"
-              strokeWidth="0.5"
+              strokeWidth="0.75"
               vectorEffect="non-scaling-stroke"
             />
           </g>

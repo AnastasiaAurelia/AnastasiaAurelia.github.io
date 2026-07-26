@@ -3,7 +3,12 @@ import { ArrowUpRight } from 'lucide-react'
 import type { SanityProjectSummary } from '@/lib/sanity/types'
 import { EVIDENCE_META, type EvidenceType } from './evidence-meta'
 
-/** One row of the full work index — a numbered list, not a card grid. */
+/**
+ * One row of the full work index. Deliberately technical/dense in its
+ * metadata column — project type leads (an already-fetched field the
+ * card didn't previously surface), then tags, then an evidence manifest
+ * with icons — so it reads as a case-study record, not an essay.
+ */
 export function WorkCard({ project, index }: { project: SanityProjectSummary; index: number }) {
   const evidenceTypes: EvidenceType[] = [
     'case-study',
@@ -27,9 +32,21 @@ export function WorkCard({ project, index }: { project: SanityProjectSummary; in
         </h3>
         <p className="mt-2 max-w-xl text-sm text-ink-muted">{project.shortSummary}</p>
       </div>
-      <div className="flex flex-col gap-2 sm:col-span-4">
+      <div className="flex flex-col gap-3 sm:col-span-4">
+        <p className="label-mono text-accent">{project.projectType}</p>
         {project.tags?.length > 0 ? <p className="label-mono text-ink-faint">{project.tags.join(' · ')}</p> : null}
-        <p className="label-mono text-accent">{evidenceTypes.map((t) => EVIDENCE_META[t].label).join(' · ')}</p>
+        <ul className="flex flex-wrap gap-x-3 gap-y-1">
+          {evidenceTypes.map((type) => {
+            const meta = EVIDENCE_META[type]
+            const Icon = meta.icon
+            return (
+              <li key={type} className="label-mono flex items-center gap-1 text-ink-faint">
+                <Icon className="size-3" aria-hidden="true" />
+                {meta.label}
+              </li>
+            )
+          })}
+        </ul>
       </div>
     </Link>
   )

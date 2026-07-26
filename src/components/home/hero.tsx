@@ -13,20 +13,27 @@ interface HeroProps {
 export function Hero({ headline, supportingCopy, credibilityPoints }: HeroProps) {
   return (
     <section className="container-editorial relative section-y-tight pt-14 sm:pt-20">
-      <HeroSignature />
+      {/* The reticle now frames just this block (eyebrow + headline + dek)
+          instead of the whole section, so it reads as a frame around the
+          headline rather than a faint mark lost in the section's empty
+          space below the CTA row. -m-5/p-5 give it breathing room without
+          shifting anything else's spacing. */}
+      <div className="relative -m-5 p-5">
+        <HeroSignature />
 
-      <p className="hero-enter label-mono text-accent">{SITE.positioning}</p>
+        <p className="hero-enter label-mono text-accent">{SITE.positioning}</p>
 
-      <h1
-        className="hero-enter mt-4 max-w-4xl text-5xl leading-[1.05] sm:text-6xl lg:text-7xl"
-        style={{ animationDelay: '90ms' }}
-      >
-        {headline}
-      </h1>
+        <h1
+          className="hero-enter mt-4 max-w-4xl text-5xl leading-[1.05] sm:text-6xl lg:text-7xl"
+          style={{ animationDelay: '90ms' }}
+        >
+          {headline}
+        </h1>
 
-      <p className="hero-enter mt-6 max-w-xl text-lg text-ink-muted" style={{ animationDelay: '220ms' }}>
-        {supportingCopy}
-      </p>
+        <p className="hero-enter mt-6 max-w-xl text-lg text-ink-muted" style={{ animationDelay: '220ms' }}>
+          {supportingCopy}
+        </p>
+      </div>
 
       {credibilityPoints && credibilityPoints.length > 0 ? (
         <ul
