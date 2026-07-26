@@ -3,7 +3,13 @@ import { ArrowUpRight } from 'lucide-react'
 import type { SanityArticleSummary } from '@/lib/sanity/types'
 import { formatDate } from '@/lib/format-date'
 
-/** One row of the Writing index — mirrors WorkCard's numbered-row pattern. */
+/**
+ * One row of the Writing index. Deliberately sparser than WorkCard's
+ * metadata column (no icon manifest — articles have no evidence types)
+ * and the excerpt reads as a voiced fragment (serif italic, the same
+ * family already used for editorial statements elsewhere on the site)
+ * rather than the plain small-sans summary a case study gets.
+ */
 export function ArticleCard({ article, index }: { article: SanityArticleSummary; index: number }) {
   return (
     <Link
@@ -19,7 +25,13 @@ export function ArticleCard({ article, index }: { article: SanityArticleSummary;
             aria-hidden="true"
           />
         </h3>
-        <p className="mt-2 max-w-xl text-sm text-ink-muted">{article.excerpt}</p>
+        {/* font-medium matters here, not just italic: Source Serif 4's
+            italic is only loaded at weight 500 (see index.html's font
+            URL) — italic alone would request the unloaded 400-weight
+            italic and fall back to browser-synthesized faux italic. */}
+        <p className="mt-2 max-w-xl font-serif text-base font-medium italic leading-snug text-ink-muted">
+          {article.excerpt}
+        </p>
       </div>
       <div className="flex flex-col gap-2 sm:col-span-4">
         <p className="label-mono text-ink-faint">{formatDate(article.publishedAt)}</p>
