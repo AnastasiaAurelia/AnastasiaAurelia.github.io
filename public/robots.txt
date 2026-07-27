@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://anastasiaaurelia.github.io/anastasia-portfolio/sitemap.xml
+Sitemap: https://anastasiaaurelia.github.io/sitemap.xml

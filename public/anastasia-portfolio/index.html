@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Anastasia Aurelia</title>
+    <script type="text/javascript">
+      // Legacy GitHub Pages *project*-site entry point. The site now
+      // lives at the repo root (see vite.config.ts) — this file exists
+      // only so old /anastasia-portfolio/... links keep working,
+      // including ones already encoded by the pre-migration 404.html's
+      // ?/ trick (e.g. /anastasia-portfolio/?/work/researchlens). Not
+      // part of the React app — a plain redirect only. Safe to delete
+      // once traffic to this path is negligible.
+      ;(function (l) {
+        if (l.search[1] === '/') {
+          // Already-encoded deep link. The payload is already in the
+          // exact format the root index.html's restore script expects —
+          // just retarget it at the real site root, unchanged.
+          l.replace('/' + l.search + l.hash)
+        } else {
+          // Bare /anastasia-portfolio/ with no route payload.
+          l.replace('/' + l.hash)
+        }
+      })(window.location)
+    </script>
+  </head>
+  <body></body>
+</html>

@@ -75,5 +75,5 @@ export const SITE = {
   /** The production GitHub Pages URL — no trailing slash, since every
    *  route path already begins with `/`. Feeds canonical URLs, OG tags,
    *  and the generated sitemap. */
-  url: 'https://anastasiaaurelia.github.io/anastasia-portfolio',
+  url: 'https://anastasiaaurelia.github.io',
 } as const

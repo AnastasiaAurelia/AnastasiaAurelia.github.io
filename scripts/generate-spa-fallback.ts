@@ -4,10 +4,10 @@
  * TypeScript support, no bundler).
  *
  * GitHub Pages has no server-side rewrite rule, so a direct request for
- * /anastasia-portfolio/work/researchlens (a refresh, or a link opened in a new
- * tab) 404s at the CDN before React Router ever sees it. GitHub Pages
- * does let a static 404.html handle that instead. This file reuses the
- * real build's <head> (so the tab title/favicon/fonts are correct even
+ * /work/researchlens (a refresh, or a link opened in a new tab) 404s at
+ * the CDN before React Router ever sees it. GitHub Pages does let a
+ * static 404.html handle that instead. This file reuses the real
+ * build's <head> (so the tab title/favicon/fonts are correct even
  * during the redirect) but intentionally does NOT include the app
  * bundle's <script> tag — its only job is to redirect immediately via
  * the query-string encoding trick, not to mount the app. The matching
@@ -21,10 +21,22 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 const INDEX_PATH = 'dist/index.html'
 const OUTPUT_PATH = 'dist/404.html'
 
-// This is a GitHub *project* site (served at /anastasia-portfolio/, one
-// path segment), not a user/org site or custom domain (served at /) —
-// see vite.config.ts, which is the single place the actual repo name lives.
-const PATH_SEGMENTS_TO_KEEP = 1
+// This is a GitHub *user* site (AnastasiaAurelia.github.io), served at
+// the domain root — see vite.config.ts, which is the single place the
+// actual repo topology lives. Zero path segments belong to the "base",
+// so the whole pathname is the route to restore.
+const PATH_SEGMENTS_TO_KEEP = 0
+
+// Pre-migration project-site base. The repo used to be "anastasia-
+// portfolio", served at /anastasia-portfolio/, so old bookmarked or
+// indexed links (e.g. /anastasia-portfolio/work/researchlens) still
+// point here. GitHub Pages only supports one site-root 404.html — there
+// is no per-directory override — so any request under this prefix with
+// no matching file lands here too, and needs its own branch: strip the
+// legacy prefix and hand off to the *same* ?/ restore contract below,
+// just retargeted at the real root. Safe to delete this branch (and
+// public/anastasia-portfolio/) once traffic to the old path is negligible.
+const LEGACY_PROJECT_BASE = '/anastasia-portfolio'
 
 if (!existsSync(INDEX_PATH)) {
   console.error(`${INDEX_PATH} not found — run the build before generating the SPA fallback.`)
@@ -54,15 +66,32 @@ const redirectScript = `
     <script type="text/javascript">
       // GitHub Pages SPA fallback (redirect half). See index.html for the
       // matching restore script. Pattern: https://github.com/rafgraph/spa-github-pages
-      var pathSegmentsToKeep = ${PATH_SEGMENTS_TO_KEEP};
       var l = window.location;
-      l.replace(
-        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
-        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
-        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-        l.hash
-      );
+      var legacyBase = '${LEGACY_PROJECT_BASE}';
+      if (l.pathname === legacyBase || l.pathname.indexOf(legacyBase + '/') === 0) {
+        // Old project-site link with no matching file (e.g. a direct hit
+        // to /anastasia-portfolio/work/researchlens, not the already-
+        // encoded ?/ form — that's served straight from
+        // public/anastasia-portfolio/index.html and never reaches here).
+        // Strip the legacy prefix and reuse the same ?/ restore contract
+        // as the standard branch below, retargeted at the real root.
+        var rest = l.pathname.slice(legacyBase.length).replace(/^\\//, '');
+        l.replace(
+          l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + '/?/' +
+          rest.replace(/&/g, '~and~') +
+          (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+          l.hash
+        );
+      } else {
+        var pathSegmentsToKeep = ${PATH_SEGMENTS_TO_KEEP};
+        l.replace(
+          l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+          l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+          l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+          (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+          l.hash
+        );
+      }
     </script>`
 
 const fallbackHtml = `<!doctype html>
