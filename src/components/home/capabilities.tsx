@@ -31,7 +31,7 @@ export function Capabilities({ groups }: { groups: CapabilityGroup[] }) {
               <span className="label-mono pt-1 text-ink-faint">{String(index + 1).padStart(2, '0')}</span>
               <div className="sm:contents">
                 <h3 className="text-xl sm:col-start-2">{group.title}</h3>
-                <div className="mt-2 max-w-xl sm:col-start-3 sm:row-start-1 sm:mt-0">
+                <div className="mt-2 max-w-xl sm:col-start-3 sm:row-start-1 sm:mt-0 sm:border-l sm:border-line sm:pl-8">
                   <p className="text-ink-muted">{group.description}</p>
                   {group.capabilities && group.capabilities.length > 0 ? (
                     <p className="label-mono mt-2 text-ink-faint">{group.capabilities.join(' · ')}</p>

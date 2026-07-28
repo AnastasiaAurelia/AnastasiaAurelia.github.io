@@ -250,6 +250,69 @@
   }
 
   /*
+   * Shared "precision instrument" visual system — used by HeroInstrument
+   * and ProjectPlate. Both are decorative, aria-hidden SVG marks (reticle
+   * geometry, document lattice, workflow loops, measurement ticks) drawn
+   * once, never looping. Default state (no media query matched) is
+   * already the fully-drawn end state — this is what mobile and reduced-
+   * motion both fall back to, satisfying "static on mobile" / "static
+   * under reduced motion" with one mechanism instead of two: the
+   * pre-animation state only exists inside the min-width gate below, and
+   * the global prefers-reduced-motion block earlier in this file already
+   * zeroes any animation-duration regardless of viewport, so reduced
+   * motion collapses straight to this same end state even on desktop.
+   */
+  .instrument-mark {
+    color: var(--color-line-strong);
+  }
+  .instrument-stroke {
+    stroke-dasharray: 300;
+    stroke-dashoffset: 0;
+  }
+  .instrument-node {
+    opacity: 1;
+    transform-origin: center;
+  }
+  @media (min-width: 1024px) {
+    .instrument-stroke {
+      stroke-dashoffset: 300;
+    }
+    .instrument-node {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    /* Hero: plays once the component mounts — it's always above the
+       fold, so mount time and view time are the same moment. */
+    .hero-instrument .instrument-stroke {
+      animation: instrument-draw 1.1s var(--ease-editorial) forwards;
+    }
+    .hero-instrument .instrument-node {
+      animation: instrument-node-in 0.5s var(--ease-editorial) forwards;
+    }
+    /* Project plates: below the fold inside a SelectedWork row, so the
+       draw-in is gated on that row's own existing scroll-reveal state
+       (.reveal[data-visible='true'], set by useReveal) instead of firing
+       invisibly at mount, before the row is ever seen. */
+    .reveal[data-visible='true'] .project-plate .instrument-stroke {
+      animation: instrument-draw 0.9s var(--ease-editorial) forwards;
+    }
+    .reveal[data-visible='true'] .project-plate .instrument-node {
+      animation: instrument-node-in 0.45s var(--ease-editorial) forwards;
+    }
+  }
+  @keyframes instrument-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes instrument-node-in {
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /*
    * Article body breakout grid: lets an inline image opt into a wider
    * measure than the 42rem reading column without redesigning it. Every
    * direct child defaults to the "normal" column (matching the reading

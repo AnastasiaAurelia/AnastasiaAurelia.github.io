@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { ArrowUpRight } from 'lucide-react'
 import type { SanityProjectSummary } from '@/lib/sanity/types'
 import { EVIDENCE_META, type EvidenceType } from '@/components/work/evidence-meta'
+import { ProjectPlate } from '@/components/work/project-plate'
 import { SectionKicker } from '@/components/editorial/section-kicker'
 import { EmptyState } from '@/components/state/query-states'
 import { useReveal } from '@/hooks/use-reveal'
@@ -30,6 +31,15 @@ function SelectedWorkEntry({ project, index }: { project: SanityProjectSummary; 
       <div className={cn('sm:col-span-3', flipped && 'sm:order-2')}>
         <span className="label-mono text-accent">{String(index + 1).padStart(2, '0')}</span>
         <p className="label-mono mt-2 text-ink-faint">{category}</p>
+        <ProjectPlate
+          projectType={project.projectType}
+          tags={project.tags}
+          index={index}
+          className={cn(
+            'hidden sm:mt-8 sm:block',
+            'transition-transform duration-300 ease-[var(--ease-editorial)] group-hover:-translate-y-1',
+          )}
+        />
       </div>
       <div className={cn('sm:col-span-9', flipped && 'sm:order-1')}>
         <h3 className="text-3xl leading-tight sm:text-4xl">{project.title}</h3>
