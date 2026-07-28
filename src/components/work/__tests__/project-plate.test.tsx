@@ -1,38 +1,74 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { ProjectPlate } from '../project-plate'
+import type { ProjectType } from '@/lib/sanity/types'
+
+const NAMED_TERRITORIES: ProjectType[] = [
+  'Computer Vision',
+  'Research Intelligence',
+  'Agentic Workflow',
+  'Applied AI',
+]
+
+const FALLBACK_TERRITORIES: ProjectType[] = ['Product Management', 'Other']
 
 describe('ProjectPlate', () => {
-  it('renders the neutral fallback for a projectType with no dedicated territory', () => {
-    const { container } = render(<ProjectPlate projectType="Product Management" index={0} />)
+  it.each([...NAMED_TERRITORIES, ...FALLBACK_TERRITORIES])(
+    'is decorative for %s — aria-hidden, no visible text',
+    (projectType) => {
+      const { container } = render(<ProjectPlate projectType={projectType} tags={['A', 'B']} index={0} />)
+      expect(container.firstElementChild).toHaveAttribute('aria-hidden', 'true')
+      expect(container.textContent).toBe('')
+    },
+  )
+
+  it.each(FALLBACK_TERRITORIES)('renders the neutral fallback for %s', (projectType) => {
+    const { container } = render(<ProjectPlate projectType={projectType} index={0} />)
     expect(container.querySelector('svg')).toBeInTheDocument()
     // The fallback's own bounded grid rect, present only in that variant.
     expect(container.querySelector('rect')).toBeInTheDocument()
+    // The fallback is deliberately the "nothing special" case — no signal node.
+    expect(container.querySelector('.instrument-node')).not.toBeInTheDocument()
   })
 
-  it('renders the neutral fallback for "Other" without crashing on missing tags', () => {
-    const { container } = render(<ProjectPlate projectType="Other" index={1} />)
-    expect(container.querySelector('svg')).toBeInTheDocument()
+  it('uses the neutral fallback for a projectType outside the known union (defensive default)', () => {
+    const unknown = 'Something Unpublished' as ProjectType
+    const { container } = render(<ProjectPlate projectType={unknown} index={0} />)
+    expect(container.querySelector('rect')).toBeInTheDocument()
+    expect(container.querySelector('.instrument-node')).not.toBeInTheDocument()
   })
 
-  it('renders a distinct mark per named territory', () => {
-    const cv = render(<ProjectPlate projectType="Computer Vision" index={0} />)
-    const research = render(<ProjectPlate projectType="Research Intelligence" index={0} />)
-    const agentic = render(<ProjectPlate projectType="Agentic Workflow" index={0} />)
-    expect(cv.container.innerHTML).not.toBe(research.container.innerHTML)
-    expect(research.container.innerHTML).not.toBe(agentic.container.innerHTML)
-    expect(cv.container.innerHTML).not.toBe(agentic.container.innerHTML)
+  it('does not crash with missing tags, for a named territory or a fallback', () => {
+    expect(() => render(<ProjectPlate projectType="Applied AI" index={0} />)).not.toThrow()
+    expect(() => render(<ProjectPlate projectType="Other" index={0} />)).not.toThrow()
   })
 
-  it('is decorative — aria-hidden, no text content', () => {
-    const { container } = render(<ProjectPlate projectType="Computer Vision" tags={['A', 'B']} index={0} />)
-    expect(container.firstElementChild).toHaveAttribute('aria-hidden', 'true')
-    expect(container.textContent).toBe('')
+  it('Applied AI does not use the neutral fallback', () => {
+    const appliedAi = render(<ProjectPlate projectType="Applied AI" index={0} />)
+    const fallback = render(<ProjectPlate projectType="Other" index={0} />)
+    expect(appliedAi.container.innerHTML).not.toBe(fallback.container.innerHTML)
+    // Applied AI carries the one-signal-node convention every named
+    // territory uses; the fallback deliberately never does.
+    expect(appliedAi.container.querySelector('.instrument-node')).toBeInTheDocument()
+  })
+
+  it('renders a structurally distinct mark per named territory and the fallback', () => {
+    const renders = [...NAMED_TERRITORIES, 'Other' as ProjectType].map((projectType) => ({
+      projectType,
+      html: render(<ProjectPlate projectType={projectType} index={0} />).container.innerHTML,
+    }))
+    for (let i = 0; i < renders.length; i++) {
+      for (let j = i + 1; j < renders.length; j++) {
+        expect(renders[i].html, `${renders[i].projectType} vs ${renders[j].projectType}`).not.toBe(
+          renders[j].html,
+        )
+      }
+    }
   })
 
   it('mirrors on alternating (flipped) rows without changing element count', () => {
-    const straight = render(<ProjectPlate projectType="Computer Vision" index={0} />)
-    const flipped = render(<ProjectPlate projectType="Computer Vision" index={1} />)
+    const straight = render(<ProjectPlate projectType="Applied AI" index={0} />)
+    const flipped = render(<ProjectPlate projectType="Applied AI" index={1} />)
     expect(flipped.container.querySelectorAll('*').length).toBe(
       straight.container.querySelectorAll('*').length,
     )

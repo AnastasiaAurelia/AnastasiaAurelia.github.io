@@ -151,10 +151,81 @@ function AgenticLoopMark() {
   )
 }
 
-/** Fallback for project types without a dedicated territory (Applied AI,
-    Product Management, Other): a restrained neutral technical grid — no
-    rust signal, deliberately the "nothing special" treatment. Grid
-    density echoes the project's real tag count (honest, not invented). */
+/** Applied AI: input material → structured evaluation → decision output,
+    read left to right — two unequal input "sheets" feed a connector into
+    an evaluation rail crossed by three tick marks, ending in one signal
+    node. A linear pipeline, deliberately a different topology from the
+    nested frame (Computer Vision), stacked lines (Research
+    Intelligence), and closed loop (Agentic Workflow). */
+function AppliedAIMark() {
+  const evalTicks = [58, 65, 72]
+  return (
+    <>
+      <ReticleCorners />
+      <rect
+        x={30}
+        y={42}
+        width={20}
+        height={7}
+        className="instrument-stroke"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="0.6"
+        vectorEffect="non-scaling-stroke"
+      />
+      <rect
+        x={30}
+        y={52}
+        width={14}
+        height={7}
+        className="instrument-stroke"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="0.6"
+        vectorEffect="non-scaling-stroke"
+      />
+      <path
+        d="M50,45.5 L56,45.5 L56,65 L58,65"
+        className="instrument-stroke"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="0.5"
+        strokeOpacity={0.6}
+        vectorEffect="non-scaling-stroke"
+      />
+      <line
+        x1={58}
+        y1={65}
+        x2={84}
+        y2={65}
+        className="instrument-stroke"
+        stroke="currentColor"
+        strokeWidth="0.7"
+        vectorEffect="non-scaling-stroke"
+      />
+      {evalTicks.map((x, i) => (
+        <line
+          key={i}
+          x1={x}
+          y1={61}
+          x2={x}
+          y2={69}
+          className="instrument-stroke"
+          stroke="currentColor"
+          strokeWidth="0.5"
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
+      <circle cx={84} cy={65} r={3.25} className="instrument-node" fill={RUST} />
+    </>
+  )
+}
+
+/** Fallback for project types with no dedicated territory (Product
+    Management, Other, and anything unrecognized): a restrained neutral
+    technical grid — no rust signal, deliberately the "nothing special"
+    treatment. Grid density echoes the project's real tag count (honest,
+    not invented). */
 function NeutralGridMark({ tickCount }: { tickCount: number }) {
   const step = 60 / (tickCount + 1)
   const lines = Array.from({ length: tickCount }, (_, i) => 30 + step * (i + 1))
@@ -212,6 +283,9 @@ export function ProjectPlate({ projectType, tags, index, className }: ProjectPla
       break
     case 'Agentic Workflow':
       mark = <AgenticLoopMark />
+      break
+    case 'Applied AI':
+      mark = <AppliedAIMark />
       break
     default:
       mark = <NeutralGridMark tickCount={tickCount} />
