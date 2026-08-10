@@ -1095,11 +1095,121 @@ const tradingResearchLabDocument = { _type: 'article', title: 'I stopped treatin
 
 const project9Document = { _type: 'article', title: 'A plate-number edit was actually a distributed transaction.', excerpt: 'A product-systems case study turning Change Plate and Transfer WUZZ into deterministic cross-system state transitions with membership sync, consent, privacy, rollback, recovery and release gates.', publishedAt: '2026-08-10T00:00:00.000Z', tags: ['Product Architecture', 'Systems Design', 'Distributed Systems', 'Product Management', 'State Machines', 'WUZZ', 'LPR', 'Membership', 'Workflow Design', 'Data Consistency', 'Privacy', 'QA', 'Risk Management', 'Operational Design', 'System Integration'], category: 'Product Systems / Systems Design', featured: false, role: 'Product Manager', projectType: 'Product Architecture / Cross-System Workflow Design', system: 'WUZZ / App + CMS + Cloud + Agent + LPR + Membership', coreQuestion: 'When is a distributed identity or ownership mutation safe enough to expose as success?', evidence: 'Product architecture, risk discovery, cross-system validation, PRD consolidation, and release contract', status: 'Completed Product Definition', seoTitle: 'WUZZ Change Plate & Transfer System Design | Anastasia Aurelia', seoDescription: 'A product architecture case study on safe plate and WUZZ ownership mutations across App, CMS, Cloud, Agent, LPR, membership, operations, and privacy.', body: project9Body }
 
-const requestedSlug = process.argv.find((argument) => argument === 'lpr-timing-analysis' || argument === 'sdcard-agent-cross-validation' || argument === 'multi-site-lpr-performance-diagnostics' || argument === 'unified-lpr-source-of-truth' || argument === 'lpr-accuracy-stability-research' || argument === 'wuzzlpr-performance-intelligence' || argument === 'motorcycle-cv-training' || argument === 'wuzz-change-plate-transfer-system-design' || argument === 'lpr-camera-reliability-integration' || argument === 'researchlens-from-search-to-research-workflow' || argument === 'trading-research-lab-evidence-before-narrative') ?? 'lpr-timing-analysis'
+const dianaNightshiftBody = [
+  block('The moment that changed this project wasn’t a clever prompt or a bigger model. It was noticing that every time I asked an agent to confirm its own work was finished, I was asking the one party in the loop with the least standing to say no.'),
+  block('This is the story of two systems built on top of that realization: Diana, an operating protocol that gives a coding agent explicit rules to work by instead of an open-ended goal, and Nightshift, a deterministic controller that takes the question of whether a task is actually done away from the model entirely. They solve different halves of the same problem, and the second one only exists because the first one wasn’t enough on its own.'),
+
+  block('Coding agents don’t usually fail because they can’t write code', 'h2'),
+  block('Most of the failures I ran into were not about capability. A modern coding agent can write correct code, most of the time, for a well-scoped task. The failures were about scope and self-assessment: a fix that touched a dozen files when three would do, an assumption about how a function worked that turned out to be wrong, a change shipped without the test that would have caught the regression, a session that reported “done” when what actually happened was closer to “I ran out of things to try.”'),
+  block('None of that is a knock on the model. It’s a description of what happens when you hand an open-ended goal to something optimized to produce a plausible continuation, then trust its own account of whether that continuation was correct. The model has no privileged access to ground truth about its own work — it has roughly the same evidence a human reviewer would have, minus the habit of actually going to check it.'),
+
+  block('Diana: put discipline around the model', 'h2'),
+  block('Diana is a small, portable operating base I install into a project that needs disciplined agentic work. It isn’t a framework, and it deliberately isn’t trying to become one — its own stated philosophy rules out dashboards, agent marketplaces, router services, and generic plugin systems. It’s closer to a checklist with teeth: an operating-rules file, a handful of skills, a few slash commands, and a hook, all aimed at getting a coding agent to behave like a careful engineer instead of an eager one.'),
+  diagram('Diana’s core loop', 'pipeline', [
+    ['Task'],
+    ['Inspect'],
+    ['Plan'],
+    ['Implement'],
+    ['Test'],
+    ['Review'],
+    ['Ship'],
+  ], undefined, undefined, 'Every non-trivial change moves through this shape before it counts as finished.'),
+  block('The rules themselves are simple to state and easy to skip if nothing pushes back: read the actual code before proposing a fix, make the smallest change that satisfies the task, run the tests that already exist before claiming something works, review your own diff before calling it done. Diana wraps that into a research-first discipline, a minimal-change bias, and explicit plan/fix/review/ship stages, plus a hook that intercepts a short list of genuinely dangerous shell patterns before they run.'),
+  callout('A rule I didn’t expect to outgrow its original problem', 'Diana’s loop registry states this as non-negotiable for any recurring automated task: “A loop that certifies its own work is the single biggest way this goes wrong.” I wrote that about a narrower problem — repeating loops, specifically — and only later noticed it was quietly true of every single-shot task too.', 'info'),
+
+  block('Prompting solved only half of the problem', 'h2'),
+  block('Diana genuinely helped. Sessions that followed the operating rules produced smaller, better-reasoned changes than sessions that didn’t. But every one of those rules — a kill switch, a required separation between the step that makes a change and the step that checks it, a budget cap — was enforced by a Claude session reading a markdown file and choosing to comply. There was no code anywhere that parsed a state file and refused to proceed on its own. That’s a reasonable trade for a supervised, interactive session, where I’m reading every message and would notice a skipped step. It stops being a reasonable trade the moment nobody’s watching.'),
+  block('The gap wasn’t “the model doesn’t follow instructions well enough.” It followed them fine, most of the time. The gap was structural: the same session doing the work was also the session I was trusting to tell me whether the work was good. Prompt discipline can shape how a model approaches a task. It can’t put a hard floor under whether the model’s own verdict about that task is trustworthy, because the verdict comes out of the same process as the work.'),
+
+  block('I stopped asking the model whether it was done', 'h2'),
+  diagram('From operating rules to a deterministic controller', 'timeline', [
+    ['Diana v0.1', 'reusable operating base'],
+    ['Diana v0.2', 'loop policy, kill switch, budget'],
+    ['Nightshift research brief', 'MVP scope decided'],
+    ['Deterministic queue + claim + retry + acceptance'],
+    ['First supervised Claude run', 'false-success bug found'],
+    ['Completion invariant fix', '187/187 tests'],
+    ['One-command smoke procedure', 'run against the real VPS'],
+  ], undefined, undefined, 'Milestones from this project’s own git history, not a projected roadmap.'),
+  block('Nightshift is the answer to that gap, and it’s a narrower thing than the name might suggest. It is not an autonomous agent that works overnight while I sleep — that’s explicitly not what’s built or approved yet, and I’d rather be precise about that than let the name do marketing work it hasn’t earned. What Nightshift actually is: a deterministic runtime that claims one bounded task, launches exactly one fresh model process against it, and decides — independently of anything that process reports about itself — whether the task is actually finished.'),
+  block('The reframe that mattered wasn’t “how do I make the model more autonomous.” It was “how much of this decision can I take away from the model without taking away its ability to do the work.” The model still reads the task and writes the change. It just doesn’t get a vote on whether that change counts.'),
+
+  block('Put the state machine outside the model', 'h2'),
+  block('Every task Nightshift runs moves through the same shape:'),
+  diagram('Bounded task lifecycle', 'pipeline', [
+    ['Bounded task'],
+    ['Preflight & claim'],
+    ['Fresh model process'],
+    ['Execute'],
+    ['Independent acceptance'],
+    ['State transition & evidence'],
+    ['Stop'],
+  ], undefined, undefined, 'The model owns one box in the middle of this. The controller owns everything on either side of it.'),
+  block('Claiming a task is a two-part operation. A short-lived, non-blocking OS-level file lock guarantees that if two claim attempts race, exactly one wins and the other is told immediately, rather than left waiting. The claim itself — which process, at what time — is then written durably into the queue, so ownership and liveness can be checked long after that lock is released. The model process launched against it is always fresh: no resumed conversation, no context carried over from a previous attempt on the same task. It works inside a bounded working directory and exits.'),
+  swimlane('Task state machine', 'Simplified for publication — real state names, simplified transitions.', [
+    ['Normal path', [
+      ['pending', 'Waiting in the queue for a claim.', 'pending', ['claimed']],
+      ['claimed', 'Locked by one process; a fresh model session runs inside the bounded working directory.', 'process', ['done']],
+      ['done', 'Terminal. Reached only when the executor succeeded and acceptance passed together.', 'success'],
+    ]],
+    ['Failure & recovery path', [
+      ['execution or acceptance fails', 'The process didn’t exit cleanly, timed out, or acceptance rejected the result — or a claim was abandoned and later found stale.', 'decision', ['retry allowed?']],
+      ['retry allowed?', 'Checked against that task’s own retry ceiling.', 'decision', ['pending (requeued)', 'failed']],
+      ['pending (requeued)', 'Goes back into the queue for another attempt.', 'pending'],
+      ['failed', 'Terminal. No further claims or retries.', 'blocked'],
+    ]],
+  ], 'An abandoned claim is only ever recovered once its process is confirmed dead and it has sat past a staleness threshold — a live or recently-dead claim is left alone.'),
+  block('That branch is bounded by a simple rule: a task can be retried only while its attempt count sits under its own configured ceiling.'),
+  math('0 \\leq \\text{attempts} \\leq A_{max}', 'attempts = how many times this specific task has already been claimed and attempted. A_max = a retry ceiling set per task, not one global constant. Reached, the task fails permanently instead of retrying again.'),
+  block('Execution itself is bounded the same way, but on the clock instead of the counter — enforced externally, at the process level, not as a limit the model observes or agrees to.'),
+  math('T_{run} \\leq T_{max}', 'T_run = wall-clock time since the task was claimed. T_max = a per-task execution timeout. On expiry the controller signals the whole process group, not just the top-level process, so anything the model itself spawned is reaped too.'),
+
+  block('What the model owns — and what it doesn’t', 'h2'),
+  block('This is the boundary the whole design turns on, and it’s worth stating plainly, since it’s easy to blur once you start describing the pieces one at a time:'),
+  table(['Layer', 'Owns'], [
+    ['Model', 'Reasoning about the one bounded task it was given; making the change inside its own working directory.'],
+    ['Controller', 'Canonical task state; claim ownership; attempt count; retry ceiling; execution timeout; policy checks; the acceptance result; the completion transition; durable evidence.'],
+    ['Human', 'Approving a task before it runs; sensitive credentials; production deployment; every push and merge decision; deciding what happens when deterministic progress stalls on its own.'],
+  ]),
+  block('The Controller row is the one that used to not exist as code at all in Diana — it existed as instructions a model was supposed to follow. Nightshift is what happens when every item on that row moves into a runtime that doesn’t get tired, doesn’t rationalize, and has no stake in looking finished.'),
+
+  block('A task is not complete because the model says “done”', 'h2'),
+  block('Completion is not inferred from the model’s final message, and it’s not inferred from a single passing check either. A task reaches its terminal done state only when two independent things agree: the model process itself actually succeeded — completed normally, with a clean exit — and a separate acceptance command, run afterward against the working directory, passes.'),
+  math('\\text{DONE} = \\text{executor\\_pass} \\land \\text{acceptance\\_pass} \\land \\text{valid\\_transition}', 'executor_pass = the model process exited cleanly, not merely “exited.” acceptance_pass = an independent check of the resulting files passed. valid_transition = the task was actually claimed by whoever is attempting to complete it, and isn’t already terminal. All three, never any one alone.'),
+  block('Acceptance runs against whatever the model actually left on disk, using a check the model didn’t write and, in the version I tested most carefully, had no way to reach or tamper with.'),
+
+  block('The failure that changed the controller', 'h2'),
+  block('The clearest reason this separation matters isn’t hypothetical — it’s the first real thing that went wrong when I ran this against a live Claude session instead of a mocked one. That first supervised run’s authentication had actually failed; the process exited with a real error. But the acceptance command I’d written for that first version was a generic “discover and run any tests in this directory” command, and an empty directory with no tests in it still exits 0. Zero tests found reads, by exit code alone, exactly like every test passed. The task was marked done. It hadn’t done anything.'),
+  block('I’d built independent acceptance and then, without meaning to, let a single passing signal override everything else — including the fact that the model process itself had failed. The fix was a completion invariant: a passing acceptance result is only ever allowed to drive a done transition when the executor process also genuinely succeeded. A failed, timed-out, or authentication-failed process now forces the task to fail regardless of what acceptance decided on its own. Acceptance still runs either way, for evidence — it just stopped being sufficient by itself. I also replaced the acceptance command with one that requires a minimum number of tests to actually be discovered, not merely attempted, so an empty suite can’t pass by omission again.'),
+  callout('What the bug actually revealed', 'I’d built the whole architecture specifically to avoid trusting a single self-reported signal, then done exactly that one layer down — trusting an independent-looking signal without first checking that the thing it was independently verifying had actually run at all.', 'warning'),
+
+  block('What I actually validated', 'h2'),
+  table(['Check', 'Result'], [
+    ['Full Nightshift test suite', '187 of 187 tests passing'],
+    ['Two concurrent claim attempts on the same task', 'Exactly one succeeds; the other is rejected immediately, not left waiting'],
+    ['A claim held by a dead process, past the recovery threshold', 'Recoverable — a live or recently-dead claim is left untouched'],
+    ['Completion invariant under executor failure + passing acceptance', 'Forces failure, not completion — covered by regression tests added after the incident above'],
+    ['One supervised end-to-end run against a real Claude session', 'Exposed the false-success bug described above'],
+    ['A corrected, one-command supervised run against the real VPS', 'Caught and fixed a separate environment-isolation bug that only appeared outside the test suite'],
+  ]),
+  block('That last row matters as much as the numbers above it. A test suite proves the logic is internally consistent. It doesn’t prove the logic survives contact with a real filesystem, a real permission model, and a real authenticated session — and it didn’t, the first two times I actually ran it for real. Both real-world failures were caught by running the real thing and looking at what happened, not because the design had anticipated them in advance.'),
+
+  block('Why Nightshift still stops', 'h2'),
+  block('There is no scheduler in this codebase. No cron entry, no systemd timer, no daemon mode, no loop that claims a second task once the first one finishes. The run-one cycle does exactly what its name says: claim at most one task, run it, write a report, stop. That’s a deliberate, current-state limitation, not a detail I’m eliding — unattended scheduling is explicitly not approved yet, pending a check I haven’t done: whether the same authentication that works from an interactive terminal actually survives being launched by a scheduler in a stripped-down environment, hours later, with nobody there to notice if it doesn’t.'),
+  block('The same restraint applies to everything downstream of a task finishing. There is no git push in the model’s reachable command set, no deployment path, no package installation it can trigger — each one is either denied outright by the controller’s own policy layer or was never wired in to begin with. Those stay human actions on purpose. A controller that can’t be fooled about whether a task passed is a different property from a controller I’d trust to decide, unsupervised, that a change is safe to ship.'),
+  linkedBlock('The name is honest about a direction, not a current claim: the eventual goal is work that can survive beyond an interactive terminal session while staying bounded and inspectable the whole way through. I tested the isolation boundary specifically by checking that a real production tree next to it — ', 'ResearchLens', 'https://anastasiaaurelia.github.io/articles/researchlens-from-search-to-research-workflow', ', another project I actually maintain — was untouched before and after a cycle. Getting further than that is gated on the scheduler-authentication question above, not on anything this article’s numbers already prove.'),
+
+  block('What I learned', 'h2'),
+  block('Diana taught me that a coding agent behaves better with explicit operating constraints than with an open-ended goal. Nightshift taught me something I didn’t expect going in: the more interesting question was never how autonomous I could make the model. It was how much authority I could remove from it — over its own state, its own retries, its own verdict — without removing its ability to do useful work at all. Everything that actually got safer in this project came from subtraction, not from making the model smarter.'),
+]
+
+const dianaNightshiftDocument = { _type: 'article', title: 'I stopped asking the model whether it was done.', excerpt: 'Diana put an operating discipline around a coding agent. Nightshift moved the verdict on whether a task was done outside the model entirely — and one real failure is why that had to be a controller, not a better prompt.', publishedAt: '2026-08-10T00:00:00.000Z', tags: ['Agent Orchestration', 'Coding Agents', 'Deterministic Systems', 'State Machines', 'Claude Code', 'Python', 'Execution Discipline', 'Verification', 'Systems Design', 'Autonomy Boundaries'], category: 'Agentic Workflows', featured: false, role: 'Systems Designer / Engineer', projectType: 'Agent Control / Execution Discipline System', system: 'Diana operating protocol + Nightshift deterministic controller (Python)', coreQuestion: 'How much authority can be removed from a coding agent without removing its ability to do useful work?', evidence: 'Source code, full test suite (187/187 passing), git history, a research brief, and one supervised real-Claude smoke cycle', status: 'Diana: in active use. Nightshift: MVP implemented and unit-tested; unattended scheduling not yet approved.', seoTitle: 'I Stopped Asking the Model Whether It Was Done | Anastasia Aurelia', seoDescription: 'Why I moved task completion out of the model: Diana’s operating discipline, prompt-level control’s limits, and Nightshift’s deterministic completion invariant.', body: dianaNightshiftBody }
+
+const requestedSlug = process.argv.find((argument) => argument === 'lpr-timing-analysis' || argument === 'sdcard-agent-cross-validation' || argument === 'multi-site-lpr-performance-diagnostics' || argument === 'unified-lpr-source-of-truth' || argument === 'lpr-accuracy-stability-research' || argument === 'wuzzlpr-performance-intelligence' || argument === 'motorcycle-cv-training' || argument === 'wuzz-change-plate-transfer-system-design' || argument === 'lpr-camera-reliability-integration' || argument === 'researchlens-from-search-to-research-workflow' || argument === 'trading-research-lab-evidence-before-narrative' || argument === 'diana-nightshift-deterministic-control') ?? 'lpr-timing-analysis'
 const slug = requestedSlug
 const documentId = `article-${slug}`
 const draftId = `drafts.${documentId}`
-const selected = slug === 'trading-research-lab-evidence-before-narrative' ? tradingResearchLabDocument : slug === 'researchlens-from-search-to-research-workflow' ? researchLensDocument : slug === 'lpr-camera-reliability-integration' ? project10Document : slug === 'wuzz-change-plate-transfer-system-design' ? project9Document : slug === 'motorcycle-cv-training' ? project8Document : slug === 'wuzzlpr-performance-intelligence' ? project4Document : slug === 'lpr-accuracy-stability-research' ? project6Document : slug === 'unified-lpr-source-of-truth' ? project57Document : slug === 'multi-site-lpr-performance-diagnostics' ? project3Document : slug === 'sdcard-agent-cross-validation' ? project2Document : lprDocument
+const selected = slug === 'diana-nightshift-deterministic-control' ? dianaNightshiftDocument : slug === 'trading-research-lab-evidence-before-narrative' ? tradingResearchLabDocument : slug === 'researchlens-from-search-to-research-workflow' ? researchLensDocument : slug === 'lpr-camera-reliability-integration' ? project10Document : slug === 'wuzz-change-plate-transfer-system-design' ? project9Document : slug === 'motorcycle-cv-training' ? project8Document : slug === 'wuzzlpr-performance-intelligence' ? project4Document : slug === 'lpr-accuracy-stability-research' ? project6Document : slug === 'unified-lpr-source-of-truth' ? project57Document : slug === 'multi-site-lpr-performance-diagnostics' ? project3Document : slug === 'sdcard-agent-cross-validation' ? project2Document : lprDocument
 const revisionMode = process.argv.includes('--revision')
 
 async function main() {
