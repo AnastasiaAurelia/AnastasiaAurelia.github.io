@@ -1205,11 +1205,120 @@ const dianaNightshiftBody = [
 
 const dianaNightshiftDocument = { _type: 'article', title: 'I stopped asking the model whether it was done.', excerpt: 'Diana put an operating discipline around a coding agent. Nightshift moved the verdict on whether a task was done outside the model entirely — and one real failure is why that had to be a controller, not a better prompt.', publishedAt: '2026-08-10T00:00:00.000Z', tags: ['Agent Orchestration', 'Coding Agents', 'Deterministic Systems', 'State Machines', 'Claude Code', 'Python', 'Execution Discipline', 'Verification', 'Systems Design', 'Autonomy Boundaries'], category: 'Agentic Workflows', featured: false, role: 'Systems Designer / Engineer', projectType: 'Agent Control / Execution Discipline System', system: 'Diana operating protocol + Nightshift deterministic controller (Python)', coreQuestion: 'How much authority can be removed from a coding agent without removing its ability to do useful work?', evidence: 'Source code, full test suite (187/187 passing), git history, a research brief, and one supervised real-Claude smoke cycle', status: 'Diana: in active use. Nightshift: MVP implemented and unit-tested; unattended scheduling not yet approved.', seoTitle: 'I Stopped Asking the Model Whether It Was Done | Anastasia Aurelia', seoDescription: 'Why I moved task completion out of the model: Diana’s operating discipline, prompt-level control’s limits, and Nightshift’s deterministic completion invariant.', body: dianaNightshiftBody }
 
-const requestedSlug = process.argv.find((argument) => argument === 'lpr-timing-analysis' || argument === 'sdcard-agent-cross-validation' || argument === 'multi-site-lpr-performance-diagnostics' || argument === 'unified-lpr-source-of-truth' || argument === 'lpr-accuracy-stability-research' || argument === 'wuzzlpr-performance-intelligence' || argument === 'motorcycle-cv-training' || argument === 'wuzz-change-plate-transfer-system-design' || argument === 'lpr-camera-reliability-integration' || argument === 'researchlens-from-search-to-research-workflow' || argument === 'trading-research-lab-evidence-before-narrative' || argument === 'diana-nightshift-deterministic-control') ?? 'lpr-timing-analysis'
+const operationsReportingBody = [
+  callout('What I built', 'A multi-site reporting engine that combines system-exported LPR accuracy with operator-reviewed anomaly evidence, then produces one consistent daily operations brief. The calculations are deterministic; interpretation and action remain reviewable human decisions.', 'success'),
+
+  block('The report was not the hard part', 'h2'),
+  block('The visible deliverable was a morning note: recent accuracy by gate, longer-window context, an SLO verdict, anomalies, causes, actions and a small statistical check. The harder problem was deciding which parts of that note were facts, which were classifications, and which were judgments.'),
+  block('A reporting workflow can look automated while quietly moving ambiguity around. A percentage copied from one sheet, a root cause inferred from another system, and a paragraph rewritten into confident language may read cleanly without being trustworthy. I designed this pipeline around a stricter idea: calculate first, attach evidence second, and only then assemble a narrative.'),
+  block('That distinction also sets a boundary for any interpretive layer built on top of this system later, human or automated: it can draft or review a summary, but it does not get to redefine a KPI, invent an anomaly count, or decide whether the service objective was met. The verifiable core stays deterministic regardless of what eventually writes the narrative around it.'),
+
+  block('The manual workflow I was replacing', 'h2'),
+  block('Every morning began with two different kinds of evidence. The reporting system exported accuracy rows for several sites and gates. An operator separately reviewed exceptions and recorded what happened, why it happened, what had improved, what action was taken, and whether a known intervention needed before-versus-after analysis.'),
+  block('Without a shared assembly step, the work was repetitive and easy to distort. The same proportions had to be copied into several time windows. Gate totals could disagree with the anomaly total. A daily percentage could be described as healthy without its sample count. A configuration change could be celebrated after one good day even though the available evidence was still thin.'),
+  table(['Input', 'What it can establish', 'What it cannot establish alone'], [
+    ['System accuracy export', 'Location, reporting window, gate-level and end-to-end success proportions.', 'Why a miss happened or what should be done next.'],
+    ['Operator anomaly workbook', 'Reviewed classes, counts by gate, causes, improvements, actions and dated changes.', 'Whether the calculated KPI or statistical comparison is correct.'],
+    ['Reporting engine', 'Consistent calculations, thresholds, formatting and evidence placement.', 'Whether a field observation is true or an operational action is appropriate.'],
+  ], 'The pipeline keeps machine evidence, reviewed context and computed output as distinct responsibilities.'),
+
+  block('The workflow I ended up with', 'h2'),
+  diagram('From evidence to an operations brief', 'pipeline', [
+    ['Accuracy export', 'Daily and aggregate success proportions'],
+    ['Operator review', 'Anomaly counts, causes, actions and dated changes'],
+    ['Input normalization', 'Locations, gates, periods and optional sections'],
+    ['Deterministic evaluation', 'Pooling, thresholds, uncertainty and change comparison'],
+    ['Report assembly', 'One ordered block per monitored site'],
+    ['Human review and routing', 'Confirm findings, ownership and next action'],
+  ], ['Numbers remain traceable to the export.', 'Narrative fields remain traceable to operator review.', 'Any later interpretive or drafting pass sits after structured evidence, never inside metric computation.'], undefined, 'The implementation accepts a current spreadsheet template and a legacy structured anomaly format, but both converge on the same internal reporting shape.'),
+  block('The pipeline processes each configured location independently. It selects the location’s rows, orders daily and aggregate windows, resolves the gate fields expected for that site, and produces a stable report section. A missing location does not corrupt the others: the generator warns and continues with the evidence that is available.'),
+  block('The operator workbook is not a free-form scratchpad. It is divided into repeated location and section markers. Anomaly rows carry a class and per-gate counts; text sections carry causes, improvements and actions; change rows carry a gate, a date and a description. That structure is what lets the report generator preserve human context without pretending it calculated that context itself.'),
+
+  block('Decision 1: preserve the denominator', 'h2'),
+  block('The source export contains both a percentage and its success proportion. I kept both. “98.7%” sounds precise, but 74 successes out of 75 observations and 7,400 out of 7,500 do not support the same confidence. The daily report therefore presents the percentage next to the underlying success and total counts.'),
+  block('The same rule matters when combining days. The engine does not average daily percentages, because that would give a quiet day the same weight as a busy day. It pools the successful observations and total observations first, then calculates one baseline accuracy.'),
+  math('\\hat{p}=\\frac{\\sum_{d=1}^{D} s_d}{\\sum_{d=1}^{D} n_d}', 'For each included day d, s_d is the number of successful observations and n_d is the number observed. The pooled estimate p-hat is computed from combined counts, not from the arithmetic mean of daily percentages.'),
+  block('For the short baseline, the implementation uses up to the three most recent daily records available for a gate. It also calculates a binomial standard error and a 95% margin-of-error approximation. These values are context, not a claim that three days prove a permanent improvement.'),
+  math('SE(\\hat{p})=\\sqrt{\\frac{\\hat{p}(1-\\hat{p})}{n}},\\qquad MoE_{95}\\approx1.96\\,SE(\\hat{p})', 'p-hat is pooled accuracy and n is the pooled number of observations. The margin is an approximate uncertainty indicator used to keep small samples visible.'),
+
+  block('Decision 2: make evaluation a rubric, not prose', 'h2'),
+  block('I encoded two related but different evaluations. The first is an operational color band used for scanning: green at or above 98%, yellow from 95% to below 98%, and red below 95%. The second compares the most recent end-to-end result with a 99.9% service-level objective and reports the numeric gap.'),
+  table(['Evaluation layer', 'Rule in the verified implementation', 'Purpose'], [
+    ['Daily scan band', 'Green ≥ 98%; yellow ≥ 95% and < 98%; red < 95%.', 'Make a long multi-gate note scannable.'],
+    ['SLO verdict', 'Most recent end-to-end accuracy compared with a 99.9% target.', 'State whether the current result meets the operating objective and show the gap.'],
+    ['Time-window context', 'Recent daily rows alongside 7-day, previous-week and 30-day aggregates.', 'Separate a single-day movement from a persistent pattern.'],
+    ['Change evaluation', 'Up to three daily rows before and after a dated intervention.', 'Create a bounded first look at direction, sample size and uncertainty.'],
+  ]),
+  block('This is one of the most important design choices in the system. A language model can rephrase “below target,” but it should not decide what the target was after reading the result. The threshold, comparison window and arithmetic live in code so the same evidence receives the same verdict every time.'),
+
+  block('Decision 3: treat anomalies as reviewed evidence', 'h2'),
+  block('The anomaly side of the workflow covers failure modes that a top-line accuracy number cannot explain: registration mismatch, OCR misread, trigger ordering, missing device or agent data, late inserts and other operational exceptions. Counts are entered per gate, summed into each class, and then rolled into a location total.'),
+  block('The important separation is between classification and aggregation. A person investigates enough evidence to choose the anomaly class; the workbook and generator handle the repeated arithmetic and presentation. Unknown or ambiguous observations are not forced into a confident machine-generated cause.'),
+  block('The report then places four forms of context next to the numbers: why the issue happened, what improved, what action was taken, and what changed. These fields answer different questions. A cause is not an action. An action is not evidence that the result improved. Keeping them separate makes the final brief useful for follow-up instead of just readable.'),
+  callout('Human-in-the-loop boundary', 'The pipeline automates normalization, arithmetic, thresholds, ordering and report formatting. A human still validates anomaly classes, writes causal context, confirms actions, and decides whether the available evidence is strong enough to route an intervention.', 'info'),
+
+  block('Decision 4: evaluate changes without pretending they are experiments', 'h2'),
+  block('When an operator records a dated gate change, the report switches from the ordinary pooled baseline to a compact change analysis for that gate. It separates records on either side of the date, pools their counts, displays sample sizes and uncertainty, and reports the direction of the difference.'),
+  block('That is useful operational evidence, but it is not causal proof. The windows are short. Traffic mix, weather, camera conditions and unrelated configuration changes may differ across days. The report therefore calls the result a comparison, not an A/B test, and exposes enough denominator information for a reviewer to decide whether continued monitoring is required.'),
+  math('\\Delta=100\\,(\\hat{p}_{after}-\\hat{p}_{before})\\ \\text{percentage points}', 'p-hat-after and p-hat-before are pooled success proportions from the available post-change and pre-change daily rows. The implementation reports direction and magnitude without assigning causality.'),
+
+  block('What stays deterministic — and what stays a human call', 'h2'),
+  table(['Layer', 'Deterministic or judgment-based?', 'Why'], [
+    ['Parsing and normalization', 'Deterministic', 'A gate, date, count or reporting window should not change between runs.'],
+    ['Metric pooling and uncertainty', 'Deterministic', 'The same observations must produce the same result.'],
+    ['Threshold and SLO evaluation', 'Deterministic', 'Operational policy belongs in an explicit rule.'],
+    ['Anomaly classification', 'Human-reviewed judgment', 'The evidence may span images, device state and field context.'],
+    ['Cause and action narrative', 'Human-owned', 'Language can be compressed, but responsibility and factual confirmation cannot be delegated.'],
+    ['Escalation and ownership', 'Human operational decision', 'A generated sentence cannot assign accountability or approve a production change.'],
+  ]),
+  block('This boundary is less glamorous than an end-to-end autonomous report generator, and much safer. Structured evidence is assembled before any narrative pass, so any later summary — written by a person, a template or eventually a model — can be checked against the counts, windows and reviewed fields already present. The deterministic report does not depend on that later step at all.'),
+  callout('Evidence limitation', 'The preserved project snapshot verifies the deterministic Python-and-spreadsheet reporting engine covered in this case study. It does not contain the MCP, n8n or prompt workflows referenced in the portfolio’s short About summary — a broader, separately-documented part of this role — so this article makes no claim about their topology, prompts or execution behavior.', 'warning'),
+
+  block('Failure modes I designed around', 'h2'),
+  table(['Failure mode', 'Current behavior or design response', 'Residual risk'], [
+    ['A configured location is absent from the export', 'Warn and continue with other locations.', 'The warning still has to be noticed before distribution.'],
+    ['A period row is missing', 'Omit that period rather than fabricate a value.', 'The reviewer must decide whether the report is complete enough to send.'],
+    ['A success proportion is malformed or empty', 'Exclude it from pooled calculations.', 'Silent exclusion can reduce the effective sample; explicit validation would improve this.'],
+    ['An anomaly count is non-numeric', 'Ignore the invalid cell during parsing.', 'The input workbook should surface this more aggressively.'],
+    ['A change date cannot be parsed', 'Skip the change comparison.', 'The report needs a stronger visible warning for rejected change input.'],
+    ['A change is too recent', 'Show that post-change evidence is not yet available.', 'Operations must keep monitoring instead of treating absence as success.'],
+    ['No anomaly workbook is supplied', 'Generate the metric portion without narrative context.', 'A numerically correct report can still be operationally incomplete.'],
+  ]),
+  block('The failure table also shows where I would take the system next. The generator is tolerant, which is useful for a morning workflow, but some invalid inputs are skipped rather than promoted into a formal validation report. A productionized version should emit a machine-readable run summary, distinguish warnings from blockers, and make completeness visible before a report can be routed.'),
+
+  block('What the automation actually changed', 'h2'),
+  block('The pipeline did not remove the operator. It removed the parts of the operator’s work that should never have depended on memory: finding the right fields for each gate, ordering reporting windows, recomputing totals, applying the same bands, preserving denominators, and laying out the same sections every morning.'),
+  block('That changed the review question. Instead of asking “Did I copy every number and format every section correctly?”, the operator can ask “Is this anomaly classification defensible? Does this action have an owner? Is this movement large enough, and supported by enough observations, to investigate?” Automation made judgment more visible by taking clerical consistency out of its way.'),
+
+  block('What I learned', 'h2'),
+  block('I started with a report-generation problem and ended up designing an evidence boundary. The reliable part of the system is not its prose. It is the contract between exported measurements, reviewed operational context and explicit evaluation rules.'),
+  block('The most useful lesson was that any interpretive layer becomes safer once the workflow can survive without it. Once the counts, thresholds, uncertainty and change comparisons are deterministic, a reviewer — or eventually a model — can help communicate the result. Neither one gets to quietly become the source of truth. In operational reporting, that separation is what turns automation from a faster way to write into a better way to decide.'),
+]
+
+const operationsReportingDocument = {
+  _type: 'article',
+  title: 'The reliable part of a report was never the prose.',
+  excerpt: 'How I separated deterministic LPR metrics, reviewed anomaly evidence, and statistical change checks into one auditable, judgment-preserving daily operations workflow.',
+  publishedAt: '2026-08-10T00:00:00.000Z',
+  tags: ['LPR', 'Computer Vision Operations', 'Reporting Automation', 'Data Quality', 'Human in the Loop', 'Python', 'Operational Analytics', 'Measurement Systems'],
+  category: 'Data Quality / Measurement Systems',
+  featured: false,
+  role: 'Product Operations / Systems Engineer',
+  projectType: 'Operational Reporting and Decision Support',
+  system: 'Python reporting engine + structured spreadsheet review workflow',
+  coreQuestion: 'How do you automate an operations report without automating away the evidence and judgment behind it?',
+  evidence: 'Executable reporting source, input templates, legacy structured input, sample system export and generated-output logic',
+  status: 'Operational workflow implemented; deterministic reporting core verified from the preserved project snapshot',
+  seoTitle: 'LPR/WUZZ Operations Reporting & Anomaly Analysis | Anastasia Aurelia',
+  seoDescription: 'A case study in separating deterministic LPR metrics, human-reviewed anomalies, and statistical change analysis into one auditable report.',
+  body: operationsReportingBody,
+}
+
+const requestedSlug = process.argv.find((argument) => argument === 'lpr-timing-analysis' || argument === 'sdcard-agent-cross-validation' || argument === 'multi-site-lpr-performance-diagnostics' || argument === 'unified-lpr-source-of-truth' || argument === 'lpr-accuracy-stability-research' || argument === 'wuzzlpr-performance-intelligence' || argument === 'motorcycle-cv-training' || argument === 'wuzz-change-plate-transfer-system-design' || argument === 'lpr-camera-reliability-integration' || argument === 'researchlens-from-search-to-research-workflow' || argument === 'trading-research-lab-evidence-before-narrative' || argument === 'diana-nightshift-deterministic-control' || argument === 'lpr-wuzz-operations-reporting-pipeline') ?? 'lpr-timing-analysis'
 const slug = requestedSlug
 const documentId = `article-${slug}`
 const draftId = `drafts.${documentId}`
-const selected = slug === 'diana-nightshift-deterministic-control' ? dianaNightshiftDocument : slug === 'trading-research-lab-evidence-before-narrative' ? tradingResearchLabDocument : slug === 'researchlens-from-search-to-research-workflow' ? researchLensDocument : slug === 'lpr-camera-reliability-integration' ? project10Document : slug === 'wuzz-change-plate-transfer-system-design' ? project9Document : slug === 'motorcycle-cv-training' ? project8Document : slug === 'wuzzlpr-performance-intelligence' ? project4Document : slug === 'lpr-accuracy-stability-research' ? project6Document : slug === 'unified-lpr-source-of-truth' ? project57Document : slug === 'multi-site-lpr-performance-diagnostics' ? project3Document : slug === 'sdcard-agent-cross-validation' ? project2Document : lprDocument
+const selected = slug === 'lpr-wuzz-operations-reporting-pipeline' ? operationsReportingDocument : slug === 'diana-nightshift-deterministic-control' ? dianaNightshiftDocument : slug === 'trading-research-lab-evidence-before-narrative' ? tradingResearchLabDocument : slug === 'researchlens-from-search-to-research-workflow' ? researchLensDocument : slug === 'lpr-camera-reliability-integration' ? project10Document : slug === 'wuzz-change-plate-transfer-system-design' ? project9Document : slug === 'motorcycle-cv-training' ? project8Document : slug === 'wuzzlpr-performance-intelligence' ? project4Document : slug === 'lpr-accuracy-stability-research' ? project6Document : slug === 'unified-lpr-source-of-truth' ? project57Document : slug === 'multi-site-lpr-performance-diagnostics' ? project3Document : slug === 'sdcard-agent-cross-validation' ? project2Document : lprDocument
 const revisionMode = process.argv.includes('--revision')
 
 async function main() {
@@ -1253,6 +1362,35 @@ async function main() {
       })
       .commit()
     console.log(`Updated existing project draft ${projectDraftId}; featured=true, displayOrder=3. No project was published.`)
+  }
+  if (slug === 'lpr-wuzz-operations-reporting-pipeline') {
+    const publishedSettings = await client.fetch(
+      `*[_id == "siteSettings"][0]`,
+    ) as Record<string, unknown> | null
+    const existingSettingsDraft = await client.fetch(
+      `*[_id == "drafts.siteSettings"][0]`,
+    ) as Record<string, unknown> | null
+    if (!publishedSettings && !existingSettingsDraft) throw new Error('No siteSettings document exists; About link was not staged.')
+    if (!existingSettingsDraft && publishedSettings) {
+      const base = Object.fromEntries(
+        Object.entries(publishedSettings).filter(([field]) => !['_rev', '_createdAt', '_updatedAt'].includes(field)),
+      )
+      await client.create({ ...base, _id: 'drafts.siteSettings' } as never)
+    }
+    const settingsDraft = await client.fetch(
+      `*[_id == "drafts.siteSettings"][0]{_rev,"item":technicalWork[cvTitle == $oldTitle || cvTitle == $newTitle][0]{_key,cvTitle,cvSummary,sortOrder}}`,
+      { oldTitle: 'AI-Assisted LPR/WUZZ Operations Reporting Pipeline', newTitle: 'LPR/WUZZ Operations Reporting Pipeline' },
+    ) as { _rev?: string; item?: { _key?: string } } | null
+    if (!settingsDraft?._rev || !settingsDraft.item?._key) throw new Error('The existing About technical-work item was not found; no About fields were changed.')
+    await client
+      .patch('drafts.siteSettings')
+      .ifRevisionId(settingsDraft._rev)
+      .set({
+        [`technicalWork[_key=="${settingsDraft.item._key}"].articleRef`]: { _type: 'reference', _ref: documentId, _weak: true },
+        [`technicalWork[_key=="${settingsDraft.item._key}"].cvTitle`]: 'LPR/WUZZ Operations Reporting Pipeline',
+      })
+      .commit()
+    console.log('Linked the existing About technical-work item in drafts.siteSettings and dropped the unevidenced "AI-Assisted" prefix from its label. Summary, order and published sibling were untouched.')
   }
   console.log(`Slug: ${slug}. Publication state: DRAFT. No published document was changed.`)
   console.log(`Local website preview: /articles/${slug}?preview=local (development server only).`)
