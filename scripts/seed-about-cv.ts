@@ -215,10 +215,10 @@ const aboutFields = {
   education: withKeys([
     {
       _type: 'education',
-      institution: 'MITx (edX)',
+      institution: 'MITx',
       program: 'MicroMasters Program in Statistics & Data Science',
       startDate: '2024-09',
-      status: '2026 (In Progress)',
+      status: '2026',
       coursework: ['Probability', 'Statistical Modeling', 'Machine Learning', 'Data Analysis', 'Data Visualization'],
       sortOrder: 0,
     },
