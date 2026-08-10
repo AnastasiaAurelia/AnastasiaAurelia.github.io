@@ -188,6 +188,7 @@ export type ArticleCategory =
   | 'Data Quality / Measurement Systems'
   | 'Computer Vision / Statistical Validation'
   | 'Computer Vision / Machine Learning'
+  | 'Computer Vision / Infrastructure'
   | 'Product Systems / Systems Design'
   | 'Research'
   | 'Agentic Workflows'
