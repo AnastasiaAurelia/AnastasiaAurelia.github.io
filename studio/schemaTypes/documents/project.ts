@@ -140,6 +140,15 @@ export default defineType({
       ],
     }),
     defineField({
+      name: 'caseStudyArticle',
+      title: 'Canonical case-study article',
+      type: 'reference',
+      to: [{ type: 'article' }],
+      group: 'caseStudy',
+      description:
+        'When set, Work cards and /work/<slug> resolve to this published article instead of rendering duplicate project content.',
+    }),
+    defineField({
       name: 'gallery',
       title: 'Gallery',
       type: 'array',

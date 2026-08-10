@@ -87,6 +87,7 @@ export interface SanityProject {
   featured: boolean
   displayOrder: number
   content: ProjectContentBlock[]
+  caseStudyArticle?: { title: string; slug: string; excerpt: string }
   gallery?: GalleryImage[]
   externalUrl?: string
   githubUrl?: string
@@ -108,6 +109,7 @@ export type SanityProjectSummary = Pick<
   | 'displayOrder'
   | 'externalUrl'
   | 'githubUrl'
+  | 'caseStudyArticle'
 >
 
 export interface SanityExperience {

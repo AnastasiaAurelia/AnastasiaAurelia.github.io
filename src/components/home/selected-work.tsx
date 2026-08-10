@@ -7,6 +7,7 @@ import { SectionKicker } from '@/components/editorial/section-kicker'
 import { EmptyState } from '@/components/state/query-states'
 import { useReveal } from '@/hooks/use-reveal'
 import { cn } from '@/lib/utils'
+import { getProjectRoute } from '@/lib/project-route'
 
 function SelectedWorkEntry({ project, index }: { project: SanityProjectSummary; index: number }) {
   const { ref, visible } = useReveal<HTMLAnchorElement>()
@@ -17,12 +18,13 @@ function SelectedWorkEntry({ project, index }: { project: SanityProjectSummary; 
     ...(project.externalUrl ? (['live-product'] as const) : []),
   ]
   const category = project.tags?.[0] ?? project.projectType
+  const summary = project.caseStudyArticle?.excerpt ?? project.shortSummary
 
   return (
     <Link
       ref={ref}
       data-visible={visible}
-      to={`/work/${project.slug}`}
+      to={getProjectRoute(project)}
       className={cn(
         'reveal group grid gap-5 border-t border-line px-4 py-10 transition-colors last:border-b hover:bg-surface sm:grid-cols-12 sm:gap-8 sm:px-6 sm:py-14',
         flipped && 'sm:bg-surface/50',
@@ -43,7 +45,7 @@ function SelectedWorkEntry({ project, index }: { project: SanityProjectSummary; 
       </div>
       <div className={cn('sm:col-span-9', flipped && 'sm:order-1')}>
         <h3 className="text-3xl leading-tight sm:text-4xl">{project.title}</h3>
-        <p className="mt-4 max-w-2xl text-ink-muted">{project.shortSummary}</p>
+        <p className="mt-4 max-w-2xl text-ink-muted">{summary}</p>
         <ul className="mt-5 flex flex-wrap gap-x-4 gap-y-1.5">
           {evidenceTypes.map((type) => (
             <li key={type} className="label-mono text-ink-faint">

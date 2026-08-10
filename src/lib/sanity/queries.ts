@@ -17,6 +17,7 @@ const PROJECT_SUMMARY_PROJECTION = `{
   displayOrder,
   externalUrl,
   githubUrl,
+  "caseStudyArticle": caseStudyArticle->{ title, "slug": slug.current, excerpt },
 }`
 
 const PROJECT_FULL_PROJECTION = `{
@@ -34,6 +35,7 @@ const PROJECT_FULL_PROJECTION = `{
   gallery,
   externalUrl,
   githubUrl,
+  "caseStudyArticle": caseStudyArticle->{ title, "slug": slug.current, excerpt },
   seoTitle,
   seoDescription,
 }`

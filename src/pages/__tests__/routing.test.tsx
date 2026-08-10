@@ -35,6 +35,12 @@ describe('routing', () => {
     // Each heading's text starts with the title (an arrow icon glyph may
     // trail it), so compare by prefix rather than exact equality.
     expectedOrder.forEach((title, i) => expect(headingOrder[i]).toContain(title))
+    expect(await screen.findByRole('link', { name: /ResearchLens/ })).toHaveAttribute(
+      'href',
+      '/articles/featured-test-article',
+    )
+    expect(screen.getByText('The canonical article summary replaces stale project placeholder copy.')).toBeInTheDocument()
+    expect(screen.queryByText('Applied AI product. Full case study not yet supplied.')).not.toBeInTheDocument()
   })
 
   it('only shows featured projects in the homepage Selected Work section', async () => {
@@ -51,6 +57,12 @@ describe('routing', () => {
     // section should show up in the consolidated "in progress" notice.
     expect(await screen.findByText('In progress')).toBeInTheDocument()
     expect(screen.getByText('Overview')).toBeInTheDocument()
+  })
+
+  it('redirects a Work project with a canonical article to that article', async () => {
+    renderAt('/work/researchlens')
+    expect(await screen.findByRole('heading', { level: 1, name: 'Featured Test Article' })).toBeInTheDocument()
+    expect(screen.queryByText('In progress')).not.toBeInTheDocument()
   })
 
   it('renders visible experience entries on About and never a hidden one', async () => {

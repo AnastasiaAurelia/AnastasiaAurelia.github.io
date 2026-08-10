@@ -77,6 +77,7 @@ export const fixtureProjects: SanityProjectSummary[] = [
     displayOrder: 0,
     externalUrl: undefined,
     githubUrl: undefined,
+    caseStudyArticle: undefined,
   },
   {
     _id: 'project-researchlens',
@@ -90,6 +91,11 @@ export const fixtureProjects: SanityProjectSummary[] = [
     displayOrder: 1,
     externalUrl: undefined,
     githubUrl: undefined,
+    caseStudyArticle: {
+      title: 'Featured Test Article',
+      slug: 'featured-test-article',
+      excerpt: 'The canonical article summary replaces stale project placeholder copy.',
+    },
   },
   {
     _id: 'project-agentic-workflows',
@@ -103,6 +109,7 @@ export const fixtureProjects: SanityProjectSummary[] = [
     displayOrder: 2,
     externalUrl: undefined,
     githubUrl: undefined,
+    caseStudyArticle: undefined,
   },
   {
     // Deliberately not featured — exercises the featured-filter, not just
@@ -118,6 +125,7 @@ export const fixtureProjects: SanityProjectSummary[] = [
     displayOrder: 3,
     externalUrl: undefined,
     githubUrl: undefined,
+    caseStudyArticle: undefined,
   },
 ]
 

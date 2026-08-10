@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import { PortableText } from '@portabletext/react'
 import { Seo } from '@/components/seo/seo'
 import { NarrativeSection } from '@/components/work/narrative-section'
@@ -41,6 +41,10 @@ export function ProjectDetailPage() {
 
   if (!project) {
     return <NotFoundPage />
+  }
+
+  if (project.caseStudyArticle?.slug) {
+    return <Navigate to={`/articles/${project.caseStudyArticle.slug}`} replace />
   }
 
   const { chapters, pendingTitles } = splitProjectContent(project.content)

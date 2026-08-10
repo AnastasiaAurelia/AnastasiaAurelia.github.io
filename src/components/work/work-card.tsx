@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { ArrowUpRight } from 'lucide-react'
 import type { SanityProjectSummary } from '@/lib/sanity/types'
 import { EVIDENCE_META, type EvidenceType } from './evidence-meta'
+import { getProjectRoute } from '@/lib/project-route'
 
 /**
  * One row of the full work index. Deliberately technical/dense in its
@@ -10,6 +11,7 @@ import { EVIDENCE_META, type EvidenceType } from './evidence-meta'
  * with icons — so it reads as a case-study record, not an essay.
  */
 export function WorkCard({ project, index }: { project: SanityProjectSummary; index: number }) {
+  const summary = project.caseStudyArticle?.excerpt ?? project.shortSummary
   const evidenceTypes: EvidenceType[] = [
     'case-study',
     ...(project.githubUrl ? (['repository'] as const) : []),
@@ -18,7 +20,7 @@ export function WorkCard({ project, index }: { project: SanityProjectSummary; in
 
   return (
     <Link
-      to={`/work/${project.slug}`}
+      to={getProjectRoute(project)}
       className="group grid gap-3 border-t border-line py-8 transition-colors last:border-b hover:bg-surface sm:grid-cols-12 sm:gap-6 sm:px-2"
     >
       <span className="label-mono text-ink-faint sm:col-span-1">{String(index + 1).padStart(2, '0')}</span>
@@ -30,7 +32,7 @@ export function WorkCard({ project, index }: { project: SanityProjectSummary; in
             aria-hidden="true"
           />
         </h3>
-        <p className="mt-2 max-w-xl text-sm text-ink-muted">{project.shortSummary}</p>
+        <p className="mt-2 max-w-xl text-sm text-ink-muted">{summary}</p>
       </div>
       <div className="flex flex-col gap-3 sm:col-span-4">
         <p className="label-mono text-accent">{project.projectType}</p>
