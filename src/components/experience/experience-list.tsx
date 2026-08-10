@@ -1,10 +1,11 @@
 import type { SanityExperience } from '@/lib/sanity/types'
 import { EmptyState } from '@/components/state/query-states'
+import { formatMonth } from '@/lib/format-month'
 
 function formatRange(exp: SanityExperience) {
-  const start = exp.startDate?.slice(0, 7) ?? '?'
-  const end = exp.isCurrent ? 'Present' : (exp.endDate?.slice(0, 7) ?? '?')
-  return `${start} — ${end}`
+  const start = formatMonth(exp.startDate)
+  const end = exp.isCurrent ? 'Present' : formatMonth(exp.endDate)
+  return `${start} – ${end}`
 }
 
 export function ExperienceList({ experience }: { experience: SanityExperience[] }) {
@@ -15,9 +16,9 @@ export function ExperienceList({ experience }: { experience: SanityExperience[] 
   return (
     <ol className="divide-y divide-line border-y border-line">
       {experience.map((exp) => (
-        <li key={exp._id} className="py-6">
+        <li key={exp._id} className={exp.secondary ? 'py-6 text-ink-faint' : 'py-6'}>
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <h3 className="text-lg">
+            <h3 className={exp.secondary ? 'text-base' : 'text-lg'}>
               {exp.role} <span className="text-ink-faint">· {exp.company}</span>
             </h3>
             <p className="label-mono text-ink-faint">{formatRange(exp)}</p>

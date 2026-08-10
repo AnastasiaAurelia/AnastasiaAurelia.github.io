@@ -16,6 +16,11 @@ import dataTable from './objects/dataTable'
 import callout from './objects/callout'
 import processDiagram from './objects/processDiagram'
 import swimlaneDiagram from './objects/swimlaneDiagram'
+import education from './objects/education'
+import publication from './objects/publication'
+import skillGroup from './objects/skillGroup'
+import impactStat from './objects/impactStat'
+import technicalWorkHighlight from './objects/technicalWorkHighlight'
 
 export const schemaTypes = [
   // Documents
@@ -37,4 +42,9 @@ export const schemaTypes = [
   callout,
   processDiagram,
   swimlaneDiagram,
+  education,
+  publication,
+  skillGroup,
+  impactStat,
+  technicalWorkHighlight,
 ]

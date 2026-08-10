@@ -121,6 +121,7 @@ export interface SanityExperience {
   achievements?: string[]
   displayOrder: number
   visible: boolean
+  secondary?: boolean
 }
 
 export interface CredibilityPoint {
@@ -224,12 +225,59 @@ export type SanityArticleSummary = Pick<
   '_id' | 'title' | 'slug' | 'excerpt' | 'coverImage' | 'publishedAt' | 'tags' | 'category' | 'featured'
 >
 
+export interface Education {
+  institution: string
+  program: string
+  location?: string
+  startDate: string
+  endDate?: string
+  status?: string
+  coursework?: string[]
+  honors?: string[]
+  sortOrder: number
+}
+
+export interface Publication {
+  title: string
+  venue: string
+  year: string
+  url?: string
+  sortOrder: number
+}
+
+export interface SkillGroup {
+  title: string
+  skills: string[]
+  sortOrder: number
+}
+
+export interface ImpactStat {
+  value: string
+  label: string
+  sortOrder: number
+}
+
+export interface TechnicalWorkHighlight {
+  cvTitle: string
+  cvSummary: string
+  sortOrder: number
+  article?: { title: string; slug: string } | null
+}
+
 export interface SanitySiteSettings {
   homepageHeadline: string
   homepageSupportingCopy: string
   credibilityPoints?: CredibilityPoint[]
+  name?: string
+  positioning?: string
+  location?: string
   aboutContent?: PortableTextBlock[]
   capabilityGroups?: CapabilityGroup[]
+  keyImpact?: ImpactStat[]
+  technicalWork?: TechnicalWorkHighlight[]
+  education?: Education[]
+  publications?: Publication[]
+  skillGroups?: SkillGroup[]
   contactEmail: string
   linkedinUrl?: string
   githubUrl?: string

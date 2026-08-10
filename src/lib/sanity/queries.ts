@@ -57,6 +57,7 @@ export const visibleExperienceQuery = `*[_type == "experience" && visible == tru
   summary,
   achievements,
   displayOrder,
+  secondary,
 }`
 
 const ARTICLE_SUMMARY_PROJECTION = `{
@@ -115,8 +116,21 @@ export const siteSettingsQuery = `*[_type == "siteSettings"][0] {
   homepageHeadline,
   homepageSupportingCopy,
   credibilityPoints,
+  name,
+  positioning,
+  location,
   aboutContent,
   capabilityGroups,
+  keyImpact,
+  "technicalWork": technicalWork[] | order(sortOrder asc) {
+    cvTitle,
+    cvSummary,
+    sortOrder,
+    "article": articleRef-> { title, "slug": slug.current },
+  },
+  "education": education[] | order(sortOrder asc),
+  "publications": publications[] | order(sortOrder asc),
+  "skillGroups": skillGroups[] | order(sortOrder asc),
   contactEmail,
   linkedinUrl,
   githubUrl,

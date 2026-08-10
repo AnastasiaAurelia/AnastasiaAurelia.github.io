@@ -13,6 +13,9 @@ export const fixtureSiteSettings: SanitySiteSettings = {
   homepageSupportingCopy:
     'Product leadership across computer vision, applied AI, and agentic systems — from problem framing to production reliability.',
   credibilityPoints: [{ statement: 'Ships production AI systems', detail: 'Not just prototypes' }],
+  name: 'Test Person',
+  positioning: 'AI Product Manager | Test Positioning',
+  location: 'Jakarta, Indonesia',
   aboutContent: [],
   capabilityGroups: [
     {
@@ -21,8 +24,39 @@ export const fixtureSiteSettings: SanitySiteSettings = {
       capabilities: ['Detection', 'Recognition', 'Reliability engineering'],
     },
   ],
+  keyImpact: [
+    { value: '100,000+', label: 'Production transactions reviewed', sortOrder: 0 },
+    { value: '5', label: 'Production LPR sites', sortOrder: 1 },
+  ],
+  technicalWork: [
+    {
+      cvTitle: 'Linked Technical Work',
+      cvSummary: 'Has a live case study.',
+      sortOrder: 0,
+      article: { title: 'Featured Test Article', slug: 'featured-test-article' },
+    },
+    {
+      cvTitle: 'Unlinked Technical Work',
+      cvSummary: 'No case study exists yet, so this renders as text only.',
+      sortOrder: 1,
+      article: null,
+    },
+  ],
+  education: [
+    {
+      institution: 'Test University',
+      program: 'Test Program',
+      startDate: '2018-08',
+      endDate: '2022-01',
+      coursework: ['Probability', 'Statistics'],
+      honors: ['Most Outstanding Student'],
+      sortOrder: 0,
+    },
+  ],
+  publications: [{ title: 'Test Publication', venue: 'Test Venue', year: '2023', sortOrder: 0 }],
+  skillGroups: [{ title: 'Data & Experimentation', skills: ['SQL', 'Python'], sortOrder: 0 }],
   contactEmail: 'your-email@gmail.com',
-  linkedinUrl: undefined,
+  linkedinUrl: 'https://linkedin.com/in/test-profile',
   githubUrl: undefined,
   resumeUrl: undefined,
   defaultSeoTitle: undefined,
@@ -149,6 +183,7 @@ export const fixtureExperience: SanityExperience[] = [
     achievements: ['Shipped a computer vision reliability initiative'],
     displayOrder: 0,
     visible: true,
+    secondary: false,
   },
   {
     // Deliberately hidden — exercises the `visible` filter the mock (and
@@ -163,5 +198,21 @@ export const fixtureExperience: SanityExperience[] = [
     achievements: [],
     displayOrder: 1,
     visible: false,
+    secondary: false,
+  },
+  {
+    // Secondary/additional experience — exercises the About page's split
+    // between the primary Experience list and Additional Experience.
+    _id: 'experience-secondary',
+    company: 'Kawai Piano Gallery',
+    role: 'Piano Instructor',
+    startDate: '2024-05-01',
+    endDate: undefined,
+    isCurrent: true,
+    summary: undefined,
+    achievements: [],
+    displayOrder: 2,
+    visible: true,
+    secondary: true,
   },
 ]

@@ -83,6 +83,13 @@ export default defineType({
       type: 'boolean',
       initialValue: true,
     }),
+    defineField({
+      name: 'secondary',
+      title: 'Secondary emphasis',
+      type: 'boolean',
+      description: 'Displayed with lower visual prominence — e.g. additional experience like Piano Instructor.',
+      initialValue: false,
+    }),
   ],
   orderings: [
     {

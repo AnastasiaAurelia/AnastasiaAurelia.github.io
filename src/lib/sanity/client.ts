@@ -20,11 +20,28 @@ const API_VERSION = '2025-01-01'
  * Public, read-only client — CDN-backed, no token. This can only ever
  * read published content; draft documents are invisible to it by
  * design, which is what keeps unpublished work off the live site.
+ *
+ * Local-only draft preview: if `VITE_SANITY_PREVIEW_TOKEN` is set in a
+ * gitignored `.env.local` (never present in the production build), the
+ * client switches to that token and the `drafts` perspective so drafts
+ * can be reviewed with `npm run dev`. Unset by default — production
+ * behavior above is unchanged.
  */
-export const sanityClient = createClient({
-  projectId,
-  dataset,
-  apiVersion: API_VERSION,
-  useCdn: true,
-  perspective: 'published',
-})
+const previewToken = import.meta.env.VITE_SANITY_PREVIEW_TOKEN
+
+export const sanityClient = previewToken
+  ? createClient({
+      projectId,
+      dataset,
+      apiVersion: API_VERSION,
+      useCdn: false,
+      token: previewToken,
+      perspective: 'drafts',
+    })
+  : createClient({
+      projectId,
+      dataset,
+      apiVersion: API_VERSION,
+      useCdn: true,
+      perspective: 'published',
+    })
