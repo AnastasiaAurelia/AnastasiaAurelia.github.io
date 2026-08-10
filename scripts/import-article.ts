@@ -978,13 +978,128 @@ const researchLensBody = [
 
 const researchLensDocument = { _type: 'article', title: 'Finding the paper was the easy part.', excerpt: 'How ResearchLens evolved from a paper-search CLI into a provenance-aware workflow for ranking research, exposing missing evidence, and making conservative reproducibility recommendations.', publishedAt: '2026-08-10T00:00:00.000Z', tags: ['ResearchLens', 'Applied AI', 'Research Engineering', 'Information Retrieval', 'Reproducibility', 'Python', 'FastAPI', 'React', 'Data Provenance', 'Product Engineering'], category: 'Applied AI', featured: false, role: 'Product Designer / Full-Stack Engineer', projectType: 'Research Workflow / Applied AI Product', system: 'Python pipeline + FastAPI + React web application', coreQuestion: 'How did paper discovery become a system for interrogating research evidence?', evidence: 'Source code, tests, decision log, git history, generated reports, and public application', status: 'Live product; actively evolving', seoTitle: 'ResearchLens: From Paper Search to Research Workflow', seoDescription: 'How I built ResearchLens: a provenance-aware paper workflow for ranking research, exposing missing evidence, and assessing reproducibility.', body: researchLensBody }
 
+const tradingResearchLabBody = [
+  callout('Research only', 'Trading Research Lab produces auditable market-research artifacts. It does not place orders, connect a wallet, or turn a report into an execution instruction.', 'warning'),
+  block('I stopped treating market research as one model’s answer.', 'h2'),
+  block('The first version of this project had a familiar shape: collect market data, run several analytical tools, and combine their outputs into a daily view. The hard part appeared after the tools worked. They disagreed. They used different ticker formats, different time horizons, and different notions of confidence. Some returned useful context without a directional signal. Others failed for one asset while succeeding for the rest.'),
+  block('A fluent summary could hide all of that. It could make stale data sound current, present missing evidence as neutral evidence, or let a macro indicator masquerade as a vote on a specific asset. The problem was no longer “How do I ask more models?” It was “What evidence is allowed to influence the conclusion, and can I prove why?”'),
+  block('That question changed Trading Research Lab—called Research OS inside the repository—from a collection of forecasting experiments into a layered evidence system.'),
+
+  block('The system I ended up building', 'h2'),
+  block('Research OS separates collection, normalization, eligibility, aggregation, and rendering. Each runner is responsible for one layer. Some layers calculate technical or forecasting signals. Others describe derivatives, macro conditions, market structure, protocol fundamentals, social activity, or on-chain context. Their outputs do not go directly into prose.'),
+  diagram('From heterogeneous evidence to a research brief', 'pipeline', [
+    ['Asset registry', 'canonical ticker and source role'],
+    ['Layer runners', 'market data, models, quantitative and contextual evidence'],
+    ['Raw artifacts', 'source-shaped outputs with explicit status'],
+    ['Normalization', 'common signal and metadata contract'],
+    ['Eligibility checks', 'identity, freshness, status and source role'],
+    ['Aggregation', 'eligible directional evidence only'],
+    ['Deterministic report', 'conclusion, exclusions and blind spots'],
+  ], ['Context-only evidence remains readable but bypasses the directional tally', 'Execution systems stay outside the research path'], undefined, 'A simplified view of the implemented pipeline; provider-specific requests and internal schemas are intentionally omitted.'),
+  block('The common contract is deliberately small. Directional layers can express bullish, bearish, neutral, or unknown. Unknown is excluded rather than converted into zero. Every artifact also carries enough state for the system to explain whether it is available, partial, stale, failed, unsupported, or intentionally non-directional.'),
+  block('This is not a claim that heterogeneous models suddenly become statistically comparable. They do not. The final tally is a bounded research summary, not a calibrated probability and not a trading instruction.'),
+
+  block('Decision 1 — normalize identity before normalizing opinions', 'h2'),
+  block('Ticker identity looked like plumbing until it became a correctness problem. The same asset can arrive as a bare symbol, a USD pair, an exchange pair, or a provider-specific instrument. A “latest” file can also be perfectly fresh and still belong to the wrong asset. If that artifact enters a report, the error is more dangerous than a clean failure because the numbers look plausible.'),
+  block('I introduced a canonical asset registry and moved provider selection behind source-routing boundaries. Ticker aliases are resolved to one internal identity before an artifact can be selected. Ticker-specific files are preferred, and the renderer checks the requested identity against the artifact identity rather than trusting a generic filename.'),
+  diagram('Ticker isolation is a gate, not a filename convention', 'pipeline', [
+    ['User ticker', 'alias or provider format'],
+    ['Canonicalization', 'one Research OS identity'],
+    ['Source routing', 'ticker-appropriate data path'],
+    ['Artifact resolution', 'ticker-specific candidate first'],
+    ['Identity check', 'requested ticker must match artifact'],
+    ['Eligible layer state', 'only then can freshness be evaluated'],
+  ], undefined, 'A fresh artifact for another ticker must fail the identity gate.', 'This boundary was strengthened repeatedly in the git history as more providers and asset classes were added.'),
+  block('The consequence is visible in the tests. They cover canonical aliases, ticker-specific negative cases, stale generic artifacts, and model inputs that must not be borrowed across assets. An absent artifact produces an explicit unavailable state. It does not quietly fall back to another ticker’s result.'),
+
+  block('Decision 2 — freshness comes before confidence', 'h2'),
+  block('Model confidence is easy to overvalue because it arrives as a number. But confidence in an old forecast does not make the underlying market state current. I therefore made freshness a precondition for influence, not a footnote added after scoring.'),
+  block('Each layer has a time expectation appropriate to its data. The system computes age from the artifact’s own timestamps, applies a layer policy, and records the resulting freshness state. A limited warning window can keep certain daily evidence visible while clearly labeling its age; beyond the exclusion boundary, it cannot contribute to the conclusion.'),
+  diagram('Evidence eligibility', 'pipeline', [
+    ['Artifact exists?', 'missing is not neutral'],
+    ['Ticker matches?', 'prevent cross-asset contamination'],
+    ['Status usable?', 'failed and unsupported remain explicit'],
+    ['Fresh enough?', 'policy depends on the layer'],
+    ['Directional role?', 'context is not consensus'],
+    ['Included in conclusion', 'an explicit final state'],
+  ], undefined, 'Confidence is interpreted only after these gates pass.', 'This diagram is explanatory notation for the implemented checks, not the production schema or a universal market model.'),
+  block('This ordering also improved failure language. “Unknown” can mean a layer is not configured, a provider failed, an asset is unsupported, or the layer is context-only by design. Those are operationally different facts. Preserving the state lets the report say what is missing and why, instead of flattening every absence into the same harmless-looking value.'),
+
+  block('Decision 3 — context is evidence, not automatically consensus', 'h2'),
+  block('Several valuable inputs should never cast a directional vote. Macro conditions can describe the environment. An order book can describe local liquidity and imbalance. Protocol fundamentals can describe activity and valuation context. A liquidation map in this system is explicitly a proxy. None of those facts, by itself, is a universal bullish or bearish decision for every horizon.'),
+  block('I encoded that distinction in the data path. Context-only layers carry an unknown directional signal and an explicit exclusion reason. Validators reject artifacts that mark protected context layers as included in the conclusion, and report validation checks the rendered conclusion for language that accidentally turns those layers into votes.'),
+  ...bullets(
+    'Directional and eligible evidence may add one bounded vote; model confidence values are never presented as additive probabilities.',
+    'Context-only evidence may describe the environment and possible risks; it cannot change the directional tally.',
+    'Unknown, failed, or stale evidence remains visible with its reason; absence is never treated as a neutral vote.',
+    'Locked execution is reported as unavailable; the research system cannot suggest or place an order.',
+  ),
+  block('For the eligible directional set, the daily aggregator uses a simple signed tally: bullish contributes +1, bearish −1, and neutral 0; unknown is excluded. That simplicity is intentional. It makes the result inspectable, while the report keeps the vote breakdown and disagreements visible. The renderer is more conservative still: it warns when votes span different horizons or source classes rather than presenting the lean as a unified probability.'),
+
+  block('Decision 4 — render last, and render deterministically', 'h2'),
+  block('I originally thought the narrative layer would be the interesting part. In practice, prose was the last thing I wanted to trust. The current ticker brief is generated deterministically from validated layer states. Its sections, labels, exclusion reasons, and conclusion are derived from structured evidence rather than from a model improvising a coherent story.'),
+  diagram('The report is a projection of state', 'pipeline', [
+    ['Validated layer states'],
+    ['Vote set + exclusion set'],
+    ['Consistency invariants'],
+    ['Deterministic section renderer'],
+    ['Markdown research artifact'],
+    ['Post-render validation'],
+  ], ['The report shows freshness, disagreement, missing data and the next research step'], 'A failed consistency check blocks a trustworthy brief.', 'The output can be inspected, diffed, and regenerated from the same state.'),
+  block('That decision made tests part of the product design. There are checks for context layers entering a vote, ticker mismatches, stale evidence, contradictory report language, freshness wording, incomplete artifacts, and conclusion integrity. A report can fail validation even when every upstream script completed successfully.'),
+  block('The result is less theatrical than asking a model to write an investment memo. It is also easier to audit. If a conclusion changes, I can trace whether the input changed, the eligibility state changed, or the deterministic aggregation changed.'),
+
+  block('Decision 5 — make asset onboarding a state transition', 'h2'),
+  block('Adding a symbol to a configuration file is not enough to make it research-ready. A ticker can be discoverable but unsupported by the required sources, valid for spot data but not derivatives, or suitable only as market context. I separated discovery from admission with candidate, validation, promotion, rejection, and disabled states.'),
+  diagram('Asset lifecycle', 'timeline', [
+    ['Candidate', 'discovered, not trusted'],
+    ['Validated', 'source reachability and quality checked'],
+    ['Promoted', 'explicitly admitted to the active registry'],
+    ['Active research', 'ticker-specific layers and reports'],
+    ['Disabled or rejected', 'state and reason retained'],
+  ], ['An ad-hoc probe does not promote an asset or alter daily consensus'], undefined, 'Asset state determines what the system is allowed to claim.'),
+  block('The command router reinforces that boundary. Mutating actions require an explicit command, while dry-run and status paths are available for inspection. An unknown ticker can be probed in a separate, read-only path without entering the official asset list or the daily consensus. This prevents curiosity from silently becoming production state.'),
+
+  block('What an agent runtime could add—and what it should not own', 'h2'),
+  block('The repository includes agent-facing contracts and a read-only research persona, but it does not contain a production OpenClaw integration. The useful comparison is architectural, not a deployment claim.'),
+  block('OpenClaw’s current documentation describes a long-lived Gateway that owns message routing and delivery, with agents scoped by their own workspaces, state directories, and session histories. Tools are governed separately from skills, and stronger isolation requires sandboxing because a workspace alone is only a working-directory boundary. Those ideas fit the operating surface around Research OS: route a ticker request, give a research agent narrowly permitted read tools, and return the already validated artifact.'),
+  linkedBlock('The conceptual mapping is grounded in OpenClaw’s official ', 'agent runtime documentation', 'https://docs.openclaw.ai/concepts/agent', ', which separates the runtime, workspace, sessions, tools, and skills.'),
+  linkedBlock('Its ', 'multi-agent routing documentation', 'https://docs.openclaw.ai/concepts/multi-agent', ' describes deterministic bindings and per-agent workspaces and state.'),
+  linkedBlock('The ', 'Gateway architecture documentation', 'https://docs.openclaw.ai/architecture', ' describes the message and control-plane boundary.'),
+  callout('Conceptual boundary', 'A future OpenClaw layer could route requests and present reports. It should not recalculate eligibility, rewrite source state, or acquire execution authority. Research OS remains the source of research truth.', 'info'),
+  block('That distinction matters because an agent is good at interaction and orchestration; it is not a substitute for evidence contracts. The safest design would let the agent ask for a ticker brief, read the validated result, explain exclusions, and stop. Mutating the asset registry would remain an explicit operator action. Execution would remain isolated and locked.'),
+
+  block('How the project changed while I built it', 'h2'),
+  table(['Initial assumption', 'Problem discovered', 'Design change'], [
+    ['More analytical tools would create a better answer.', 'Outputs differed in identity, horizon, availability and meaning.', 'Normalize artifacts and model their state before aggregation.'],
+    ['Every useful input could participate in consensus.', 'Macro, fundamentals and microstructure are informative without being directional votes.', 'Context-only became an explicit evidence role enforced by validators.'],
+    ['A latest artifact was safe to reuse.', 'Fresh data for the wrong ticker is still wrong.', 'Canonical ticker resolution and ticker-specific artifacts became hard gates.'],
+    ['Confidence could summarize reliability.', 'A confident forecast can still be stale or unsupported.', 'Freshness and eligibility now precede confidence.'],
+    ['A generated narrative could unify the system.', 'Prose can conceal disagreement and missing inputs.', 'Deterministic reports expose vote balance, exclusions and blind spots.'],
+    ['Adding a ticker was configuration work.', 'Provider coverage and asset role must be proved.', 'Candidate validation and explicit promotion became a lifecycle.'],
+  ]),
+  block('The git history reflects that progression. Early work assembled the daily pipeline. Later changes repeatedly tightened ticker canonicalization, ticker-specific artifacts, freshness grace and exclusion behavior, context-only adapters, pre-render orchestration, deterministic validation, and finally cross-section consistency invariants. The architecture became stricter as the number of sources grew.'),
+
+  block('What I deliberately did not automate', 'h2'),
+  block('Research OS does not place trades. An execution engine appears in the tool registry only as locked, without a runner or credentials. Read-only context adapters are guarded from mutating methods. The reports end with research-only conclusions and next research steps, not entries, exits, position sizes, or wallet actions.'),
+  block('I also did not make every unavailable source look complete. Optional layers can fail independently. The report retains useful evidence from the rest of the system while naming the gap. Required invariants, however, fail closed: wrong-ticker evidence, forbidden context votes, or inconsistent conclusion language are not partial success.'),
+
+  block('What I learned building it', 'h2'),
+  block('The most useful market-research system is not the one with the most confident narrator. It is the one that can answer a quieter set of questions: Which asset does this artifact describe? How old is it? What role is this source allowed to play? What failed? What was excluded? Can the conclusion be regenerated from the evidence?'),
+  block('I started with models and ended up designing boundaries. Normalization keeps providers from leaking into the rest of the system. Eligibility keeps stale or mismatched evidence out of the decision. Context roles keep interesting observations from becoming accidental votes. Deterministic rendering keeps the report subordinate to state. The execution lock keeps research from becoming action.'),
+  block('The final lesson was simple: disagreement was not the bug. Hidden disagreement was. Once the system could preserve disagreement, absence, freshness, and provenance as first-class state, the report stopped pretending to be one model’s answer and became something I could actually interrogate.'),
+  callout('Current scope', 'Trading Research Lab is a personal, research-only system for layered market evidence and auditable ticker briefs. The repository supports no claims about returns, predictive accuracy, users, revenue, or live trading performance.', 'warning'),
+]
+
+const tradingResearchLabDocument = { _type: 'article', title: 'I stopped treating market research as one model’s answer.', excerpt: 'How I turned a collection of market-data and forecasting tools into a layered evidence system with explicit freshness, eligibility, ticker isolation, and deterministic reports.', publishedAt: '2026-08-10T00:00:00.000Z', tags: ['Trading Research Lab', 'Research Systems', 'Quantitative Research', 'Time-Series Forecasting', 'Data Pipelines', 'Multi-Agent Systems', 'Python', 'Data Provenance', 'System Reliability'], category: 'Applied AI', featured: false, role: 'System Designer / Research Engineer', projectType: 'Market Research System / Applied AI', system: 'Python research pipeline + deterministic reporting', coreQuestion: 'How can heterogeneous market evidence become an auditable research conclusion without hiding uncertainty?', evidence: 'Source code, tests, architecture contracts, configuration structure, git history, and generated-artifact pipeline', status: 'Research-only system; actively evolving', seoTitle: 'Trading Research Lab: Evidence Before Narrative', seoDescription: 'How I built a layered market-research system with ticker isolation, freshness gates, explicit evidence roles, and deterministic reports.', body: tradingResearchLabBody }
+
 const project9Document = { _type: 'article', title: 'A plate-number edit was actually a distributed transaction.', excerpt: 'A product-systems case study turning Change Plate and Transfer WUZZ into deterministic cross-system state transitions with membership sync, consent, privacy, rollback, recovery and release gates.', publishedAt: '2026-08-10T00:00:00.000Z', tags: ['Product Architecture', 'Systems Design', 'Distributed Systems', 'Product Management', 'State Machines', 'WUZZ', 'LPR', 'Membership', 'Workflow Design', 'Data Consistency', 'Privacy', 'QA', 'Risk Management', 'Operational Design', 'System Integration'], category: 'Product Systems / Systems Design', featured: false, role: 'Product Manager', projectType: 'Product Architecture / Cross-System Workflow Design', system: 'WUZZ / App + CMS + Cloud + Agent + LPR + Membership', coreQuestion: 'When is a distributed identity or ownership mutation safe enough to expose as success?', evidence: 'Product architecture, risk discovery, cross-system validation, PRD consolidation, and release contract', status: 'Completed Product Definition', seoTitle: 'WUZZ Change Plate & Transfer System Design | Anastasia Aurelia', seoDescription: 'A product architecture case study on safe plate and WUZZ ownership mutations across App, CMS, Cloud, Agent, LPR, membership, operations, and privacy.', body: project9Body }
 
-const requestedSlug = process.argv.find((argument) => argument === 'lpr-timing-analysis' || argument === 'sdcard-agent-cross-validation' || argument === 'multi-site-lpr-performance-diagnostics' || argument === 'unified-lpr-source-of-truth' || argument === 'lpr-accuracy-stability-research' || argument === 'wuzzlpr-performance-intelligence' || argument === 'motorcycle-cv-training' || argument === 'wuzz-change-plate-transfer-system-design' || argument === 'lpr-camera-reliability-integration' || argument === 'researchlens-from-search-to-research-workflow') ?? 'lpr-timing-analysis'
+const requestedSlug = process.argv.find((argument) => argument === 'lpr-timing-analysis' || argument === 'sdcard-agent-cross-validation' || argument === 'multi-site-lpr-performance-diagnostics' || argument === 'unified-lpr-source-of-truth' || argument === 'lpr-accuracy-stability-research' || argument === 'wuzzlpr-performance-intelligence' || argument === 'motorcycle-cv-training' || argument === 'wuzz-change-plate-transfer-system-design' || argument === 'lpr-camera-reliability-integration' || argument === 'researchlens-from-search-to-research-workflow' || argument === 'trading-research-lab-evidence-before-narrative') ?? 'lpr-timing-analysis'
 const slug = requestedSlug
 const documentId = `article-${slug}`
 const draftId = `drafts.${documentId}`
-const selected = slug === 'researchlens-from-search-to-research-workflow' ? researchLensDocument : slug === 'lpr-camera-reliability-integration' ? project10Document : slug === 'wuzz-change-plate-transfer-system-design' ? project9Document : slug === 'motorcycle-cv-training' ? project8Document : slug === 'wuzzlpr-performance-intelligence' ? project4Document : slug === 'lpr-accuracy-stability-research' ? project6Document : slug === 'unified-lpr-source-of-truth' ? project57Document : slug === 'multi-site-lpr-performance-diagnostics' ? project3Document : slug === 'sdcard-agent-cross-validation' ? project2Document : lprDocument
+const selected = slug === 'trading-research-lab-evidence-before-narrative' ? tradingResearchLabDocument : slug === 'researchlens-from-search-to-research-workflow' ? researchLensDocument : slug === 'lpr-camera-reliability-integration' ? project10Document : slug === 'wuzz-change-plate-transfer-system-design' ? project9Document : slug === 'motorcycle-cv-training' ? project8Document : slug === 'wuzzlpr-performance-intelligence' ? project4Document : slug === 'lpr-accuracy-stability-research' ? project6Document : slug === 'unified-lpr-source-of-truth' ? project57Document : slug === 'multi-site-lpr-performance-diagnostics' ? project3Document : slug === 'sdcard-agent-cross-validation' ? project2Document : lprDocument
 const revisionMode = process.argv.includes('--revision')
 
 async function main() {
@@ -1001,6 +1116,34 @@ async function main() {
   console.log(`Prepared local revision preview for ${draftId}.`)
   if (conflict.draft) { await client.createOrReplace(document as never); console.log(`Updated existing draft ${draftId}.`) }
   else { await client.create(document as never); console.log(`Created draft ${draftId}.`) }
+  if (slug === 'trading-research-lab-evidence-before-narrative') {
+    const projectId = '927618e1-3eeb-40f2-b13f-4ddb510ec4e9'
+    const projectDraftId = `drafts.${projectId}`
+    const projectState = await client.fetch(
+      `{ "draft": *[_id == $draft][0]{_id,_rev,_type}, "published": *[_id == $published][0]._id }`,
+      { draft: projectDraftId, published: projectId },
+    ) as { draft?: { _id: string; _rev: string; _type: string }; published?: string }
+    if (!projectState.draft || projectState.draft._type !== 'project') throw new Error(`Expected existing Trading Research Lab project draft ${projectDraftId}; no project update was made.`)
+    if (projectState.published) throw new Error(`Trading Research Lab already has a published sibling ${projectId}; refusing to change its publication state.`)
+    await client
+      .patch(projectDraftId)
+      .ifRevisionId(projectState.draft._rev)
+      .set({
+        title: 'Trading Research Lab',
+        slug: { _type: 'slug', current: 'trading-research-lab' },
+        shortSummary: 'A research-only system that turns heterogeneous market data, forecasts, and context into ticker-isolated, freshness-aware, auditable research briefs.',
+        projectType: 'Research Intelligence',
+        tags: ['Quantitative Research', 'Research Systems', 'Time-Series Forecasting', 'Data Pipelines'],
+        featured: true,
+        displayOrder: 3,
+        githubUrl: 'https://github.com/AnastasiaAurelia/trading-research-lab',
+        caseStudyArticle: { _type: 'reference', _ref: documentId, _weak: true },
+        seoTitle: 'Trading Research Lab | Anastasia Aurelia',
+        seoDescription: 'A layered market-research system with ticker isolation, freshness gates, explicit evidence roles, and deterministic reports.',
+      })
+      .commit()
+    console.log(`Updated existing project draft ${projectDraftId}; featured=true, displayOrder=3. No project was published.`)
+  }
   console.log(`Slug: ${slug}. Publication state: DRAFT. No published document was changed.`)
   console.log(`Local website preview: /articles/${slug}?preview=local (development server only).`)
 }
