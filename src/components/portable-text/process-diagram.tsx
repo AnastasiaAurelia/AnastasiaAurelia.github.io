@@ -2,7 +2,7 @@ export function ProcessDiagram({ value }: { value: { title: string; variant?: st
   return <figure className="breakout-wide my-8" aria-label={value.title}>
     <div className="rounded-sm border border-line bg-surface p-4 sm:p-6">
       <ol className={`process-diagram-grid ${value.steps.length >= 5 ? 'process-diagram-grid--multi' : ''}`}>
-        {value.steps.map((step, index) => <li key={step._key ?? step.label} className="relative min-w-0 rounded-sm border border-line-strong bg-paper p-4 text-center">
+        {value.steps.map((step, index) => <li key={step._key ?? step.label} className="process-diagram-node relative rounded-sm border border-line-strong bg-paper p-4 text-center">
           <span className="mb-2 block font-mono text-[0.65rem] font-bold uppercase tracking-wider text-ink-faint">
             {value.variant === 'timeline' ? 'Point' : 'Step'} {String(index + 1).padStart(2, '0')}
           </span>

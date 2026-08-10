@@ -165,21 +165,34 @@ describe('portableTextComponents', () => {
     expect(screen.getByRole('region', { name: 'Change Plate flow lanes' })).toHaveClass('overflow-x-auto')
   })
 
-  it('keeps long process fields word-wrapped and exposes sequence without relying on arrows', () => {
+  it('keeps a realistic nine-stage reliability chain readable without count-driven fractional columns', () => {
     const diagram: ArticleContentBlock[] = [{
-      _type: 'processDiagram', _key: 'process-1', title: 'Long process', variant: 'pipeline',
-      steps: Array.from({ length: 9 }, (_, index) => ({
-        _key: `step-${index}`,
-        label: index === 0 ? 'Vehicle and plate visibility' : `Process node ${index + 1}`,
-        field: index === 0 ? 'HTTP / SDK / replay' : undefined,
-      })),
+      _type: 'processDiagram', _key: 'process-1', title: 'The transaction reliability chain', variant: 'pipeline',
+      steps: [
+        { _key: 'vehicle', label: 'Vehicle', field: 'path and plate visibility' },
+        { _key: 'trigger', label: 'Trigger', field: 'loop / video timing' },
+        { _key: 'capture', label: 'Capture', field: 'geometry and exposure' },
+        { _key: 'ocr', label: 'OCR', field: 'detection and recognition' },
+        { _key: 'transport', label: 'Transport', field: 'HTTP / SDK / replay' },
+        { _key: 'agent', label: 'Agent / TTL', field: 'state and timing' },
+        { _key: 'check-in', label: 'Check-in' },
+        { _key: 'check-out', label: 'Check-out' },
+        { _key: 'full-cycle', label: 'Full-cycle success' },
+      ],
     }]
     const { container } = render(<PortableText value={diagram} components={portableTextComponents} />)
     expect(screen.getByText('Step 01')).toBeInTheDocument()
     expect(screen.getByText('Step 09')).toBeInTheDocument()
     expect(screen.getByText('HTTP / SDK / replay')).toHaveClass('break-words')
     expect(screen.getByText('HTTP / SDK / replay')).not.toHaveClass('break-all')
-    expect(container.querySelector('.process-diagram-grid')).toBeInTheDocument()
+    expect(screen.getByText('geometry and exposure')).toBeInTheDocument()
+    expect(screen.getByText('Full-cycle success')).toBeInTheDocument()
+    const grid = container.querySelector('.process-diagram-grid')
+    expect(grid).toHaveClass('process-diagram-grid--multi')
+    expect(grid).not.toHaveAttribute('style')
+    expect(grid?.children).toHaveLength(9)
+    expect(grid?.querySelectorAll('.process-diagram-node')).toHaveLength(9)
+    expect(grid?.querySelector('.min-w-0')).not.toBeInTheDocument()
   })
 
   it('sizes wide data tables by column count inside a contained scroll region', () => {
