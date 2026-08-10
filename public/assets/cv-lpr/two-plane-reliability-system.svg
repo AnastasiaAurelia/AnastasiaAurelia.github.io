@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="980" viewBox="0 0 1600 980" role="img" aria-labelledby="title desc">
+  <title id="title">Management and technical reliability planes for an LPR product</title>
+  <desc id="desc">The management plane turns an SLO into measurement, diagnosis, ownership and validation. It connects to the technical journey from vehicle trigger through full transaction success and training feedback.</desc>
+  <rect width="1600" height="980" fill="#f7f4ed"/>
+  <style>.h{font:700 34px Arial;fill:#17151a}.k{font:700 17px Arial;letter-spacing:2px;fill:#9a3f23}.t{font:600 18px Arial;fill:#17151a}.s{font:400 15px Arial;fill:#625d66}.box{fill:#fffdf8;stroke:#c9c1b6;stroke-width:2}.line{stroke:#9a3f23;stroke-width:3;fill:none}.dash{stroke:#8b8490;stroke-width:2;stroke-dasharray:8 8;fill:none}</style>
+  <text x="90" y="76" class="h">Management sees the outcome. Engineering needs the layer.</text>
+  <text x="90" y="132" class="k">MANAGEMENT &amp; PRODUCT CONTROL PLANE</text>
+  <g transform="translate(90 165)">
+    <rect class="box" width="180" height="92" rx="12"/><text class="t" x="90" y="38" text-anchor="middle">Business goal</text><text class="s" x="90" y="65" text-anchor="middle">SLO + user journey</text>
+    <path class="line" d="M180 46h44"/><path fill="#9a3f23" d="m224 38 16 8-16 8z"/>
+    <g transform="translate(240)"><rect class="box" width="180" height="92" rx="12"/><text class="t" x="90" y="38" text-anchor="middle">Metric contract</text><text class="s" x="90" y="65" text-anchor="middle">one denominator</text></g>
+    <path class="line" d="M420 46h44"/><path fill="#9a3f23" d="m464 38 16 8-16 8z"/>
+    <g transform="translate(480)"><rect class="box" width="180" height="92" rx="12"/><text class="t" x="90" y="38" text-anchor="middle">Monitor</text><text class="s" x="90" y="65" text-anchor="middle">site → gate → event</text></g>
+    <path class="line" d="M660 46h44"/><path fill="#9a3f23" d="m704 38 16 8-16 8z"/>
+    <g transform="translate(720)"><rect class="box" width="180" height="92" rx="12"/><text class="t" x="90" y="38" text-anchor="middle">Classify</text><text class="s" x="90" y="65" text-anchor="middle">failure domain</text></g>
+    <path class="line" d="M900 46h44"/><path fill="#9a3f23" d="m944 38 16 8-16 8z"/>
+    <g transform="translate(960)"><rect class="box" width="180" height="92" rx="12"/><text class="t" x="90" y="38" text-anchor="middle">Assign action</text><text class="s" x="90" y="65" text-anchor="middle">engineering / vendor / ops</text></g>
+    <path class="line" d="M1140 46h44"/><path fill="#9a3f23" d="m1184 38 16 8-16 8z"/>
+    <g transform="translate(1200)"><rect class="box" width="180" height="92" rx="12"/><text class="t" x="90" y="38" text-anchor="middle">Validate</text><text class="s" x="90" y="65" text-anchor="middle">measure again</text></g>
+  </g>
+  <path class="dash" d="M810 275v92"/><path fill="#8b8490" d="m802 351 8 16 8-16z"/>
+  <text x="836" y="327" class="s">drill down until the failure has an owner</text>
+  <text x="90" y="420" class="k">TECHNICAL RELIABILITY PLANE</text>
+  <g transform="translate(90 455)">
+    <g><rect class="box" width="160" height="86" rx="12"/><text class="t" x="80" y="36" text-anchor="middle">Vehicle</text><text class="s" x="80" y="61" text-anchor="middle">lane behavior</text></g>
+    <path class="line" d="M160 43h28"/><path fill="#9a3f23" d="m188 35 16 8-16 8z"/>
+    <g transform="translate(204)"><rect class="box" width="160" height="86" rx="12"/><text class="t" x="80" y="36" text-anchor="middle">Trigger</text><text class="s" x="80" y="61" text-anchor="middle">loop / video</text></g>
+    <path class="line" d="M364 43h28"/><path fill="#9a3f23" d="m392 35 16 8-16 8z"/>
+    <g transform="translate(408)"><rect class="box" width="160" height="86" rx="12"/><text class="t" x="80" y="36" text-anchor="middle">Capture</text><text class="s" x="80" y="61" text-anchor="middle">geometry + image</text></g>
+    <path class="line" d="M568 43h28"/><path fill="#9a3f23" d="m596 35 16 8-16 8z"/>
+    <g transform="translate(612)"><rect class="box" width="160" height="86" rx="12"/><text class="t" x="80" y="36" text-anchor="middle">OCR</text><text class="s" x="80" y="61" text-anchor="middle">plate evidence</text></g>
+    <path class="line" d="M772 43h28"/><path fill="#9a3f23" d="m800 35 16 8-16 8z"/>
+    <g transform="translate(816)"><rect class="box" width="160" height="86" rx="12"/><text class="t" x="80" y="36" text-anchor="middle">Transport</text><text class="s" x="80" y="61" text-anchor="middle">HTTP / SDK / replay</text></g>
+    <path class="line" d="M976 43h28"/><path fill="#9a3f23" d="m1004 35 16 8-16 8z"/>
+    <g transform="translate(1020)"><rect class="box" width="160" height="86" rx="12"/><text class="t" x="80" y="36" text-anchor="middle">Agent / TTL</text><text class="s" x="80" y="61" text-anchor="middle">timing + state</text></g>
+    <path class="line" d="M1180 43h28"/><path fill="#9a3f23" d="m1208 35 16 8-16 8z"/>
+    <g transform="translate(1224)"><rect class="box" width="160" height="86" rx="12"/><text class="t" x="80" y="36" text-anchor="middle">Transaction</text><text class="s" x="80" y="61" text-anchor="middle">CI + CO success</text></g>
+  </g>
+  <g transform="translate(170 650)"><rect x="0" y="0" width="1260" height="184" rx="18" fill="#efe8dc" stroke="#c9c1b6" stroke-width="2"/><text class="k" x="630" y="42" text-anchor="middle">THE CONNECTION</text><text class="t" x="630" y="82" text-anchor="middle">Low KPI → gate / transaction drill-down → technical failure layer → specific intervention → measurement again</text><text class="s" x="630" y="121" text-anchor="middle">A correct OCR result is necessary, but full-cycle success also depends on trigger timing, transport, state and operations.</text><text class="s" x="630" y="151" text-anchor="middle">Every failed event becomes monitoring evidence, an operational fix, or a candidate for the training archive.</text></g>
+  <path class="line" d="M800 834v64H260v-54"/><path fill="#9a3f23" d="m252 858 8-16 8 16z"/><text x="820" y="882" class="s">feedback to the next control cycle</text>
+</svg>

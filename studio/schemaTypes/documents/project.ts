@@ -137,6 +137,10 @@ export default defineType({
         defineArrayMember({ type: 'metricHighlight' }),
         defineArrayMember({ type: 'decisionCallout' }),
         defineArrayMember({ type: 'architectureDiagram' }),
+        defineArrayMember({ type: 'math' }),
+        defineArrayMember({ type: 'dataTable' }),
+        defineArrayMember({ type: 'callout' }),
+        defineArrayMember({ type: 'processDiagram' }),
       ],
     }),
     defineField({

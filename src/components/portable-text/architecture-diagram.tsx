@@ -2,11 +2,17 @@ import type { SanityImageObject } from '@sanity/image-url'
 import { urlForImage } from '@/lib/sanity/image'
 
 interface ArchitectureDiagramProps {
-  value: SanityImageObject & { alt: string; caption?: string; explanation?: string }
+  value: (SanityImageObject & { alt: string; caption?: string; explanation?: string }) | {
+    image: SanityImageObject
+    alt: string
+    caption?: string
+    explanation?: string
+  }
 }
 
 export function ArchitectureDiagram({ value }: ArchitectureDiagramProps) {
-  const url = urlForImage(value).auto('format').fit('max').width(1400).url()
+  const image = 'image' in value ? value.image : value
+  const url = urlForImage(image).auto('format').fit('max').width(1400).url()
 
   return (
     <figure className="my-4 border border-line p-4">
