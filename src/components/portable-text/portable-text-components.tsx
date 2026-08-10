@@ -6,6 +6,10 @@ import { DecisionCallout } from './decision-callout'
 import { ArchitectureDiagram } from './architecture-diagram'
 import { CodeBlock } from './code-block'
 import { ArticleImage } from './article-image'
+import { MathBlock } from './math'
+import { DataTable } from './data-table'
+import { Callout } from './callout'
+import { ProcessDiagram } from './process-diagram'
 
 /**
  * Everything Portable Text can render, mapped to the app's own styled
@@ -71,5 +75,9 @@ export const portableTextComponents: PortableTextComponents = {
     metricHighlight: MetricHighlight,
     decisionCallout: DecisionCallout,
     code: CodeBlock,
+    math: MathBlock,
+    dataTable: DataTable,
+    callout: Callout,
+    processDiagram: ProcessDiagram,
   },
 }

@@ -92,6 +92,13 @@ export function ArticleDetailPage() {
           </div>
         </header>
 
+        {article.role ? <dl className="mt-10 grid gap-px overflow-hidden rounded-sm border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            ['Role', article.role], ['Project type', article.projectType], ['System', article.system],
+            ['Core question', article.coreQuestion], ['Evidence', article.evidence], ['Status', article.status],
+          ].map(([label, value]) => value ? <div key={label} className="bg-paper p-4"><dt className="label-mono text-accent">{label}</dt><dd className="mt-2 text-sm text-ink-muted">{value}</dd></div> : null)}
+        </dl> : null}
+
         {coverUrl && article.coverImage ? (
           <figure className="mt-10">
             <img

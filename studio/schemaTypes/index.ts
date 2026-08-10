@@ -11,6 +11,10 @@ import galleryImage from './objects/galleryImage'
 import credibilityPoint from './objects/credibilityPoint'
 import capabilityGroup from './objects/capabilityGroup'
 import articleImage from './objects/articleImage'
+import math from './objects/math'
+import dataTable from './objects/dataTable'
+import callout from './objects/callout'
+import processDiagram from './objects/processDiagram'
 
 export const schemaTypes = [
   // Documents
@@ -27,4 +31,8 @@ export const schemaTypes = [
   credibilityPoint,
   capabilityGroup,
   articleImage,
+  math,
+  dataTable,
+  callout,
+  processDiagram,
 ]

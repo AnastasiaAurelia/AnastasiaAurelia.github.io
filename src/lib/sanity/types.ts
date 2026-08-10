@@ -153,6 +153,10 @@ export type ArticleContentBlock =
   | DecisionCalloutBlock
   | ArchitectureDiagramBlock
   | CodeBlock
+  | { _type: 'math'; _key: string; latex: string; display?: boolean; databaseDefinition?: string }
+  | { _type: 'dataTable'; _key: string; caption?: string; headers: string[]; rows?: Array<{ _key: string; cells: string[] }> }
+  | { _type: 'callout'; _key: string; title: string; body: string; tone?: 'info' | 'warning' | 'success' }
+  | { _type: 'processDiagram'; _key: string; title: string; variant?: 'pipeline' | 'timeline'; steps: Array<{ _key: string; label: string; field?: string }>; relationships?: string[]; warning?: string; caption?: string }
 
 export type ArticleCategory =
   | 'Applied AI'
@@ -174,6 +178,12 @@ export interface SanityArticle {
   tags: string[]
   category?: ArticleCategory
   featured: boolean
+  role?: string
+  projectType?: string
+  system?: string
+  coreQuestion?: string
+  evidence?: string
+  status?: string
   body: ArticleContentBlock[]
   seoTitle?: string
   seoDescription?: string
