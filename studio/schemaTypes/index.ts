@@ -15,6 +15,7 @@ import math from './objects/math'
 import dataTable from './objects/dataTable'
 import callout from './objects/callout'
 import processDiagram from './objects/processDiagram'
+import swimlaneDiagram from './objects/swimlaneDiagram'
 
 export const schemaTypes = [
   // Documents
@@ -35,4 +36,5 @@ export const schemaTypes = [
   dataTable,
   callout,
   processDiagram,
+  swimlaneDiagram,
 ]

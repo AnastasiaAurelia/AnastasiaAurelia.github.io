@@ -35,6 +35,12 @@
   --ease-editorial: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.swimlane-node--process { border-color: var(--color-line-strong); background: var(--color-paper); }
+.swimlane-node--decision { border-color: var(--color-accent); background: var(--color-accent-soft); }
+.swimlane-node--pending { border-color: var(--color-accent); border-style: dashed; background: var(--color-surface); }
+.swimlane-node--blocked { border-color: var(--color-accent); background: var(--color-accent-soft); }
+.swimlane-node--success { border-color: var(--color-line-strong); box-shadow: inset 0.25rem 0 0 var(--color-accent); background: var(--color-paper); }
+
 :root {
   --raw-paper: #f6f3ec;
   --raw-ink: #15141a;

@@ -1,9 +1,11 @@
 /** Import a portfolio article as an idempotent Sanity draft.
- * Run: node --env-file=scripts/.env.migration scripts/import-article.ts <slug>
+ * Run: node --env-file=scripts/.env.migration scripts/import-article.ts <slug> [--revision]
+ * --revision reads the published sibling as the base and writes only drafts.*.
  */
 import { createClient } from '@sanity/client'
 import { createRequire } from 'node:module'
 import { mkdirSync, writeFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 
 const projectId = process.env.SANITY_STUDIO_PROJECT_ID || process.env.VITE_SANITY_PROJECT_ID
 const dataset = process.env.SANITY_STUDIO_DATASET || process.env.VITE_SANITY_DATASET
@@ -11,7 +13,15 @@ const token = process.env.SANITY_WRITE_TOKEN
 const studioRequire = createRequire(new URL('../studio/package.json', import.meta.url))
 const client = token && projectId && dataset
   ? createClient({ projectId, dataset, token, apiVersion: '2025-01-01', useCdn: false })
-  : studioRequire('sanity/cli').getCliClient({ apiVersion: '2025-01-01' })
+  : (() => {
+      const originalDirectory = process.cwd()
+      try {
+        process.chdir(fileURLToPath(new URL('../studio/', import.meta.url)))
+        return studioRequire('sanity/cli').getCliClient({ apiVersion: '2025-01-01' })
+      } finally {
+        process.chdir(originalDirectory)
+      }
+    })()
 let sequence = 0
 const key = () => `lpr-${++sequence}`
 const block = (text: string, style: 'normal' | 'h2' | 'h3' = 'normal', listItem?: 'bullet' | 'number') => ({ _type: 'block', _key: key(), style, ...(listItem ? { listItem, level: 1 } : {}), markDefs: [], children: [{ _type: 'span', _key: key(), text, marks: [] }] })
@@ -20,6 +30,13 @@ const table = (headers: string[], rows: string[][], caption?: string) => ({ _typ
 const callout = (title: string, body: string, tone: 'info' | 'warning' | 'success' = 'info') => ({ _type: 'callout', _key: key(), title, body, tone })
 const math = (latex: string, databaseDefinition: string) => ({ _type: 'math', _key: key(), latex, display: true, databaseDefinition })
 const diagram = (title: string, variant: 'pipeline' | 'timeline', steps: Array<[string, string?]>, relationships?: string[], warning?: string, caption?: string) => ({ _type: 'processDiagram', _key: key(), title, variant, steps: steps.map(([label, field]) => ({ _type: 'processStep', _key: key(), label, ...(field ? { field } : {}) })), relationships, warning, caption })
+type SwimlaneState = 'process' | 'decision' | 'pending' | 'blocked' | 'success'
+type SwimlaneNodeSource = [label: string, detail?: string, state?: SwimlaneState, transitions?: string[]]
+const swimlane = (title: string, summary: string, lanes: Array<[string, SwimlaneNodeSource[]]>, caption?: string) => ({
+  _type: 'swimlaneDiagram', _key: key(), title, summary,
+  lanes: lanes.map(([name, nodes]) => ({ _type: 'swimlane', _key: key(), name, nodes: nodes.map(([label, detail, state = 'process', transitions]) => ({ _type: 'swimlaneNode', _key: key(), label, ...(detail ? { detail } : {}), state, ...(transitions ? { transitions } : {}) })) })),
+  ...(caption ? { caption } : {}),
+})
 
 const lprBody = [
   callout('Outcome', 'I turned an unreliable timing metric into a defensible event model and analysis pipeline. The key result was not a pretty bell curve; it was catching a sign/semantics error before it could be mistaken for user behavior.', 'success'),
@@ -632,13 +649,126 @@ const project9Body = [
   callout('Discovery', 'The problem was no longer “edit a field.” It became “define the source of truth and update ordering.”', 'warning'),
   table(['Failure mode', 'Why it matters', 'Product rule'], [['New plate in App, old plate in Agent membership', 'Repeated verification / member identity mismatch', 'Keep pending until all required locations sync'], ['User still inside a location', 'Ticket may snapshot the old plate', 'Hard block until active parking ends'], ['Agent update partially fails', 'Some locations accept B while another expects A', 'Retry, recover, or rollback; never emit false success'], ['No CRO / no remote recovery', 'Mismatch can trap the user at the gate', 'Block unless a tested recovery path exists']]),
   diagram('Portfolio reconstruction of distributed Flow A state logic', 'pipeline', [['REQUEST CREATED'], ['PRECHECK'], ['WAITING FOR APPROVAL'], ['CMS DECISION'], ['MEMBERSHIP RESOLUTION'], ['FAN-OUT / APPLY'], ['POST-CHANGE VALIDATION'], ['SUCCESS or PENDING / RECOVERY']], ['Any hard blocker → BLOCKED', 'UNKNOWN membership → WAITING FOR VERIFICATION', 'Any missing acknowledgement → KEEP PENDING'], 'These are conceptual states implied by the PRD and QA findings—not claimed backend enum names.', 'Success exists only after all required systems agree.'),
-  block('Three ways to ship the same feature.', 'h2'),
-  block('The architecture decision was about where complexity should live.'),
-  table(['Option', 'Complexity owner', 'Coverage', 'Main value', 'Main cost'], [['1 · Full System Sync', 'Engineering', 'Casual + member; multi-location system-managed', 'Best UX; scalable', 'Highest engineering effort; reliable Agent integration/callbacks required'], ['2 · Assisted Change Plate', 'CS + Location Ops', 'Casual + member request; locations handled manually', 'Lower engineering effort; members covered', 'High operational load and residual human error'], ['3 · Casual-only Self Service', 'Product scope', 'Confirmed casual only', 'Fastest / safest narrow release', 'Member pain remains; reliable member detection still required']], 'DESIGN TRADE-OFF SYNTHESIS — ordinal product comparison, not production KPI.'),
-  block('Full System Sync', 'h2'),
-  block('The recommended end state behaves like an orchestrated transaction: validate → mutate → collect acknowledgements → validate → close. Option 2 is a fallback if integration is not ready; Option 3 is scope reduction, not the full solution.'),
+  block('Architecture decision', 'h2'),
+  block('Three implementations. Three places to put the complexity: engineering once, CS and Location Ops on every request, or a narrower product scope that excludes member self-service.'),
+  block('Option 1 — Full System Sync', 'h2'),
+  block('Engineering owns the hardest implementation so casual and member users can complete the same self-service journey, including automatic synchronization across every active membership location.'),
+  swimlane('Option 1 — Full System Sync', 'Engineering-heavy · Full member coverage · Automatic WUZZ ↔ Agent synchronization', [
+    ['User', [
+      ['Start and open Change Plate Number', 'Open WUZZ detail.', 'process', ['Input new plate and required documents']],
+      ['Input evidence and consent', 'Review impact and terms, then submit the request.', 'process', ['App / Cloud validation']],
+      ['Receive outcome', 'Success notification is sent only after the chosen completion criteria pass.', 'success'],
+    ]],
+    ['PARKEE App / Cloud', [
+      ['Validate WUZZ, new plate, and activity', undefined, 'process', ['Duplicate plate? YES → Out of scope', 'Duplicate plate? NO → Active parking decision']],
+      ['New plate registered to another WUZZ?', undefined, 'decision', ['YES → Out of scope', 'NO → Check ongoing parking / active ticket']],
+      ['Ongoing parking / active ticket?', undefined, 'decision', ['YES → Block: finish parking activity first', 'NO → Reliable membership lookup']],
+      ['Resolve membership from a reliable source', 'UNKNOWN cannot silently become CASUAL.', 'decision', ['CASUAL → Standard request', 'MEMBER → Retrieve all active membership locations', 'UNKNOWN → Pending verification or block']],
+    ]],
+    ['CMS / Admin', [
+      ['Create review request', 'Casual: standard Change Plate request. Member: attach every active membership location.', 'process', ['Admin approval decision']],
+      ['Approved?', undefined, 'decision', ['NO → Denied; keep/revert old plate and notify user', 'YES → Coordinated update']],
+      ['Denied', 'Keep or restore the old plate and notify the user.', 'blocked'],
+    ]],
+    ['Agent / Location', [
+      ['Start coordinated update', 'Update the WUZZ plate and fan out the member update to ALL active locations. Casual requests require no Agent update.', 'process', ['Agent updates Location A / B / C / …']],
+      ['Return per-location result', 'Each required location returns success or failure.', 'process', ['Are ALL required locations synced?']],
+      ['All required locations synced?', undefined, 'decision', ['NO → Keep pending; retry / recover / rollback; notify CS if needed', 'YES → Final gate validation']],
+      ['Keep pending', 'Retry, recovery, or rollback. AGENT UPDATE FAILED ≠ SUCCESS.', 'pending'],
+    ]],
+    ['Gate / Validation', [
+      ['Validate final state', 'App/CMS = new plate\nWUZZ number unchanged\nAgent = new plate for members\nEntry, exit, ticket, slip, and report valid\nAudit old → new', 'process', ['Final state valid?']],
+      ['Final state valid?', undefined, 'decision', ['NO → Keep pending; recovery / rollback', 'YES → Success and notify user']],
+      ['Keep pending / recover', 'Do not close while any required state is unconfirmed.', 'pending'],
+      ['Success', 'Notify user: Change Plate completed.', 'success'],
+    ]],
+  ], 'Desktop groups the full graph by owner; mobile stacks the same lanes and preserves every labeled transition.'),
+  table(['Option 1 lens', 'Assessment'], [['Implementation character', 'Engineering-heavy; full member coverage'], ['Who pays complexity?', 'Engineering, once'], ['Casual', 'Supported self-service'], ['Member', 'Supported self-service'], ['Multi-location', 'System-managed'], ['CS effort', 'Low'], ['Ops effort', 'Low'], ['Scalability', 'High'], ['Main value', 'Best UX + scalable'], ['Main cost', 'Highest engineering effort']]),
+  callout('Option 1 dependencies', 'Reliable membership lookup; Agent update API/integration; per-location status callbacks; retry, rollback, and partial-failure handling; cross-system QA.', 'info'),
+  block('Option 2 — Assisted Change Plate', 'h2'),
+  block('The App remains the intake channel, while CS verifies membership and Location Ops performs each Agent or Backoffice update. Engineering effort is lower than Option 1, but operational work repeats for every member request.'),
+  swimlane('Option 2 — Assisted Change Plate', 'CS/Ops-heavy · Full member coverage through a manual SOP · App as intake channel', [
+    ['User', [
+      ['Open Change Plate and enter evidence', 'Input new plate and documents.', 'process', ['App validation']],
+      ['Member or verification warning', 'Confirm every membership location and accept the disclaimer / terms.', 'decision', ['Declare Location A / B / C', 'Submit request']],
+      ['Submit request', undefined, 'process', ['Request status: waiting for review']],
+    ]],
+    ['PARKEE App / Cloud', [
+      ['Validate plate and activity', undefined, 'process', ['Ongoing parking / active ticket?']],
+      ['Ongoing parking / active ticket?', undefined, 'decision', ['YES → Block: finish parking activity first', 'NO → Check membership information']],
+      ['Membership status?', 'UNKNOWN must wait for verification.', 'decision', ['CASUAL → Normal request path', 'MEMBER / UNKNOWN → Waiting for review + Request ID']],
+      ['Waiting for review', 'Expose a traceable Request ID to the user and operations.', 'pending', ['CS verification']],
+    ]],
+    ['CS / CMS', [
+      ['Verify request and identity', 'Check old/new plate, documents, and WUZZ using the Request ID.', 'process', ['Verify membership status and ALL locations']],
+      ['Confirm every membership location', 'Supporting lookup: user declaration, Metabase, Agent/Backoffice, or direct confirmation.', 'decision', ['NOT confirmed → Keep pending; contact user; DO NOT APPROVE', 'Confirmed → Create one task per location']],
+      ['Create per-location tasks', 'Location A / B / C / …; notify the relevant Location Ops.', 'process', ['Manual Agent / Backoffice update']],
+      ['Approve and record audit', 'After location confirmation: update WUZZ old → new and retain Request ID.', 'process', ['Final validation']],
+    ]],
+    ['Location Ops / Agent', [
+      ['Open Agent / Backoffice', undefined, 'process', ['Update each membership plate']],
+      ['Update old plate → new plate', 'Repeat for every required location.', 'process', ['Report result per location']],
+      ['Confirm per-location status', 'Example: A updated; B updated; C pending.', 'process', ['Are ALL required locations confirmed?']],
+      ['All required locations confirmed?', undefined, 'decision', ['NO → Keep pending; CS follows up with Ops', 'YES → CMS approval and final validation']],
+    ]],
+    ['Validation / Recovery', [
+      ['Validate final state', 'App/CMS = new plate\nEvery Agent location = new plate\nNo old active membership plate remains\nEntry, exit, ticket behavior valid', 'process', ['Completion criteria satisfied?']],
+      ['Wrong or incomplete location list', 'CS finds mismatch → DO NOT APPROVE; contact user and update the location list.', 'blocked', ['Return to verification using Request ID']],
+      ['Undiscovered location after completion', 'Treat as a gate/member issue; CS/Ops recover using the Request ID.', 'pending'],
+      ['Keep pending or succeed', 'NO → pending and follow-up. YES → notify user and close request.', 'decision', ['Confirmed → Success', 'Unconfirmed → Keep pending']],
+    ]],
+  ], 'The Request ID joins intake, verification, per-location work, follow-up, validation, and recovery.'),
+  table(['Option 2 lens', 'Assessment'], [['Implementation character', 'CS/Ops-heavy; manual SOP'], ['Who pays complexity?', 'CS + Location Ops, for every request'], ['Casual', 'Supported'], ['Member', 'Covered through an assisted request'], ['Multi-location', 'Handled manually'], ['CS effort', 'High'], ['Ops effort', 'High'], ['Scalability', 'Low'], ['Main value', 'Lower engineering effort + full member coverage'], ['Main cost', 'Operational load + residual human error']]),
+  callout('Option 2 dependencies', 'User/location verification; SOP, PIC, and escalation; manual Agent/Backoffice update; tracking for every required location; Request ID–based recovery.', 'info'),
+  block('Option 3 — Casual-Only Self Service', 'h2'),
+  block('This is deliberate scope reduction: only confirmed casual users self-serve. Members and unknown membership states follow the existing CS process until reliable detection proves the request is safely casual.'),
+  swimlane('Option 3 — Casual-Only Self Service', 'Minimum scope · Confirmed casual users self-serve · Members and unknown states route to Customer Service', [
+    ['User', [
+      ['Start and open Change Plate Number', undefined, 'process', ['Input new plate and required documents']],
+      ['Continue with evidence', 'Submit the new plate and required documents.', 'process', ['App validation']],
+    ]],
+    ['PARKEE App / Cloud', [
+      ['Validate new plate and activity', 'Duplicate/invalid plate cannot proceed.', 'process', ['Ongoing parking / active ticket?']],
+      ['Ongoing parking / active ticket?', undefined, 'decision', ['YES → Block: finish parking activity first', 'NO → Check membership']],
+      ['Membership status?', 'Reliable detection is a release dependency.', 'decision', ['CASUAL → Continue self-service', 'MEMBER → Do not create self-service request', 'UNKNOWN → Verification / CS; never treat as casual']],
+    ]],
+    ['CMS / Customer Service', [
+      ['Confirmed casual request', 'Submit Change Plate request; status = waiting for approval.', 'process', ['CMS reviews plate and documents']],
+      ['Approved?', undefined, 'decision', ['NO → Denied; keep old plate and notify reason', 'YES → Update WUZZ / CMS']],
+      ['Member or unknown', 'Show a CS explanation and Contact Customer Service CTA.', 'blocked', ['Existing manual CS/Ops membership flow outside self-service']],
+    ]],
+    ['Agent / Location Ops', [
+      ['Update WUZZ / CMS', 'Old plate → new plate; WUZZ number unchanged.', 'process', ['Confirmed casual requires no Agent synchronization']],
+      ['No Agent synchronization', 'Safe only because scope is confirmed casual.', 'success', ['Validation']],
+      ['Member handling stays manual', 'Existing CS/Ops membership process remains outside self-service scope.', 'pending'],
+    ]],
+    ['Validation', [
+      ['Success for confirmed casual', 'Notify user: Change Plate completed.', 'success'],
+      ['Denied', 'Keep old plate and notify the reason.', 'blocked'],
+      ['Scope boundary', 'Member pain is not solved by this release; reliable member detection remains a dependency.', 'pending'],
+    ]],
+  ], 'Unknown membership never defaults to casual; it routes to verification or Customer Service.'),
+  table(['Option 3 lens', 'Assessment'], [['Implementation character', 'Smallest / narrowest product scope'], ['Who pays complexity?', 'Product scope and excluded user coverage'], ['Casual', 'Supported self-service'], ['Member', 'Not self-service'], ['Multi-location', 'Outside self-service scope'], ['CS effort', 'Existing flow'], ['Ops effort', 'Existing flow'], ['Scalability', 'Medium'], ['Main value', 'Fastest + safest implementation'], ['Main cost', 'Member pain remains']]),
+  callout('Option 3 dependencies', 'Reliable member detection; UNKNOWN routes to verification; downstream QA for the casual path; an existing CS path for members.', 'info'),
+  block('Implementation strategy comparison', 'h2'),
+  table(['Dimension', 'Option 1 · Full System Sync', 'Option 2 · Assisted Change Plate', 'Option 3 · Casual-Only Self Service'], [
+    ['Implementation character', 'Engineering-heavy; full member coverage', 'CS/Ops-heavy; full member coverage with SOP', 'Minimum scope; members routed to CS'],
+    ['Who pays complexity?', 'Engineering', 'CS + Location Ops', 'Product scope / user coverage'],
+    ['Casual', 'Supported self-service', 'Supported', 'Supported self-service'],
+    ['Member', 'Supported self-service', 'Supported assisted request', 'Not self-service'],
+    ['Multi-location', 'System-managed', 'CS/Ops-managed manually', 'Outside self-service scope'],
+    ['CS effort', 'Low', 'High', 'Existing flow'],
+    ['Ops effort', 'Low', 'High', 'Existing flow'],
+    ['Scalability', 'High', 'Low', 'Medium'],
+    ['Main value', 'Best UX + scalable', 'Lower engineering effort + full member coverage', 'Fastest + safest implementation'],
+    ['Main cost', 'Highest engineering effort', 'Operational load + residual human error', 'Member pain remains'],
+  ], 'Qualitative decision framing: engineering effort vs operational effort vs user coverage.'),
+  block('Decision guide', 'h2'),
+  ...bullets('Need scalable member self-service and willing to invest in Cloud + Agent integration → Option 1.', 'Need member coverage now with lower engineering effort and willing to absorb CS/Ops workload → Option 2.', 'Priority is the fastest / safest release and member synchronization risk is not yet proven safe → Option 3.'),
+  callout('Non-negotiable success rule', 'SUCCESS ≠ CMS PLATE UPDATED. Success means the completion criteria for the chosen architecture are satisfied. For any member flow, if required Agent/location updates are not synced and confirmed, KEEP PENDING or RECOVER. Do not mark SUCCESS.', 'warning'),
+  block('Recommended end state — Full System Sync', 'h2'),
+  block('Full System Sync remains the strongest end state when member self-service, multi-location membership, reliable Agent integration, and long-term scalability matter. Option 1 moves complexity to engineering once; Option 2 moves it to CS/Ops for every request; Option 3 avoids it by excluding member self-service. This does not make Option 1 the automatic short-term release: Option 2 remains an assisted fallback, and Option 3 is a valid scope-reduction strategy.'),
   table(['Stage', 'Required evidence before moving on'], [['Pre-check', 'WUZZ active; target plate valid; no competing request; no ongoing parking; membership resolved'], ['Apply', 'Old → new plate applied in agreed sequence; owner and WUZZ identity preserved'], ['Member fan-out', 'Every active membership location receives the update and returns success or failure'], ['Validation', 'App/CMS, Agent, entrance/exit, LPR, ticket, parking slip, and report agree'], ['Close', 'All required acknowledgements exist'], ['Partial failure', 'Request remains pending']]),
-  diagram('Full System Sync closure loop', 'pipeline', [['Validate'], ['Mutate'], ['Collect acknowledgements'], ['Validate cross-system state'], ['Close']], ['Multi-location membership stays synchronized', 'Manual CS/Ops work does not become permanent architecture'], 'Partial completion remains pending.', 'Recommended scalable end state from the implementation-decision package.'),
   callout('Distributed-systems lesson', 'The safest product copy is not “Plate updated.” It is closer to “All systems required for your access have been validated.” The UI must reflect transaction state, not one database write.', 'success'),
   block('Transfer WUZZ: ownership, not plate editing.', 'h2'),
   block('The sender initiates Flow B1. The recipient decides whether ownership actually moves. CMS can support audit and support search, but happy-path ownership must not move silently.'),
@@ -676,18 +806,22 @@ const slug = requestedSlug
 const documentId = `article-${slug}`
 const draftId = `drafts.${documentId}`
 const selected = slug === 'wuzz-change-plate-transfer-system-design' ? project9Document : slug === 'motorcycle-cv-training' ? project8Document : slug === 'wuzzlpr-performance-intelligence' ? project4Document : slug === 'lpr-accuracy-stability-research' ? project6Document : slug === 'unified-lpr-source-of-truth' ? project57Document : slug === 'multi-site-lpr-performance-diagnostics' ? project3Document : slug === 'sdcard-agent-cross-validation' ? project2Document : lprDocument
-const document = { ...selected, _id: draftId, slug: { _type: 'slug', current: slug } }
+const revisionMode = process.argv.includes('--revision')
 
 async function main() {
-  const conflict = await client.fetch(`{ "draft": *[_id == $draft][0]._id, "published": *[_id == $published][0]._id }`, { draft: draftId, published: documentId }) as { draft?: string; published?: string }
+  const conflict = await client.fetch(`{ "draft": *[_id == $draft][0]._id, "published": *[_id == $published][0] }`, { draft: draftId, published: documentId }) as { draft?: string; published?: Record<string, unknown> }
   const other = await client.fetch(`*[_type == "article" && slug.current == $slug && !(_id in [$draft, $published])][0]._id`, { slug, draft: draftId, published: documentId }) as string | null
   if (other) throw new Error(`Slug conflict: ${slug} is already used by ${other}. No changes made.`)
-  if (conflict.published) throw new Error(`Published article ${documentId} already exists. Refusing to overwrite it; no changes made.`)
-  if (conflict.draft) { await client.createOrReplace(document as never); console.log(`Updated existing draft ${draftId}.`) }
-  else { await client.create(document as never); console.log(`Created draft ${draftId}.`) }
+  if (conflict.published && !revisionMode) throw new Error(`Published article ${documentId} already exists. Re-run with --revision to create its drafts.* sibling; no changes made.`)
+  if (revisionMode && !conflict.published) throw new Error(`Cannot create revision: published article ${documentId} does not exist. No changes made.`)
+  const publishedBase = conflict.published ? Object.fromEntries(Object.entries(conflict.published).filter(([field]) => !['_rev', '_createdAt', '_updatedAt'].includes(field))) : {}
+  const document = { ...publishedBase, ...selected, _id: draftId, slug: { _type: 'slug', current: slug } }
   const previewDirectory = new URL('../.sanity-drafts/', import.meta.url)
   mkdirSync(previewDirectory, { recursive: true })
   writeFileSync(new URL(`${slug}.json`, previewDirectory), JSON.stringify({ ...document, _id: draftId, slug }, null, 2))
+  console.log(`Prepared local revision preview for ${draftId}.`)
+  if (conflict.draft) { await client.createOrReplace(document as never); console.log(`Updated existing draft ${draftId}.`) }
+  else { await client.create(document as never); console.log(`Created draft ${draftId}.`) }
   console.log(`Slug: ${slug}. Publication state: DRAFT. No published document was changed.`)
   console.log(`Local website preview: /articles/${slug}?preview=local (development server only).`)
 }

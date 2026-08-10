@@ -10,6 +10,7 @@ import { MathBlock } from './math'
 import { DataTable } from './data-table'
 import { Callout } from './callout'
 import { ProcessDiagram } from './process-diagram'
+import { SwimlaneDiagram } from './swimlane-diagram'
 
 /**
  * Everything Portable Text can render, mapped to the app's own styled
@@ -79,5 +80,6 @@ export const portableTextComponents: PortableTextComponents = {
     dataTable: DataTable,
     callout: Callout,
     processDiagram: ProcessDiagram,
+    swimlaneDiagram: SwimlaneDiagram,
   },
 }

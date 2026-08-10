@@ -157,6 +157,26 @@ export type ArticleContentBlock =
   | { _type: 'dataTable'; _key: string; caption?: string; headers: string[]; rows?: Array<{ _key: string; cells: string[] }> }
   | { _type: 'callout'; _key: string; title: string; body: string; tone?: 'info' | 'warning' | 'success' }
   | { _type: 'processDiagram'; _key: string; title: string; variant?: 'pipeline' | 'timeline'; steps: Array<{ _key: string; label: string; field?: string }>; relationships?: string[]; warning?: string; caption?: string }
+  | SwimlaneDiagramBlock
+
+export interface SwimlaneDiagramBlock {
+  _type: 'swimlaneDiagram'
+  _key: string
+  title: string
+  summary?: string
+  lanes: Array<{
+    _key: string
+    name: string
+    nodes: Array<{
+      _key: string
+      label: string
+      detail?: string
+      state?: 'process' | 'decision' | 'pending' | 'blocked' | 'success'
+      transitions?: string[]
+    }>
+  }>
+  caption?: string
+}
 
 export type ArticleCategory =
   | 'Applied AI'

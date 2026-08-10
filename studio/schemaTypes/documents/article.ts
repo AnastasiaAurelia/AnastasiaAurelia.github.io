@@ -155,6 +155,7 @@ export default defineType({
         defineArrayMember({ type: 'dataTable' }),
         defineArrayMember({ type: 'callout' }),
         defineArrayMember({ type: 'processDiagram' }),
+        defineArrayMember({ type: 'swimlaneDiagram' }),
       ],
     }),
     defineField({

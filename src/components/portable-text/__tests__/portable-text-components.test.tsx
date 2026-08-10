@@ -145,6 +145,21 @@ describe('portableTextComponents', () => {
     expect(screen.getByText('const x = 1')).toBeInTheDocument()
     expect(screen.getByText('typescript')).toBeInTheDocument()
   })
+
+  it('renders an accessible swimlane graph with ownership and branch labels', () => {
+    const graph: ArticleContentBlock[] = [{
+      _type: 'swimlaneDiagram', _key: 'swimlane-1', title: 'Change Plate flow', summary: 'A complete cross-system flow.',
+      lanes: [
+        { _key: 'lane-user', name: 'User', nodes: [{ _key: 'node-submit', label: 'Submit request', state: 'process', transitions: ['App validation'] }] },
+        { _key: 'lane-app', name: 'App / Cloud', nodes: [{ _key: 'node-decision', label: 'Active parking?', state: 'decision', transitions: ['YES → Block', 'NO → Continue'] }] },
+      ],
+    }]
+    render(<PortableText value={graph} components={portableTextComponents} />)
+    expect(screen.getByRole('heading', { name: 'Change Plate flow' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /User/ })).toBeInTheDocument()
+    expect(screen.getByText('→ YES → Block')).toBeInTheDocument()
+    expect(screen.getByText('Decision')).toBeInTheDocument()
+  })
 })
 
 describe('articleImage rendering', () => {
