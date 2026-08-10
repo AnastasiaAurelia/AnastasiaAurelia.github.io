@@ -348,11 +348,16 @@
    */
   .process-diagram-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
+    grid-template-columns: minmax(0, 1fr);
     gap: 1.5rem;
     list-style: none;
     margin: 0;
     padding: 0;
+  }
+  .process-diagram-node {
+    min-inline-size: min(11rem, 100%);
+    overflow-wrap: break-word;
+    word-break: normal;
   }
   .process-diagram-connector {
     position: absolute;
@@ -364,10 +369,16 @@
   }
   @media (min-width: 40rem) {
     .process-diagram-grid {
+      grid-template-columns: repeat(2, minmax(11rem, 1fr));
       gap: 0.75rem;
     }
     .process-diagram-connector {
       display: none;
+    }
+  }
+  @media (min-width: 48rem) {
+    .process-diagram-grid {
+      grid-template-columns: repeat(3, minmax(11rem, 1fr));
     }
   }
   .process-diagram-grid--multi {
