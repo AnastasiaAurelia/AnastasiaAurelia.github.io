@@ -39,7 +39,7 @@ export const portableTextComponents: PortableTextComponents = {
     strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
     em: ({ children }) => <em>{children}</em>,
     code: ({ children }) => (
-      <code className="rounded-sm bg-surface px-1.5 py-0.5 font-mono text-[0.9em]">{children}</code>
+      <code className="break-words rounded-sm bg-surface px-1.5 py-0.5 font-mono text-[0.9em] [word-break:normal]">{children}</code>
     ),
     link: ({ children, value }) => {
       const linkType = value?.linkType as string | undefined
