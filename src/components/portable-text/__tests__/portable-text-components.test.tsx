@@ -136,8 +136,11 @@ describe('portableTextComponents', () => {
 
   it('renders an architecture diagram with alt text and caption', () => {
     render(<PortableText value={sampleContent} components={portableTextComponents} />)
-    expect(screen.getByAltText('System architecture overview')).toBeInTheDocument()
+    const image = screen.getByAltText('System architecture overview')
+    expect(image).toBeInTheDocument()
     expect(screen.getByText('End-to-end pipeline')).toBeInTheDocument()
+    expect(image.closest('figure')).toHaveClass('breakout-wide')
+    expect(image.closest('a')).toHaveAttribute('target', '_blank')
   })
 
   it('renders a code block without a syntax-highlighter dependency', () => {
@@ -159,6 +162,36 @@ describe('portableTextComponents', () => {
     expect(screen.getByRole('heading', { name: /User/ })).toBeInTheDocument()
     expect(screen.getByText('→ YES → Block')).toBeInTheDocument()
     expect(screen.getByText('Decision')).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Change Plate flow lanes' })).toHaveClass('overflow-x-auto')
+  })
+
+  it('keeps long process fields word-wrapped and exposes sequence without relying on arrows', () => {
+    const diagram: ArticleContentBlock[] = [{
+      _type: 'processDiagram', _key: 'process-1', title: 'Long process', variant: 'pipeline',
+      steps: Array.from({ length: 9 }, (_, index) => ({
+        _key: `step-${index}`,
+        label: index === 0 ? 'Vehicle and plate visibility' : `Process node ${index + 1}`,
+        field: index === 0 ? 'HTTP / SDK / replay' : undefined,
+      })),
+    }]
+    const { container } = render(<PortableText value={diagram} components={portableTextComponents} />)
+    expect(screen.getByText('Step 01')).toBeInTheDocument()
+    expect(screen.getByText('Step 09')).toBeInTheDocument()
+    expect(screen.getByText('HTTP / SDK / replay')).toHaveClass('break-words')
+    expect(screen.getByText('HTTP / SDK / replay')).not.toHaveClass('break-all')
+    expect(container.querySelector('.process-diagram-grid')).toBeInTheDocument()
+  })
+
+  it('sizes wide data tables by column count inside a contained scroll region', () => {
+    const table: ArticleContentBlock[] = [{
+      _type: 'dataTable', _key: 'table-1', caption: 'Six-column evidence matrix',
+      headers: ['One', 'Two', 'Three', 'Four', 'Five', 'Six'],
+      rows: [{ _key: 'row-1', cells: ['A', 'B', 'C', 'D', 'E', 'F'] }],
+    }]
+    render(<PortableText value={table} components={portableTextComponents} />)
+    const region = screen.getByRole('region', { name: 'Six-column evidence matrix' })
+    expect(region).toHaveClass('overflow-x-auto')
+    expect(region.querySelector('table')).toHaveStyle({ minWidth: '72rem' })
   })
 })
 

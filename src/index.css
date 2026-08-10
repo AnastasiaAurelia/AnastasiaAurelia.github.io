@@ -340,4 +340,53 @@
   .article-body-grid > .breakout-full {
     grid-column: 1 / 6;
   }
+
+  /*
+   * Technical diagrams keep a readable card measure instead of deriving one
+   * fractional column per item. Process order stays in DOM order; numbers
+   * carry that order when the grid wraps, while mobile keeps a vertical arrow.
+   */
+  .process-diagram-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
+    gap: 1.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .process-diagram-connector {
+    position: absolute;
+    bottom: -1rem;
+    left: 50%;
+    z-index: 1;
+    color: var(--color-accent);
+    transform: translateX(-50%);
+  }
+  @media (min-width: 40rem) {
+    .process-diagram-grid {
+      gap: 0.75rem;
+    }
+    .process-diagram-connector {
+      display: none;
+    }
+  }
+  .process-diagram-grid--multi {
+    width: 100%;
+    max-width: 39rem;
+    margin-inline: auto;
+  }
+  /* Lanes stack on mobile, then become readable 16rem columns in a contained
+   * horizontal viewport. Two or three lanes fill available width; larger lane
+   * sets scroll inside the figure rather than widening the article page. */
+  .swimlane-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+  @media (min-width: 48rem) {
+    .swimlane-grid {
+      grid-template-columns: repeat(var(--lane-count), minmax(16rem, 1fr));
+      min-width: var(--lane-min-width);
+    }
+  }
 }
