@@ -8,6 +8,7 @@ const CATEGORIES = [
   'Computer Vision',
   'Computer Vision / Data Validation',
   'Data Validation / Systems Reconciliation',
+  'Computer Vision / Performance Diagnostics',
   'Research',
   'Agentic Workflows',
   'Career',
