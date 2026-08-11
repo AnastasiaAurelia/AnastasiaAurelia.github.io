@@ -1314,11 +1314,207 @@ const operationsReportingDocument = {
   body: operationsReportingBody,
 }
 
-const requestedSlug = process.argv.find((argument) => argument === 'lpr-timing-analysis' || argument === 'sdcard-agent-cross-validation' || argument === 'multi-site-lpr-performance-diagnostics' || argument === 'unified-lpr-source-of-truth' || argument === 'lpr-accuracy-stability-research' || argument === 'wuzzlpr-performance-intelligence' || argument === 'motorcycle-cv-training' || argument === 'wuzz-change-plate-transfer-system-design' || argument === 'lpr-camera-reliability-integration' || argument === 'researchlens-from-search-to-research-workflow' || argument === 'trading-research-lab-evidence-before-narrative' || argument === 'diana-nightshift-deterministic-control' || argument === 'lpr-wuzz-operations-reporting-pipeline') ?? 'lpr-timing-analysis'
+const lpWalletResearchBody = [
+  block('A liquidity provider, or LP, deposits capital into a market-making pool and earns trading fees in exchange for taking on price and position risk. Some wallets do this well over long periods. The question behind this project was simple to state: which of those wallets are worth studying closely, and is studying their history actually enough to trust them going forward?'),
+  block('This is a research pipeline that answers that question with evidence instead of a leaderboard screenshot. It scans liquidity pools, builds a candidate list of wallets, scores their historical performance, and then checks whether that history still describes what the wallet is doing right now. The second check is what makes this project worth writing about. It is also what turned a promising-looking ranking into a documented zero-candidate result, and why that result is correct rather than disappointing.'),
+
+  block('The research question', 'h2'),
+  block('The project started with one question: can historical LP performance identify a wallet worth deeper review? That is a reasonable place to start. Past performance is the only performance you can measure directly, and a wallet with thousands of profitable closed positions has clearly done something right.'),
+  block('The question changed once the first ranking model was actually applied to real data. A wallet can have an excellent multi-year track record and also have stopped trading three months ago. Historical strength and current activity are different facts, and a scoring formula built only on history cannot tell them apart. The research question became narrower and more useful: is this wallet currently running an active, observable, and realistically copyable LP strategy? Everything described below is the process of building a system that could actually answer that, instead of assuming the first question was good enough.'),
+
+  block('Building the candidate universe', 'h2'),
+  block('The pipeline starts from pools, not wallets. It pulls the list of available liquidity pools, then scans each pool for its top liquidity providers. That scan produces a large set of raw wallet-pool observations, because a single active wallet can appear in the top-LP list of several pools. Those raw rows are deduplicated and filled into a candidate list, and each unique candidate is enriched with account-level LP metrics: lifetime PnL, win rate, fee efficiency, recent activity, and position duration.'),
+  diagram('Research funnel', 'pipeline', [
+    ['Pools discovered', '~1,200'],
+    ['Raw LP observations', '2,653 rows'],
+    ['Candidates enriched', '2,031 wallets'],
+    ['Ranked and gated', '2,031 scored'],
+    ['WATCHLIST reviewed', '16 wallets'],
+    ['Copy-ready result', '0 wallets'],
+  ], undefined, undefined, 'Every number here is read directly from the committed dataset snapshot, not estimated.'),
+  block('Enrichment is the expensive step. Each wallet requires its own API call, and the pipeline sleeps between requests to respect rate limits, so building this dataset took hours of scanning and roughly two hours of enrichment per thousand new wallets. The candidate target was raised iteratively as research continued rather than fixed at the start, which is why the final enriched set (2,031 wallets) is larger than the pipeline’s original default target.'),
+
+  block('Ranking model v1', 'h2'),
+  block('Once a wallet is enriched, it either survives a set of hard filters or it does not. Hard filters exist to remove wallets that cannot be evaluated meaningfully at all, before any scoring happens.'),
+  table(['Gate', 'Condition', 'Why it exists', 'Effect'], [
+    ['API result missing', 'status_code != 200', 'No usable data was returned for this wallet.', 'Reject before scoring'],
+    ['Sample too small', 'closed_lp_all < 50', 'Fewer than 50 closed positions is not enough to trust a win rate or PnL average.', 'Reject before scoring'],
+    ['Not profitable overall', 'total_pnl_all <= 0', 'A wallet with lifetime net loss has nothing to copy.', 'Reject before scoring'],
+    ['No real capital', 'avg_inflow_all <= 0', 'Zero inflow usually means a data anomaly or an inactive wallet.', 'Reject before scoring'],
+    ['Win rate too low', 'win_rate_all < 0.60', 'Below 60% is treated as below the minimum consistency floor for this research.', 'Reject before scoring'],
+  ], 'A wallet that fails any one of these never reaches the scoring step. Its score is forced to 0.'),
+  block('A wallet that survives the hard filters is scored on a weighted composite of eight metrics. The weights were chosen deliberately, not evenly split: lifetime PnL is capped at 10% specifically so that a wallet that deployed ten million dollars does not automatically outrank a smaller wallet with a better per-position edge. An earlier version of the model weighted lifetime PnL more heavily and rewarded capital size over skill, which is the opposite of what a screening model should do.'),
+  table(['Metric', 'Weight'], [
+    ['Expected value per position', '20%'],
+    ['Win rate (lifetime)', '15%'],
+    ['Average monthly PnL', '15%'],
+    ['PnL, last 30 days', '15%'],
+    ['PnL, last 7 days', '10%'],
+    ['Profit-to-fee ratio', '10%'],
+    ['Lifetime PnL', '10%'],
+    ['Closed LP sample size', '5%'],
+  ], 'Weights are read directly from the current scoring implementation and are unchanged between the first and second version of the model.'),
+  block('Every metric is normalized to a 0 to 1 range before being weighted, because the raw units are not comparable (a PnL figure and a win rate are different scales entirely). The current implementation uses percentile-rank normalization: a wallet’s normalized value is its rank inside the current candidate population, not its distance from the minimum and maximum.'),
+  math('\\text{percentile\\_rank}(x_i) = \\frac{\\left|\\{\\, x_j : x_j \\le x_i \\,\\}\\right|}{n}', 'x_i is one wallet’s raw value for a metric (for example, its lifetime PnL). n is the number of wallets in the current candidate set. The numerator counts how many wallets in the population have a value at or below x_i. The result is always between 0 and 1, where 1 means this wallet has the highest value in the current population.'),
+  block('This replaced an earlier min-max version of the same function, and that change is worth explaining on its own before the full formula, because it is one of the more consequential design decisions in the project.'),
+  table(['Method', 'How it behaves', 'What goes wrong'], [
+    ['Min-max (original)', 'Each value is placed on a line between the population minimum and maximum.', 'One extreme wallet (a whale, or a data anomaly) stretches the line. Every normal wallet gets compressed toward zero, even if they are meaningfully different from each other.'],
+    ['Percentile-rank (current)', 'Each value is placed by its rank position inside the population.', 'One extreme wallet still ranks at the top, but it no longer changes where every other wallet lands. Separation between normal wallets is preserved.'],
+  ], 'This is a conceptual comparison of the two normalization methods, not a simulation run against the live dataset.'),
+  block('With normalized metrics in hand, the full v1 score is a weighted sum, scaled to a familiar 0–100 range:'),
+  math('\\text{score} = 100 \\sum_{k=1}^{8} w_k \\cdot \\hat{m}_k', 'k indexes the eight metrics in the weight table above. w_k is that metric’s fixed weight (0.20 down to 0.05, summing to 1.00). m-hat_k is the metric’s percentile-rank normalized value, 0 to 1. The result is a single composite score between 0 and 100 — the table above is the full expansion of this sum, term by term.'),
+  block('The score is relative, not absolute. It describes a wallet’s position inside the current candidate population, not a fixed quality bar. Adding or removing wallets from the dataset changes every score in it, because percentile rank is a population statistic. A score of 75 means near the top of this specific set of 2,031 wallets, not “75% of some maximum possible quality.”'),
+
+  block('Soft penalties, risk flags, and verdicts', 'h2'),
+  block('Passing the hard filters and getting a composite score is not the end of the model. A set of soft penalties then multiplies the score down for specific risk conditions. Unlike hard filters, these do not disqualify a wallet outright, and they stack multiplicatively when more than one applies.'),
+  table(['Signal', 'Penalty', 'Interpretation'], [
+    ['Average position under 1 hour', '× 0.75', 'Positions this short are close to impossible for a human to replicate by hand.'],
+    ['Average position 1 to 4 hours', '× 0.90', 'Still fast, still meaningful copy friction.'],
+    ['Negative PnL, last 30 days', '× 0.80', 'The wallet lost money recently regardless of lifetime performance.'],
+    ['Negative PnL, last 7 days', '× 0.90', 'Short-term momentum is currently negative.'],
+    ['Profit-to-fee ratio below 0.40', '× 0.85', 'Fees are consuming a large share of net profit.'],
+    ['Profit-to-fee ratio below 0.20', '× 0.85 (stacks on the row above)', 'Severe fee inefficiency, fees are consuming most of the gross return.'],
+    ['ROI above 0.5', '× 0.85', 'Suspiciously high, treated as a possible data anomaly rather than a signal to reward.'],
+  ]),
+  block('The fee-efficiency rows show why “stacking” matters in practice. A wallet with a profit-to-fee ratio of 0.15 is below both the 0.40 and the 0.20 thresholds, so both penalties apply to the same score in sequence.'),
+  math('0.85 \\times 0.85 = 0.7225', 'A wallet failing both fee-efficiency thresholds keeps only 72.25% of its pre-penalty score. This is not a rounding effect. It is two independent, real concerns (fees are high relative to profit, and severely so) both being reflected in the same number.'),
+  block('Verdicts are assigned last, using the final penalized score plus a handful of additional gate conditions that a score alone cannot express.'),
+  table(['Verdict', 'Score threshold', 'Additional requirements'], [
+    ['AVOID / INSUFFICIENT DATA', 'Forced to 0', 'Failed at least one hard filter.'],
+    ['WEAK', 'Below 55', 'Passed hard filters, low composite score.'],
+    ['WATCHLIST', '55 or above', 'Passed hard filters, did not meet every STRONG condition.'],
+    ['STRONG CANDIDATE', '75 or above', 'Win rate ≥ 0.70, closed LP ≥ 100, lifetime PnL ≥ 500, positive 30-day PnL, average position ≥ 4 hours, profit-to-fee ratio ≥ 0.40, zero risk flags.'],
+    ['STRICT STRONG / COPY-REVIEW', '75 or above, all STRONG conditions', 'Additionally: closed LP ≥ 200, positive 7-day PnL, average inflow ≥ 500.'],
+  ], 'A wallet with zero income in the last 30 days cannot reach STRONG regardless of its lifetime numbers. That single gate is what stops a dormant wallet from being surfaced as a live candidate under v1.'),
+
+  block('Why the first model was not enough', 'h2'),
+  block('v1 did what a discovery layer is supposed to do. Against the full 2,031-wallet dataset it eliminated 1,891 wallets at the hard-filter stage and left a much smaller set worth a closer look. That is useful work. The problem is what “worth a closer look” actually meant.'),
+  block('A wallet can score well under this formula and still be one of the following: no longer holding any open LP position, dormant for weeks, running a strategy so fast that a human cannot realistically follow it, or sitting on a large unrealized loss in a position that closed PnL never shows because it has not closed yet. None of those conditions lower a v1 score. All of them make the wallet a bad copy target today. The model was measuring the past correctly. It had no mechanism for asking whether the past still applied.'),
+  callout('The distinction that mattered', 'v1 answered “which wallet has the best historical LP metrics.” That is a different question from “which wallet is currently running an active, repeatable, copyable LP strategy.” A wallet can score 90 on the first question and fail the second immediately.', 'warning'),
+
+  block('Behavior-gated v2', 'h2'),
+  block('v2 keeps the v1 scoring formula. It does not replace it. What changes is the order of operations: current activity, current behavior, and current risk are checked first, and historical score only matters for wallets that survive those checks.'),
+  swimlane('Scoring order, v1 versus v2', 'The same historical formula exists in both versions. What changed is what runs before it gets to matter.', [
+    ['v1 order', [
+      ['Historical metrics', 'Lifetime PnL, win rate, fee efficiency, duration.', 'process', ['Composite score']],
+      ['Composite score', 'Weighted, normalized, 0 to 100.', 'process', ['Verdict']],
+      ['Verdict', 'AVOID, WEAK, WATCHLIST, STRONG, or STRICT STRONG.', 'decision', ['Maybe review']],
+      ['Maybe review', 'A high verdict does not confirm current activity.', 'pending'],
+    ]],
+    ['v2 order', [
+      ['Active LP position now?', 'No active position ends the review immediately.', 'decision', ['Current behavior type?']],
+      ['Current behavior type?', 'LP-focused, dormant, or shifted into unrelated activity.', 'decision', ['Open-position risk known?']],
+      ['Open-position risk known?', 'Missing risk data is treated as unknown risk, not zero risk.', 'decision', ['Cadence realistically copyable?']],
+      ['Cadence realistically copyable?', 'Sub-1-hour or extremely high-frequency positions are rejected here.', 'decision', ['Historical score']],
+      ['Historical score', 'The same v1 formula, now used as one input instead of the gate.', 'process', ['Manual review']],
+      ['Manual review', 'Human check of the specific pair, positions, and on-chain behavior.', 'process', ['Verdict']],
+      ['Verdict', 'REJECT, WATCHLIST, MANUAL_REVIEW_CANDIDATE, or COPY-REVIEW.', 'success'],
+    ]],
+  ], 'Historical score moved from being the main decision layer to being one later input, checked only after behavior and risk gates.'),
+  block('The practical effect of that reordering is strict: a wallet that fails a current-behavior gate never reaches the scoring step at all under v2, no matter how strong its history is. That is a deliberate design choice, not an oversight.'),
+  table(['', 'Current LP active', 'Current LP inactive'], [
+    ['High historical score', 'Eligible for manual review', 'Reject'],
+    ['Low historical score', 'Weak candidate, likely reject', 'Reject'],
+  ], 'A strong historical score cannot rescue a wallet that fails the current-activity gate. Activity status decides the column; score only matters within it.'),
+
+  block('Open-position risk', 'h2'),
+  block('Closed PnL is a record of positions that already ended. It says nothing about positions that are still open. A wallet can show years of strong realized results while simultaneously holding a currently open position that is deeply underwater, and closed-PnL-only metrics have no way to surface that.'),
+  swimlane('Two different kinds of evidence', 'Strong realized history does not guarantee a healthy current book.', [
+    ['Realized history', [
+      ['Closed LP positions', 'What has already happened.', 'success'],
+      ['Historical PnL', 'Lifetime and windowed realized profit.', 'success'],
+      ['Win rate', 'Share of closed positions that were profitable.', 'success'],
+    ]],
+    ['Current exposure', [
+      ['Open positions', 'What is happening right now.', 'pending'],
+      ['Unrealized PnL', 'Floating gain or loss on positions still open.', 'pending'],
+      ['Worst open loss', 'The single worst-performing open position.', 'pending'],
+      ['Position count', 'How many positions are open at once.', 'pending'],
+    ]],
+  ], 'Both halves feed the same decision. Strong realized history plus unconfirmed or poor current exposure is still a reject.'),
+  block('Once open-position data is available for a wallet, it is classified into severity tiers by its worst open position, and each tier carries its own score penalty. If the data is not available at all, the wallet is not assumed safe. It is penalized as unknown.'),
+  table(['Severity', 'Threshold', 'Score multiplier'], [
+    ['Missing', 'Open-position data unavailable for this wallet', '× 0.85'],
+    ['Warning', 'Worst open position between -20% and -30% unrealized', '× 0.85'],
+    ['Deep loss', 'Worst open position between -30% and -50% unrealized', '× 0.65'],
+    ['Extreme loss', 'Worst open position at or beyond -50% unrealized', '× 0.30'],
+  ], 'These are three distinct severity tiers, not one generic risk limit. A wallet with an extreme open loss keeps less than a third of its otherwise-earned score, and a missing-data wallet is blocked from STRONG regardless of how good its other numbers look.'),
+
+  block('What the deeper review found', 'h2'),
+  block('After the current-activity and open-risk logic was added, the WATCHLIST tier held 16 wallets. Every one of them was reviewed individually, on-chain, rather than trusted on CSV metrics alone.'),
+  table(['Review class', 'Count'], [
+    ['MANUAL_REVIEW_CANDIDATE', '4'],
+    ['NOT_COPYABLE_HFT', '3'],
+    ['NOT_COPYABLE_FAST_CADENCE', '3'],
+    ['INSUFFICIENT_SAMPLE', '3'],
+    ['BEHAVIOR_SHIFT_RISK', '1'],
+    ['OPEN_RISK_MISSING', '1'],
+    ['SEVERE_FEE_INEFFICIENCY', '1'],
+    ['STALE_OR_INACTIVE', '0'],
+  ], '16 WATCHLIST wallets reviewed. 4 remained as clean candidates on metrics alone. 0 were copy-ready after on-chain review.'),
+  block('The 4 metric-view candidates are not the same thing as copy-ready wallets. They were wallets that passed the CSV-level gates and looked worth a closer look on paper. On-chain probing of each one told a more specific story: some were effectively empty, having closed their positions and withdrawn funds; some had shifted into unrelated speculative activity that a historical LP score cannot see; some were dormant with no current footprint at all. Every category shares one root cause. LP leaderboard ranking is real and honest about the past. It has no visibility into what a wallet is doing today.'),
+
+  block('Why a high score could still be rejected', 'h2'),
+  block('One WATCHLIST wallet illustrates this cleanly enough to walk through in detail, referred to here only as the representative reviewed wallet, not by address.'),
+  diagram('Representative reviewed wallet', 'timeline', [
+    ['Historical metrics looked strong', 'score 76.7, win rate 0.804'],
+    ['Passed initial ranking', 'blocked from STRONG only by sample size'],
+    ['Current open LP positions: 0'],
+    ['Recent LP activity: 2 closed in 30 days, 0 in 7 days'],
+    ['Recent behavior no longer matched LP strategy'],
+    ['Historical score reclassified as stale evidence'],
+    ['REJECT', 'BEHAVIOR_SHIFT_RISK'],
+  ], undefined, undefined, 'Metrics are from the documented case review. The wallet identity is intentionally omitted.'),
+  block('This wallet had a real, confirmed history of Meteora LP activity, and under v1 alone it was the single closest wallet to STRONG in the entire dataset, blocked only by a closed-position count just under the 100 gate. On-chain review found that its LP positions were closed, that it had no current LP activity, and that recent on-chain behavior had moved into unrelated speculative activity. The historical score was accurate. It was also no longer describing the wallet’s current behavior. That gap is exactly what v2 was built to catch.'),
+
+  block('Research outcome', 'h2'),
+  table(['Dimension', 'Result'], [
+    ['Expected research outcome', 'Find at least one high-quality wallet worth a live copy-review decision.'],
+    ['Actual result', '0 of 2,031 enriched wallets passed every evidence gate. 0 of 16 reviewed WATCHLIST wallets were copy-ready on-chain.'],
+    ['Decision', 'Do not proceed to live capital deployment on this candidate pool.'],
+    ['Why this is not a failure', 'The system was asked whether current evidence supported a positive decision. It found that it did not, and said so instead of rounding up.'],
+    ['Next research direction', 'Shift discovery from historical wallet leaderboards to currently active pools.'],
+  ]),
+  block('A model that prefers no result over a falsely confident one is doing its job. The alternative, a model tuned to always produce a top pick, would have surfaced the same wallet described above with an impressive-looking historical score and no warning that its LP strategy had already ended. Zero is a valid, evidence-backed answer here, not an absence of one.'),
+
+  block('The discovery pivot', 'h2'),
+  block('The clearest lesson from the 16-wallet review is not about any individual wallet. It is about where the candidates came from in the first place. Every wallet in this research came from a historical leaderboard: rank the top performers, then hope their behavior is still current by the time anyone looks. That order of operations is backwards for a question about present activity.'),
+  swimlane('Where candidates come from', 'The old path starts from the past and checks whether it is still true. The new path starts from the present.', [
+    ['Old discovery path', [
+      ['Historical wallet leaderboard', 'Rank by past performance.', 'process', ['Rank the wallet']],
+      ['Rank the wallet', 'Score against other wallets, using history.', 'process', ['Inspect if behavior is still current']],
+      ['Inspect if behavior is still current', 'Often stale by the time anyone checks.', 'blocked'],
+    ]],
+    ['New discovery path', [
+      ['Active pool', 'High volume, verified pair, live liquidity right now.', 'process', ['Current LP operators']],
+      ['Current LP operators', 'Wallets actually providing liquidity in that pool today.', 'process', ['Current behavior']],
+      ['Current behavior', 'Classify what the operator is doing right now.', 'decision', ['Risk and copyability gates']],
+      ['Risk and copyability gates', 'The same v2 gates, applied to a live candidate.', 'decision', ['Historical evidence']],
+      ['Historical evidence', 'History is now a supporting check, not the entry point.', 'success'],
+    ]],
+  ], 'One wallet found through pool-based discovery during this research was a real, currently-verified LP operator in a stable pair, and it still failed the activity gate on a six-week dormancy period. It was still a better starting point than any leaderboard wallet in the review, because its current state was knowable at all.'),
+
+  block('What I would change next', 'h2'),
+  ...bullets(
+    'Automate more of the v2 manual review. Current-behavior classification (LP-focused versus dormant versus shifted into unrelated activity) was done by hand for 16 wallets. That does not scale past a small WATCHLIST.',
+    'Build the pool-based discovery path as a first-class pipeline stage instead of a manual follow-up, so candidates start from verified current activity rather than a historical scan.',
+    'Persist open-position risk data as a committed, versioned dataset rather than a locally-generated file, so the open-risk gate is reproducible by anyone re-running the pipeline, not only during the original research session.',
+    'Add explicit staleness and dormancy thresholds as first-class hard filters rather than score penalties, since a dormant wallet is closer to disqualified than merely penalized under the current v2 philosophy.',
+  ),
+
+  block('What I learned', 'h2'),
+  block('A ranking model can be completely correct about the past and still be the wrong tool for a present-tense question. That is not a modeling bug to fix with better weights. It is a mismatch between what the data can prove and what the decision actually requires, and no amount of tuning the historical formula closes that gap. Adding behavior and risk gates ahead of the score, instead of blending them into it, was the only way to keep the historical signal honest about what it does and does not know.'),
+  block('The other lesson was about how to treat a negative result. Sixteen wallets reviewed by hand, zero copy-ready, is a complete answer, not a stalled project. The $25 in API cost that produced this research bought a no-go decision before any real capital was ever at risk. That is what a risk-gated research process is supposed to do, and a project that stops there on the evidence is more useful than one that keeps searching until it finds a number worth publishing.'),
+  callout('Scope of this research', 'This project is quantitative research and wallet screening. It does not execute trades, does not copy or mirror any wallet automatically, and does not constitute financial advice. Verdict labels describe whether a wallet passed a set of measurable screening gates, not whether its strategy will remain profitable.', 'warning'),
+]
+
+const lpWalletResearchDocument = { _type: 'article', title: 'From Historical LP Rankings to Behavior-Gated Research', excerpt: 'A liquidity-provider ranking model scored wallets well on history, then a behavior and risk-gated second version found that none of them were currently safe to copy. That zero-candidate result is the finding.', publishedAt: '2026-08-10T00:00:00.000Z', tags: ['Quantitative Research', 'Decision Systems', 'Risk Modeling', 'Python', 'Data Analysis'], category: 'Research', featured: false, role: 'Research Engineer / Quantitative Analyst', projectType: 'Quantitative Research · Decision Systems · Risk Modeling', system: 'Python research pipeline + LP Agent API + risk-gated verdict model', coreQuestion: 'Can historical LP performance identify a wallet worth copying right now?', evidence: 'Public repository (scripts, CSV snapshots, git history), two versioned math specifications, and a documented 16-wallet manual review', status: 'Discovery-path research complete; zero copy-ready candidates; pivoted to pool-based discovery for future work', seoTitle: 'From Historical LP Rankings to Behavior-Gated Research', seoDescription: 'A risk-gated LP wallet research pipeline that found zero copy-ready candidates and why that is the correct, evidence-backed outcome.', body: lpWalletResearchBody }
+
+const requestedSlug = process.argv.find((argument) => argument === 'lpr-timing-analysis' || argument === 'sdcard-agent-cross-validation' || argument === 'multi-site-lpr-performance-diagnostics' || argument === 'unified-lpr-source-of-truth' || argument === 'lpr-accuracy-stability-research' || argument === 'wuzzlpr-performance-intelligence' || argument === 'motorcycle-cv-training' || argument === 'wuzz-change-plate-transfer-system-design' || argument === 'lpr-camera-reliability-integration' || argument === 'researchlens-from-search-to-research-workflow' || argument === 'trading-research-lab-evidence-before-narrative' || argument === 'diana-nightshift-deterministic-control' || argument === 'lpr-wuzz-operations-reporting-pipeline' || argument === 'lp-wallet-ranking-behavior-gated-research') ?? 'lpr-timing-analysis'
 const slug = requestedSlug
 const documentId = `article-${slug}`
 const draftId = `drafts.${documentId}`
-const selected = slug === 'lpr-wuzz-operations-reporting-pipeline' ? operationsReportingDocument : slug === 'diana-nightshift-deterministic-control' ? dianaNightshiftDocument : slug === 'trading-research-lab-evidence-before-narrative' ? tradingResearchLabDocument : slug === 'researchlens-from-search-to-research-workflow' ? researchLensDocument : slug === 'lpr-camera-reliability-integration' ? project10Document : slug === 'wuzz-change-plate-transfer-system-design' ? project9Document : slug === 'motorcycle-cv-training' ? project8Document : slug === 'wuzzlpr-performance-intelligence' ? project4Document : slug === 'lpr-accuracy-stability-research' ? project6Document : slug === 'unified-lpr-source-of-truth' ? project57Document : slug === 'multi-site-lpr-performance-diagnostics' ? project3Document : slug === 'sdcard-agent-cross-validation' ? project2Document : lprDocument
+const selected = slug === 'lp-wallet-ranking-behavior-gated-research' ? lpWalletResearchDocument : slug === 'lpr-wuzz-operations-reporting-pipeline' ? operationsReportingDocument : slug === 'diana-nightshift-deterministic-control' ? dianaNightshiftDocument : slug === 'trading-research-lab-evidence-before-narrative' ? tradingResearchLabDocument : slug === 'researchlens-from-search-to-research-workflow' ? researchLensDocument : slug === 'lpr-camera-reliability-integration' ? project10Document : slug === 'wuzz-change-plate-transfer-system-design' ? project9Document : slug === 'motorcycle-cv-training' ? project8Document : slug === 'wuzzlpr-performance-intelligence' ? project4Document : slug === 'lpr-accuracy-stability-research' ? project6Document : slug === 'unified-lpr-source-of-truth' ? project57Document : slug === 'multi-site-lpr-performance-diagnostics' ? project3Document : slug === 'sdcard-agent-cross-validation' ? project2Document : lprDocument
 const revisionMode = process.argv.includes('--revision')
 
 async function main() {
