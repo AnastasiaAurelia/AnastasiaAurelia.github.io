@@ -69,7 +69,7 @@ export const SITE = {
   social: [] as SocialLink[],
   nav: [
     { label: 'Work', href: '/work' },
-    { label: 'Writing', href: '/articles' },
+    { label: 'Blog', href: '/articles' },
     { label: 'About', href: '/about' },
   ],
   /** The production GitHub Pages URL — no trailing slash, since every

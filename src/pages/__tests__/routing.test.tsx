@@ -102,9 +102,11 @@ describe('routing', () => {
     expect(await screen.findByText('Page not found')).toBeInTheDocument()
   })
 
-  it('shows Writing in the primary nav and the homepage Latest Writing section', async () => {
+  it('shows Blog in the primary nav and the homepage Latest Writing section', async () => {
     renderAt('/')
-    expect((await screen.findAllByRole('link', { name: 'Writing' })).length).toBeGreaterThan(0)
+    const blogLinks = await screen.findAllByRole('link', { name: 'Blog' })
+    expect(blogLinks.length).toBeGreaterThan(0)
+    blogLinks.forEach((link) => expect(link).toHaveAttribute('href', '/articles'))
     expect(await screen.findByText('Latest writing')).toBeInTheDocument()
     expect(screen.getByText('Featured Test Article')).toBeInTheDocument()
   })

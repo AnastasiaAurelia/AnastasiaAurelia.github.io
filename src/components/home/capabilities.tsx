@@ -18,7 +18,7 @@ export function Capabilities({ groups }: { groups: CapabilityGroup[] }) {
       data-visible={visible}
       className="reveal container-editorial section-y-tight border-t border-line"
     >
-      <SectionKicker index="02" title="Capabilities" />
+      <SectionKicker index="02" title="Core Competencies" />
       {groups.length === 0 ? (
         <EmptyState message="No capability groups published yet." />
       ) : (
