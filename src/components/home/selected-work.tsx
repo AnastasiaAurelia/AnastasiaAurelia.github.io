@@ -69,7 +69,7 @@ export function SelectedWork({ projects }: { projects: SanityProjectSummary[] })
   return (
     <section className="container-editorial section-y-tight">
       <div className="mb-2 flex items-baseline justify-between">
-        <SectionKicker index="03" title="Selected work" className="mb-0" />
+        <SectionKicker index="03" title="Featured Projects" className="mb-0" />
         <Link to="/work" className="label-mono text-ink-faint transition-colors hover:text-ink">
           Full index
         </Link>

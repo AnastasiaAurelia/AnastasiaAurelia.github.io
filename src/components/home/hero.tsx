@@ -55,7 +55,7 @@ export function Hero({ headline, supportingCopy, credibilityPoints }: HeroProps)
               to="/work"
               className="inline-flex items-center gap-2 rounded-sm bg-ink px-5 py-3 text-sm font-medium text-paper transition-colors hover:bg-ink/85"
             >
-              Selected work
+              Featured Projects
               <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
             <a
