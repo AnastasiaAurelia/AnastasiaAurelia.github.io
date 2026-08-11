@@ -31,10 +31,10 @@ export function AboutPage() {
 
   return (
     <>
-      <Seo title="About" description={`${SITE.positioning} — ${SITE.focusAreas}.`} path="/about" />
+      <Seo title="Profile" description={`${SITE.positioning} — ${SITE.focusAreas}.`} path="/about" />
 
       <section className="container-editorial section-y-tight pt-14">
-        <p className="label-mono text-accent">About</p>
+        <p className="label-mono text-accent">Profile</p>
         <h1 className="mt-3 max-w-2xl font-serif text-3xl leading-snug sm:text-4xl">
           {name} — {positioning}
         </h1>

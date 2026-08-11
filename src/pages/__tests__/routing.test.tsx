@@ -65,8 +65,9 @@ describe('routing', () => {
     expect(screen.queryByText('In progress')).not.toBeInTheDocument()
   })
 
-  it('renders visible experience entries on About and never a hidden one', async () => {
+  it('renders visible experience entries on /about and never a hidden one', async () => {
     renderAt('/about')
+    expect(await screen.findByText('Profile', { selector: 'p' })).toBeInTheDocument()
     expect(await screen.findByText('Example Co', { exact: false })).toBeInTheDocument()
     expect(screen.queryByText('Should Not Appear Co', { exact: false })).not.toBeInTheDocument()
     expect(screen.queryByText('Hidden Role', { exact: false })).not.toBeInTheDocument()
@@ -74,6 +75,11 @@ describe('routing', () => {
 
   it('shows the 404 page for an unknown route', async () => {
     renderAt('/this-route-does-not-exist')
+    expect(await screen.findByText('Page not found')).toBeInTheDocument()
+  })
+
+  it('does not introduce a /profile route', async () => {
+    renderAt('/profile')
     expect(await screen.findByText('Page not found')).toBeInTheDocument()
   })
 
@@ -109,5 +115,14 @@ describe('routing', () => {
     blogLinks.forEach((link) => expect(link).toHaveAttribute('href', '/articles'))
     expect(await screen.findByText('Latest writing')).toBeInTheDocument()
     expect(screen.getByText('Featured Test Article')).toBeInTheDocument()
+  })
+
+  it('shows Profile in header and footer navigation, linked to /about', async () => {
+    renderAt('/')
+    const profileLinks = await screen.findAllByRole('link', { name: 'Profile' })
+    expect(profileLinks).toHaveLength(2)
+    profileLinks.forEach((link) => expect(link).toHaveAttribute('href', '/about'))
+    expect(screen.getByRole('navigation', { name: 'Primary' })).toContainElement(profileLinks[0])
+    expect(screen.getByRole('navigation', { name: 'Footer' })).toContainElement(profileLinks[1])
   })
 })

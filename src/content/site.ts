@@ -70,7 +70,7 @@ export const SITE = {
   nav: [
     { label: 'Work', href: '/work' },
     { label: 'Blog', href: '/articles' },
-    { label: 'About', href: '/about' },
+    { label: 'Profile', href: '/about' },
   ],
   /** The production GitHub Pages URL — no trailing slash, since every
    *  route path already begins with `/`. Feeds canonical URLs, OG tags,

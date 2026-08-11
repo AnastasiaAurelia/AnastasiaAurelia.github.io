@@ -17,7 +17,9 @@ function renderAbout() {
 describe('AboutPage', () => {
   it('renders the hero from Site Settings and orders primary experience with the current role first', async () => {
     renderAbout()
+    expect(await screen.findByText('Profile', { selector: 'p' })).toBeInTheDocument()
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Test Person — AI Product Manager | Test Positioning')
+    expect(document.title).toBe('Profile · Anastasia Aurelia')
     expect(screen.getByText('Jakarta, Indonesia')).toBeInTheDocument()
 
     const experienceHeadings = screen.getAllByRole('heading', { level: 3 })
