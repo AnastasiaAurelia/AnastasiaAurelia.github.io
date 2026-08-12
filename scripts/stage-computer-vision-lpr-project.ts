@@ -33,6 +33,10 @@ const assetSources = {
   geometry: 'public/assets/cv-lpr/field-geometry-source-crop.png',
   resolution: 'public/assets/cv-lpr/resolution-evidence.png',
   biasVariance: 'public/assets/cv-lpr/bias-variance.png',
+  fieldMeasurement: 'public/assets/cv-lpr/calibration/field-string-measurement.jpg',
+  measurementTriangle: 'public/assets/cv-lpr/calibration/measurement-triangle-geometry.jpg',
+  coilCameraFocus: 'public/assets/cv-lpr/calibration/coil-camera-focus-relationship.jpg',
+  inclinometerCheck: 'public/assets/cv-lpr/calibration/inclinometer-field-check.jpg',
 } as const
 
 async function uploadOrReuse(path: string) {
@@ -143,6 +147,41 @@ const content = [
   ),
   block('The camera integration work therefore covered more than OCR parameters: trigger behavior, local SD-card evidence, time synchronization, HTTP recognition events, SDK diagnostics, retry/replay, and the physical outputs that act on the result. Exact vendor configuration and private endpoints are intentionally omitted.'),
 
+  block('From geometry to a repeatable field calibration', 'h3'),
+  block('The principle above — measure per lane, validate against capture evidence — came from a specific field calibration method. The workbook and field documentation behind this project show what that measurement actually looked like: the real triangle, the formula behind it, and the range of installed values across five live gates.'),
+  table(['Lane', 'Installed height', 'Mechanical tilt α', 'Road slope θ', 'Effective angle φ'], [
+    ['Vendor baseline (flat reference)', '150 cm', '25.00°', '0° (flat)', '25.00°'],
+    ['Gate 1 — incline', '160 cm', '28.75°', '5.92°', '22.83°'],
+    ['Gate 2 — incline', '178 cm', '25.30°', '2.81°', '22.49°'],
+    ['Gate 3 — decline', '175 cm', '25.25°', '5.01°', '30.26°'],
+    ['Gate 4 — incline', '160 cm', '18.45°', '1.96°', '20.41°'],
+    ['Gate 5 — decline', '165 cm', '17.30°', '4.62°', '21.92°'],
+  ], 'Installed camera height at every live gate sat between 160 cm and 178 cm — above the 150 cm flat-reference baseline, and never identical to it, because every lane carries its own road slope.'),
+  block('α is the bracket’s mechanical tilt: the angle the camera housing is physically bolted at. θ is that lane’s own road slope, measured separately from the camera. φ is what the camera actually sees relative to the road surface once the slope is accounted for — the number that drives everything downstream of it.'),
+  math('\\varphi = \\alpha - \\theta', 'φ = effective camera angle relative to the road surface. α = the mechanical tilt angle the bracket is physically set to. θ = the measured road slope at that lane, subtracted on an incline and added back on a decline. The same mechanical angle reads a different effective angle on a sloped lane than on a flat one.'),
+  math('X = \\frac{h}{\\tan(\\varphi)}', 'X = horizontal distance from the camera to the target point on the ground. h = camera height above ground. φ = the effective angle above. This height-over-tangent relationship is what the source workbook uses to turn a measured height and angle into a horizontal distance — and, run in reverse, to turn a target distance back into a required height.'),
+  imageDiagram(refs.fieldMeasurement, 'Two field technicians running a string from the camera mounting pole across the pavement, with a tape measure recording the distance, at a covered vehicle gate.', 'Establishing the sightline by hand: a string pulled from the camera mount to the coil position, before any angle or distance is read off it.', 'This is the physical action behind every row in the table above — φ and X are not read off a drawing; they are pulled taut on site and then measured.'),
+  imageDiagram(refs.measurementTriangle, 'Annotated field photo showing a triangle formed by two points on the camera pole (A, B) and the coil edge (C), with the interior angles marked for measurement.', 'The same string, formalized as a triangle: A and B mark the camera side, C marks “ujung coil” — the coil edge where the front wheel first lands.', 'The workbook’s α, θ, and φ are the angles of this triangle; X is its horizontal side. Measuring the triangle in the field is what makes the formula usable instead of theoretical.'),
+  block('“Coil” here means the induction loop set into the pavement that triggers the camera. Two coil reference points appear depending on the step, and the source material keeps them distinct: “ujung coil” — the coil edge, where the front wheel first contacts it — is what the string is pulled to when aiming the camera; “tengah coil” — the coil centre — is the reference used when checking where the plate should sit inside the recognition frame. Related points, not interchangeable ones.'),
+  imageDiagram(refs.coilCameraFocus, 'Top: a labelled field photo showing the camera focus point aimed down toward the coil centre. Bottom: the corresponding live capture, with the same two points marked, showing a vehicle correctly framed with its plate inside the recognition box.', '“titik fokus kamera” (camera focus point) aimed at “tengah coil” (coil centre): when that alignment holds, the plate lands inside the recognition box at capture time.', 'This is the payoff of the geometry above — not a cleaner drawing, but a plate positioned where the model can actually read it.'),
+  decision('Use a camera height near 180 cm, paired with the matching coil distance, as a quick-calibration starting point — then refine from live capture evidence.', 'Directly measured installed heights across five live gates sat between 160 cm and 178 cm, all above the 150 cm flat-reference baseline, and all required their own road-slope correction. A height near the top of that band gave field crews a fast, defensible starting geometry at a new site instead of re-deriving the triangle from zero, refined once real captures came back.', 'This is a field-derived working heuristic from the documented setup, not a universal LPR specification. It still needs the same θ correction and live-capture validation as every lane in the table above before it is treated as final for that site.'),
+  block('A unit note, stated plainly: the source documents record installed height in centimetres — “150 cm” and “160 cm” appear directly in the field notes — and no document in the source material contains the literal figure “180.” The highest individually measured gate in the workbook is 178 cm. Read against that centimetre convention, treating the reported “around 180” as 180 cm is the most defensible interpretation available, sitting just above the highest directly documented installation. It is presented here as exactly that: a rounded field figure, not a value pulled from a spreadsheet cell.'),
+  block('Applying the same height-over-tangent relationship to a 180 cm height at the baseline 25° angle gives a computed horizontal camera-to-coil distance of approximately 3.9 m. That figure is not independently measured in the source material — it is derived from the documented formula — but it lands between the SOP’s two reference installation distances below. That is the “appropriate distance from the coil” the height figure is meant to pair with.'),
+  table(['Coil configuration', 'Reference installation distance', 'Loop orientation'], [
+    ['Single gate (single loop)', '3.5 m, coil to camera', 'Vertical'],
+    ['Combo gate (double loop)', '4.0 m, coil to camera', 'Horizontal'],
+  ], 'Distances are measured from the coil’s ground position to the camera — the SOP’s own reference figures for initial setup, not a value derived from the height formula.'),
+  block('Field crews validate a starting geometry with a quick field check rather than re-measuring the whole triangle: zero a digital inclinometer on a level surface, then read the camera’s mechanical tilt directly off it.'),
+  imageDiagram(refs.inclinometerCheck, 'A digital angle finder placed on top of a camera housing, its bubble level centred and its display reading 11.7 degrees.', 'A digital inclinometer, zeroed on a level surface and then read directly off the camera housing — a fast way to confirm α without re-deriving the triangle.', 'This is a spot-check, not a substitute for the full string-and-triangle measurement. It confirms the bracket has not drifted since the last full calibration.'),
+  block('When a spot-check or a live capture disagrees with the starting geometry, the same baseline relationship tells the crew which direction to move the bracket. The workbook compares the installed height against the height that lane’s own slope-corrected geometry would require, and outputs a direct instruction.'),
+  table(['Lane', 'Installed height', 'Slope-corrected target height', 'Adjustment'], [
+    ['Gate 1 — incline', '160 cm', '199 cm', 'Raise bracket ≈ 39 cm'],
+    ['Gate 2 — incline', '178 cm', '198 cm', 'Raise bracket ≈ 20 cm'],
+    ['Gate 3 — decline', '175 cm', '199 cm', 'Raise bracket ≈ 24 cm'],
+  ], 'The comparison is always against that lane’s own slope-corrected geometry, not the flat baseline directly — a sloped lane is expected to need a different height than a level one.'),
+  callout('A documented limitation, not a hidden one', 'The same workbook also tried deriving the required height through the Law of Sines instead of the simpler height-over-tangent relationship, and recorded at least one case where that approach returned a non-physical result. The simpler relationship was kept as the working method; the alternative was flagged as unreliable outside its valid range rather than presented as equally trustworthy.', 'warning'),
+  block('None of this replaces the recognition-region and capture-quality checks described above. It gives them a starting point: a lane that starts from a measured, slope-corrected geometry needs less blind adjustment before the first real capture is worth reviewing.'),
+
   section('Image quality and training evidence', 'image-quality'),
   imageDiagram(refs.resolution, 'Comparison between 960 by 540 and 1920 by 1080 training frames, showing 518,400 versus 2,073,600 pixels.', 'The documented acquisition target carries approximately four times the pixel count of a 960×540 frame.', 'This is an input-contract comparison, not a claim that resolution alone guarantees OCR improvement.'),
   block('The supplied training archive included 540p-class material while the documented target was 1920×1080. The goal was not to advertise “more megapixels.” It was to make blur, character shape, crop quality and failure review comparable across the collection.'),
@@ -188,7 +227,11 @@ const content = [
 const published = await client.fetch<Record<string, unknown> | null>('*[_id == $id][0]', { id: publishedId })
 const existingDraft = await client.fetch<Record<string, unknown> | null>('*[_id == $id][0]', { id: draftId })
 if (!published || published._type !== 'project' || (published as { slug?: { current?: string } }).slug?.current !== 'computer-vision-lpr') throw new Error('Expected published Computer Vision project was not found. No draft written.')
-if (existingDraft) throw new Error(`Draft ${draftId} already exists. Refusing to overwrite concurrent Studio work.`)
+// This script deterministically regenerates the full draft content from the published document plus the
+// scripted additions above — it holds no external diff/merge state. Re-running it is therefore safe and
+// expected during content QA; createOrReplace overwrites only a draft this same script produced. It still
+// will not touch the published document, and a draft edited by hand in Studio should not be run through
+// this script without reconciling those edits first.
 const base = Object.fromEntries(Object.entries(published).filter(([field]) => !['_id', '_rev', '_createdAt', '_updatedAt'].includes(field)))
 const draft = {
   ...base,
@@ -200,6 +243,7 @@ const draft = {
   seoTitle: 'Computer Vision & LPR Reliability | Anastasia Aurelia',
   seoDescription: 'A full-stack LPR reliability case study connecting management metrics to triggers, cameras, OCR, transport, transaction timing, field diagnosis, and ML data.',
 }
-await client.create(draft as never)
-console.log(`Created unpublished draft ${draftId}. Published ${publishedId} was not changed.`)
+await client.createOrReplace(draft as never)
+console.log(existingDraft ? `Replaced existing draft ${draftId} (script-generated regeneration).` : `Created unpublished draft ${draftId}.`)
+console.log(`Published ${publishedId} was not changed.`)
 console.log(`Uploaded/reused ${Object.keys(refs).length} project image assets through Sanity.`)
