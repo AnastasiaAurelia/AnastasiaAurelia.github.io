@@ -108,21 +108,21 @@ describe('routing', () => {
     expect(await screen.findByText('Page not found')).toBeInTheDocument()
   })
 
-  it('shows Blog in the primary nav and the homepage Latest Writing section', async () => {
+  it('shows Methods in the primary nav and the homepage Latest Writing section', async () => {
     renderAt('/')
-    const blogLinks = await screen.findAllByRole('link', { name: 'Blog' })
-    expect(blogLinks.length).toBeGreaterThan(0)
-    blogLinks.forEach((link) => expect(link).toHaveAttribute('href', '/articles'))
+    const methodsLinks = await screen.findAllByRole('link', { name: 'Methods' })
+    expect(methodsLinks.length).toBeGreaterThan(0)
+    methodsLinks.forEach((link) => expect(link).toHaveAttribute('href', '/articles'))
     expect(await screen.findByText('Latest writing')).toBeInTheDocument()
     expect(screen.getByText('Featured Test Article')).toBeInTheDocument()
   })
 
-  it('shows Profile in header and footer navigation, linked to /about', async () => {
+  it('shows About in header and footer navigation, linked to /about', async () => {
     renderAt('/')
-    const profileLinks = await screen.findAllByRole('link', { name: 'Profile' })
-    expect(profileLinks).toHaveLength(2)
-    profileLinks.forEach((link) => expect(link).toHaveAttribute('href', '/about'))
-    expect(screen.getByRole('navigation', { name: 'Primary' })).toContainElement(profileLinks[0])
-    expect(screen.getByRole('navigation', { name: 'Footer' })).toContainElement(profileLinks[1])
+    const aboutLinks = await screen.findAllByRole('link', { name: 'About' })
+    expect(aboutLinks).toHaveLength(2)
+    aboutLinks.forEach((link) => expect(link).toHaveAttribute('href', '/about'))
+    expect(screen.getByRole('navigation', { name: 'Primary' })).toContainElement(aboutLinks[0])
+    expect(screen.getByRole('navigation', { name: 'Footer' })).toContainElement(aboutLinks[1])
   })
 })

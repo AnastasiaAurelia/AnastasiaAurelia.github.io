@@ -5,7 +5,6 @@ import { FeaturedArticle } from '@/components/writing/featured-article'
 import { TagFilter } from '@/components/work/tag-filter'
 import { LoadingState, ErrorState, EmptyState } from '@/components/state/query-states'
 import { useAllArticles } from '@/hooks/use-articles'
-import { SITE } from '@/content/site'
 
 export function WritingIndexPage() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
@@ -30,17 +29,16 @@ export function WritingIndexPage() {
   return (
     <>
       <Seo
-        title="Writing"
-        description={`Articles and technical writing from ${SITE.name} on applied AI, computer vision, and product work.`}
+        title="Methods"
+        description="Investigations, experiments, system decisions, and the reasoning behind my work in applied AI, computer vision, and technical product systems."
         path="/articles"
       />
 
       <section className="container-editorial section-y-tight pt-14">
         <p className="label-mono text-accent">Index</p>
-        <h1 className="mt-3 text-4xl">Writing</h1>
+        <h1 className="mt-3 text-4xl">Methods</h1>
         <p className="mt-3 max-w-2xl text-ink-muted">
-          Notes and longer-form pieces on applied AI, computer vision, and the product work behind
-          them.
+          Investigations, experiments, system decisions, and the reasoning behind my work.
         </p>
 
         {status === 'loading' ? <LoadingState label="Loading articles" /> : null}
