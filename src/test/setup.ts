@@ -33,6 +33,7 @@ vi.mock('@/lib/sanity/fetch', () => ({
     Promise.resolve([...fixtureArticles].sort(byPublishedDesc).slice(0, limit)),
   getArticleBySlug: (slug: string) =>
     Promise.resolve(fixtureArticles.some((a) => a.slug === slug) ? fixtureArticleBody : null),
+  getPublishedArticleCount: () => Promise.resolve(fixtureArticles.length),
 }))
 
 // jsdom doesn't implement matchMedia; useTheme() relies on it to read the
