@@ -114,6 +114,13 @@ export const articleSlugExistsQuery = `*[_type == "article" && slug.current == $
 /** Published article slugs only — used by sitemap generation. */
 export const publishedArticleSlugsQuery = `*[_type == "article"].slug.current`
 
+/**
+ * Total published article count — same filter as `allArticlesQuery`, kept as a
+ * dedicated count query so the homepage Evidence Index doesn't have to download
+ * every article summary just to display one number.
+ */
+export const publishedArticleCountQuery = `count(*[_type == "article"])`
+
 export const siteSettingsQuery = `*[_type == "siteSettings"][0] {
   homepageHeadline,
   homepageSupportingCopy,
