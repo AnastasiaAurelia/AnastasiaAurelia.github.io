@@ -7,6 +7,7 @@ import {
   featuredProjectsQuery,
   latestArticlesQuery,
   projectBySlugQuery,
+  publishedArticleCountQuery,
   publishedArticleSlugsQuery,
   siteSettingsQuery,
   visibleExperienceQuery,
@@ -59,4 +60,9 @@ export function getArticleBySlug(slug: string): Promise<SanityArticle | null> {
 /** Published article slugs only — used by sitemap generation. */
 export function getPublishedArticleSlugs(): Promise<string[]> {
   return sanityClient.fetch(publishedArticleSlugsQuery)
+}
+
+/** Total published article count — backs the homepage Evidence Index Methods card. */
+export function getPublishedArticleCount(): Promise<number> {
+  return sanityClient.fetch(publishedArticleCountQuery)
 }

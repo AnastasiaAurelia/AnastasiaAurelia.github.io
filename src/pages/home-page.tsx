@@ -8,7 +8,7 @@ import { ContactSection } from '@/components/home/contact-section'
 import { LoadingState, ErrorState, EmptyState } from '@/components/state/query-states'
 import { useSiteSettings } from '@/hooks/use-site-settings'
 import { useFeaturedProjects } from '@/hooks/use-projects'
-import { useLatestArticles } from '@/hooks/use-articles'
+import { useLatestArticles, usePublishedArticleCount } from '@/hooks/use-articles'
 import { SITE } from '@/content/site'
 
 export function HomePage() {
@@ -18,6 +18,10 @@ export function HomePage() {
   // shouldn't hold up or blank the rest of the homepage. It simply
   // doesn't render (LatestWriting returns null on empty) until ready.
   const articlesState = useLatestArticles(3)
+  // Independent of latestArticles: that query is capped to 3 and can't back a
+  // total count once more than 3 Methods are published, so the Evidence Index
+  // gets its own lightweight count query instead of latestArticles.length.
+  const articleCountState = usePublishedArticleCount()
 
   const loading = settingsState.status === 'loading' || projectsState.status === 'loading'
   const hasError = settingsState.status === 'error' || projectsState.status === 'error'
@@ -25,6 +29,7 @@ export function HomePage() {
   const settings = settingsState.status === 'success' ? settingsState.data : null
   const projects = projectsState.status === 'success' ? projectsState.data : []
   const latestArticles = articlesState.status === 'success' ? articlesState.data : []
+  const publishedArticleCount = articleCountState.status === 'success' ? articleCountState.data : 0
 
   return (
     <>
@@ -72,7 +77,7 @@ export function HomePage() {
           <Capabilities groups={settings.capabilityGroups ?? []} />
           <SelectedWork projects={projects} />
           <LatestWriting articles={latestArticles} />
-          <EvidenceIndex projects={projects} />
+          <EvidenceIndex projects={projects} publishedArticleCount={publishedArticleCount} />
           <ContactSection
             email={settings.contactEmail}
             linkedinUrl={settings.linkedinUrl}
