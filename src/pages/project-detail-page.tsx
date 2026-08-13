@@ -5,6 +5,7 @@ import { NarrativeSection } from '@/components/work/narrative-section'
 import { PendingSections } from '@/components/work/pending-sections'
 import { ChapterNav } from '@/components/work/chapter-nav'
 import { EvidenceList, type Evidence } from '@/components/work/evidence-list'
+import { LprEvidenceSection } from '@/components/work/lpr-evidence-section'
 import { LoadingState, ErrorState } from '@/components/state/query-states'
 import { portableTextComponents } from '@/components/portable-text/portable-text-components'
 import { splitProjectContent } from '@/lib/sanity/split-project-content'
@@ -136,10 +137,17 @@ export function ProjectDetailPage() {
                 </span>
                 <h2 className="text-xl">Evidence &amp; related links</h2>
               </div>
-              <p className="mb-4 max-w-2xl text-sm text-ink-muted">
-                Repository, live product, and case-study material for this project.
-              </p>
-              <EvidenceList evidence={evidence} />
+
+              {slug === 'computer-vision-lpr' ? (
+                <LprEvidenceSection />
+              ) : (
+                <>
+                  <p className="mb-4 max-w-2xl text-sm text-ink-muted">
+                    Repository, live product, and case-study material for this project.
+                  </p>
+                  <EvidenceList evidence={evidence} />
+                </>
+              )}
             </section>
           </div>
         </div>
