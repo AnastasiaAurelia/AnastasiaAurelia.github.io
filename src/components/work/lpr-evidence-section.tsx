@@ -38,16 +38,16 @@ export function LprEvidenceSection() {
         <h3 className="text-lg">Leadership recognition</h3>
         <div className="rounded-sm border border-line bg-paper p-3 sm:p-4">
           <a
-            href="/evidence/ctowilson-redacted.jpeg"
+            href="/evidence/wilson-cto-evidence-final.png"
             target="_blank"
             rel="noopener noreferrer"
             className="block overflow-hidden rounded-sm border border-line bg-surface"
             aria-label="Open the PARKEE CTO recognition image in a new tab"
           >
             <img
-              src="/evidence/ctowilson-redacted.jpeg"
+              src="/evidence/wilson-cto-evidence-final.png"
               alt="Redacted PARKEE CTO message recognizing the LPR team and the work leading to consistent performance"
-              className="block w-full object-cover"
+              className="block h-auto w-full object-contain"
               loading="lazy"
             />
           </a>
