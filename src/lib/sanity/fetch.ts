@@ -9,7 +9,6 @@ import {
   projectBySlugQuery,
   publishedArticleCountQuery,
   publishedArticleSlugsQuery,
-  siteSettingsQuery,
   homepageSiteSettingsQuery,
   aboutPageSiteSettingsQuery,
   visibleExperienceQuery,

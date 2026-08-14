@@ -49,6 +49,7 @@ export function ProjectDetailPage() {
   }
 
   const { chapters, pendingTitles } = splitProjectContent(project.content)
+  const showPendingSections = project.slug !== 'computer-vision-lpr' && pendingTitles.length > 0
 
   const evidence: Evidence[] = [
     ...(project.githubUrl ? [{ type: 'repository' as const, label: 'Repository', url: project.githubUrl }] : []),
@@ -128,7 +129,7 @@ export function ProjectDetailPage() {
                 </NarrativeSection>
               ))}
 
-            <PendingSections titles={pendingTitles} />
+            {showPendingSections ? <PendingSections titles={pendingTitles} /> : null}
 
             <section id="evidence" className="scroll-mt-28 py-8">
               <div className="mb-4 flex items-baseline gap-3">

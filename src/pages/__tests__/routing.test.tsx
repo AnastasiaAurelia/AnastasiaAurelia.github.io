@@ -49,14 +49,23 @@ describe('routing', () => {
     expect(screen.queryByText('Unfeatured Experiment')).not.toBeInTheDocument()
   })
 
-  it('renders a project detail page for a known slug, with missing chapters listed as in-progress', async () => {
-    const [first] = fixtureProjects
-    renderAt(`/work/${first.slug}`)
-    expect(await screen.findByRole('heading', { level: 1, name: first.title })).toBeInTheDocument()
-    // The fixture has no Portable Text content, so every canonical
+  it('renders an unfinished project detail page with missing chapters listed as in-progress', async () => {
+    const unfinishedSlug = 'agentic-workflows'
+    const unfinished = fixtureProjects.find((project) => project.slug === unfinishedSlug)
+    expect(unfinished).toBeDefined()
+
+    renderAt(`/work/${unfinishedSlug}`)
+    expect(await screen.findByRole('heading', { level: 1, name: unfinished!.title })).toBeInTheDocument()
+    // This fixture has no Portable Text content, so every canonical
     // section should show up in the consolidated "in progress" notice.
     expect(await screen.findByText('In progress')).toBeInTheDocument()
     expect(screen.getByText('Overview')).toBeInTheDocument()
+  })
+
+  it('does not show the pending placeholder on the completed LPR case study', async () => {
+    renderAt('/work/computer-vision-lpr')
+    expect(await screen.findByRole('heading', { level: 1, name: 'Computer Vision and LPR Reliability' })).toBeInTheDocument()
+    expect(screen.queryByText('In progress')).not.toBeInTheDocument()
   })
 
   it('redirects a Work project with a canonical article to that article', async () => {

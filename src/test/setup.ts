@@ -18,6 +18,7 @@ const byFeaturedThenPublished = <T extends { featured: boolean; publishedAt: str
 
 vi.mock('@/lib/sanity/fetch', () => ({
   getSiteSettings: () => Promise.resolve(fixtureSiteSettings),
+  getAboutPageSettings: () => Promise.resolve(fixtureSiteSettings),
   getFeaturedProjects: () => Promise.resolve(byDisplayOrder(fixtureProjects.filter((p) => p.featured))),
   getAllProjects: () => Promise.resolve(byDisplayOrder(fixtureProjects)),
   getProjectBySlug: (slug: string) =>
