@@ -9,9 +9,9 @@ import type {
 /** Shared fixtures for tests that mock `@/lib/sanity/fetch` — kept realistic so tests stay meaningful. */
 
 export const fixtureSiteSettings: SanitySiteSettings = {
-  homepageHeadline: 'Computer Vision, Applied AI & Agentic Workflows',
+  homepageHeadline: 'I turn messy AI work into clear, reliable systems teams can ship on time.',
   homepageSupportingCopy:
-    'Product leadership across computer vision, applied AI, and agentic systems — from problem framing to production reliability.',
+    'Less ambiguity, less manual checking, fewer late-night firefights — across computer vision, research intelligence, and agentic workflows.',
   credibilityPoints: [{ statement: 'Ships production AI systems', detail: 'Not just prototypes' }],
   name: 'Test Person',
   positioning: 'AI Product Manager | Test Positioning',
@@ -19,9 +19,8 @@ export const fixtureSiteSettings: SanitySiteSettings = {
   aboutContent: [],
   capabilityGroups: [
     {
-      title: 'Computer Vision Products',
-      description: 'Turning perception models into products that hold up outside the lab.',
-      capabilities: ['Detection', 'Recognition', 'Reliability engineering'],
+      title: 'Turn ambiguity into action',
+      description: 'I turn vague, messy problems into clear priorities, owners, decisions, and next steps.',
     },
   ],
   keyImpact: [

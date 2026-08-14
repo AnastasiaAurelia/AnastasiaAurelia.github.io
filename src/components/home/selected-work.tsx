@@ -18,7 +18,7 @@ function SelectedWorkEntry({ project, index }: { project: SanityProjectSummary; 
     ...(project.externalUrl ? (['live-product'] as const) : []),
   ]
   const category = project.tags?.[0] ?? project.projectType
-  const summary = project.caseStudyArticle?.excerpt ?? project.shortSummary
+  const summary = project.shortSummary
 
   return (
     <Link

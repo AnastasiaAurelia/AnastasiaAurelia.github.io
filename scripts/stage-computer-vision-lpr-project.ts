@@ -51,8 +51,10 @@ async function uploadOrReuse(path: string) {
 const refs = Object.fromEntries(await Promise.all(Object.entries(assetSources).map(async ([name, path]) => [name, await uploadOrReuse(path)]))) as Record<keyof typeof assetSources, string>
 
 const content = [
-  section('Operating computer vision outside the demo', 'overview'),
-  block('I worked across the management layer and the technical layer of a real-world license-plate-recognition product. The management problem was deciding where to act. The technical problem was locating the exact layer where a recognition event stopped surviving the transaction.'),
+  section('Making recognition failures easier to resolve', 'overview'),
+  block('Recognition failures created repeated investigation and operational uncertainty. I owned the reliability measurement, investigation structure, vendor and engineering coordination, and product-side follow-through needed to turn those failures into traceable work.'),
+  block('I created a measurable reliability loop connecting production metrics, field evidence, camera infrastructure, transaction state, and model behavior. Production performance became measurable and consistently high, operations spent less time repeatedly investigating the same problems, and engineering received clearer evidence when failures occurred.'),
+  block('The work still crossed both the management layer and the technical layer of a real-world license-plate-recognition product. The management problem was deciding where to act. The technical problem was locating the exact layer where a recognition event stopped surviving the transaction.'),
   block('That distinction changed the work. A low site percentage could point to OCR, but it could also come from a trigger, camera geometry, transport, cache timing, an Agent handoff, a gate bottleneck, a denominator mismatch, or ordinary lane behavior. The camera was one component in a longer reliability chain.'),
   metric('Sites in the diagnostic program', '5', 'Project 3 historical cross-site analysis: CFX, Matraman, JRP, Menteng Central, and Gading Riverview.'),
   metric('Recurring anomaly classes', '17', 'Verified taxonomy spanning operations, environment, camera/OCR, triggers, data timing, and transaction state.'),
@@ -237,7 +239,7 @@ const draft = {
   ...base,
   _id: draftId,
   title: 'Computer Vision & LPR Reliability',
-  shortSummary: 'Operating computer vision outside the demo: one reliability program connecting product measurement, field evidence, camera infrastructure, transaction state, and model-improvement inputs.',
+  shortSummary: 'Made recognition reliable enough that operations spent less time chasing recurring failures, backed by a measurable loop across field evidence, infrastructure, transaction state, and model behavior.',
   tags: ['Computer Vision', 'License Plate Recognition', 'Reliability Engineering', 'Product Analytics', 'Data Quality', 'ML Evaluation'],
   content,
   seoTitle: 'Computer Vision & LPR Reliability | Anastasia Aurelia',

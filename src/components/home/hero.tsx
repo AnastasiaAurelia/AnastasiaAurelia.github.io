@@ -1,7 +1,6 @@
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { HeroInstrument } from './hero-instrument'
-import { SITE } from '@/content/site'
 import type { CredibilityPoint } from '@/lib/sanity/types'
 
 interface HeroProps {
@@ -20,7 +19,7 @@ export function Hero({ headline, supportingCopy, credibilityPoints }: HeroProps)
           absent. */}
       <div className="lg:grid lg:grid-cols-12 lg:items-start lg:gap-12">
         <div className="lg:col-span-7">
-          <p className="hero-enter label-mono text-accent">{SITE.positioning}</p>
+          <p className="hero-enter label-mono text-accent">What gets easier when I&apos;m involved</p>
 
           <h1
             className="hero-enter mt-4 max-w-4xl text-5xl leading-[1.05] sm:text-6xl lg:text-7xl"

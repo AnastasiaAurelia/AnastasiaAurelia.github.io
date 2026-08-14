@@ -63,46 +63,46 @@ function sectionMarker(title: string, identifier: string) {
 const siteSettings = {
   _id: 'siteSettings',
   _type: 'siteSettings',
-  homepageHeadline: 'Computer Vision, Applied AI & Agentic Workflows',
+  homepageHeadline: 'I turn messy AI work into clear, reliable systems teams can ship on time.',
   homepageSupportingCopy:
-    'Product leadership across computer vision, applied AI, and agentic systems — from problem framing to production reliability.',
+    'Less ambiguity, less manual checking, fewer late-night firefights — across computer vision, research intelligence, and agentic workflows.',
   credibilityPoints: [],
   aboutContent: [],
   capabilityGroups: [
     {
       _type: 'capabilityGroup',
       _key: nextKey(),
-      title: 'Computer Vision Products',
+      title: 'Turn ambiguity into action',
       description:
-        'Turning perception models into products that hold up outside the lab — detection and recognition systems, and the reliability work around them.',
+        'I turn vague, messy problems into clear priorities, owners, decisions, and next steps.',
     },
     {
       _type: 'capabilityGroup',
       _key: nextKey(),
-      title: 'Research Intelligence',
+      title: 'Ship fast, without last-minute chaos',
       description:
-        'Structuring technical research into product direction — the layer between raw findings and a defensible roadmap decision.',
+        'I keep work moving, surface blockers early, and push toward delivery without turning every deadline into an emergency.',
     },
     {
       _type: 'capabilityGroup',
       _key: nextKey(),
-      title: 'Agentic Workflows',
+      title: 'Build systems people don’t have to babysit',
       description:
-        'Scoping multi-step, tool-using AI systems: what an agent should own outright, and where a human deliberately stays in the loop.',
+        'I make AI systems reliable enough that teams spend less time manually checking, escalating, and fixing the same failures.',
     },
     {
       _type: 'capabilityGroup',
       _key: nextKey(),
-      title: 'Product Reliability',
+      title: 'Get different teams moving in the same direction',
       description:
-        'Treating reliability as a product requirement to design for, not an operational afterthought discovered after launch.',
+        'I translate across engineering, QA, operations, vendors, and business so work does not stall between teams.',
     },
     {
       _type: 'capabilityGroup',
       _key: nextKey(),
-      title: 'Technical Product Operations',
+      title: 'Remove repetitive work from people’s day',
       description:
-        'The cross-functional mechanics of shipping applied-AI product — sequencing work and translating between research, engineering, and the business.',
+        'I use automation and AI to take repetitive technical work off people’s plates, so humans can spend their time on judgment and decisions.',
     },
   ],
   contactEmail: 'your-email@gmail.com',
