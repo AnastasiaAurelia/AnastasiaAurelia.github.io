@@ -10,12 +10,12 @@ import { PublicationsList } from '@/components/about/publications-list'
 import { SkillGroups } from '@/components/about/skill-groups'
 import { LoadingState, ErrorState, EmptyState } from '@/components/state/query-states'
 import { portableTextComponents } from '@/components/portable-text/portable-text-components'
-import { useSiteSettings } from '@/hooks/use-site-settings'
+import { useAboutPageSettings } from '@/hooks/use-site-settings'
 import { useExperience } from '@/hooks/use-experience'
 import { SITE } from '@/content/site'
 
 export function AboutPage() {
-  const settingsState = useSiteSettings()
+  const settingsState = useAboutPageSettings()
   const experienceState = useExperience()
 
   const loading = settingsState.status === 'loading' || experienceState.status === 'loading'

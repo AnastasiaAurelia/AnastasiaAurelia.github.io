@@ -10,6 +10,8 @@ import {
   publishedArticleCountQuery,
   publishedArticleSlugsQuery,
   siteSettingsQuery,
+  homepageSiteSettingsQuery,
+  aboutPageSiteSettingsQuery,
   visibleExperienceQuery,
 } from './queries'
 import type {
@@ -38,7 +40,11 @@ export function getVisibleExperience(): Promise<SanityExperience[]> {
 }
 
 export function getSiteSettings(): Promise<SanitySiteSettings | null> {
-  return sanityClient.fetch(siteSettingsQuery)
+  return sanityClient.fetch(homepageSiteSettingsQuery)
+}
+
+export function getAboutPageSettings(): Promise<SanitySiteSettings | null> {
+  return sanityClient.fetch(aboutPageSiteSettingsQuery)
 }
 
 export function getAllArticles(): Promise<SanityArticleSummary[]> {

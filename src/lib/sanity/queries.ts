@@ -121,7 +121,32 @@ export const publishedArticleSlugsQuery = `*[_type == "article"].slug.current`
  */
 export const publishedArticleCountQuery = `count(*[_type == "article"])`
 
-export const siteSettingsQuery = `*[_type == "siteSettings"][0] {
+/**
+ * Minimal homepage settings query — only the fields needed for the initial
+ * homepage render (hero, capabilities, contact). This keeps the query small
+ * and fast; about-page-only fields are fetched separately by the about page.
+ */
+export const homepageSiteSettingsQuery = `*[_type == "siteSettings"][0] {
+  homepageHeadline,
+  homepageSupportingCopy,
+  credibilityPoints,
+  capabilityGroups,
+  contactEmail,
+  linkedinUrl,
+  githubUrl,
+  resumeUrl,
+  defaultSeoTitle,
+  defaultSeoDescription,
+  socialShareImage,
+}`
+
+/**
+ * Complete site settings for the about page. Includes all fields: profile
+ * details, experience, education, publications, and linked articles. Because
+ * this query is only run on the about page (not the homepage), fetching it
+ * separately doesn't block the initial page load.
+ */
+export const aboutPageSiteSettingsQuery = `*[_type == "siteSettings"][0] {
   homepageHeadline,
   homepageSupportingCopy,
   credibilityPoints,
@@ -148,3 +173,9 @@ export const siteSettingsQuery = `*[_type == "siteSettings"][0] {
   defaultSeoDescription,
   socialShareImage,
 }`
+
+/**
+ * Legacy alias for backward compatibility if needed.
+ * @deprecated Use homepageSiteSettingsQuery or aboutPageSiteSettingsQuery instead.
+ */
+export const siteSettingsQuery = aboutPageSiteSettingsQuery
