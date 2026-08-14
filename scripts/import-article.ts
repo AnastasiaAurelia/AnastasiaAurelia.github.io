@@ -34,7 +34,7 @@ const linkedBlock = (before: string, label: string, href: string, after = '') =>
   const markKey = key()
   return { _type: 'block', _key: key(), style: 'normal', markDefs: [{ _type: 'link', _key: markKey, linkType: 'external', href, newTab: true }], children: [{ _type: 'span', _key: key(), text: before, marks: [] }, { _type: 'span', _key: key(), text: label, marks: [markKey] }, { _type: 'span', _key: key(), text: after, marks: [] }] }
 }
-const articleImage = (assetRef: string, alt: string, caption: string, layout: 'normal' | 'wide' | 'full' = 'wide') => ({ _type: 'articleImage', _key: key(), asset: { _type: 'reference', _ref: assetRef }, alt, caption, source: 'ResearchLens public application', sourceUrl: 'https://app.researchlens.xyz', layout })
+const articleImage = (assetRef: string, alt: string, caption: string, layout: 'normal' | 'wide' | 'full' = 'wide', source = 'ResearchLens public application', sourceUrl = source === 'ResearchLens public application' ? 'https://app.researchlens.xyz' : undefined) => ({ _type: 'articleImage', _key: key(), asset: { _type: 'reference', _ref: assetRef }, alt, caption, source, ...(sourceUrl ? { sourceUrl } : {}), layout })
 type SwimlaneState = 'process' | 'decision' | 'pending' | 'blocked' | 'success'
 type SwimlaneNodeSource = [label: string, detail?: string, state?: SwimlaneState, transitions?: string[]]
 const swimlane = (title: string, summary: string, lanes: Array<[string, SwimlaneNodeSource[]]>, caption?: string) => ({
@@ -1233,6 +1233,13 @@ const operationsReportingBody = [
   ], ['Numbers remain traceable to the export.', 'Narrative fields remain traceable to operator review.', 'Any later interpretive or drafting pass sits after structured evidence, never inside metric computation.'], undefined, 'The implementation accepts a current spreadsheet template and a legacy structured anomaly format, but both converge on the same internal reporting shape.'),
   block('The pipeline processes each configured location independently. It selects the location’s rows, orders daily and aggregate windows, resolves the gate fields expected for that site, and produces a stable report section. A missing location does not corrupt the others: the generator warns and continues with the evidence that is available.'),
   block('The operator workbook is not a free-form scratchpad. It is divided into repeated location and section markers. Anomaly rows carry a class and per-gate counts; text sections carry causes, improvements and actions; change rows carry a gate, a date and a description. That structure is what lets the report generator preserve human context without pretending it calculated that context itself.'),
+  articleImage(
+    'image-54e042c91d6f19a8e86905dbac0439e92173aa2a-622x1082-png',
+    'Redacted LPR accuracy report with an executive summary, multi-window location status, recent daily results, and gate-level accuracy tables.',
+    'Redacted operations-report output showing multi-window location status and gate-level accuracy breakdowns assembled into the daily brief.',
+    'normal',
+    'Internal operations report (identifiers redacted)',
+  ),
 
   block('Decision 1: preserve the denominator', 'h2'),
   block('The source export contains both a percentage and its success proportion. I kept both. “98.7%” sounds precise, but 74 successes out of 75 observations and 7,400 out of 7,500 do not support the same confidence. The daily report therefore presents the percentage next to the underlying success and total counts.'),
