@@ -9,7 +9,6 @@ import { formatDate } from '@/lib/format-date'
 import { useArticle } from '@/hooks/use-article'
 import { SITE } from '@/content/site'
 import { NotFoundPage } from './not-found-page'
-import { CaseStudyCta } from '@/components/work/case-study-cta'
 import { ArticleEvidence } from '@/components/writing/article-evidence'
 
 /**
@@ -120,8 +119,6 @@ export function ArticleDetailPage() {
         </div>
 
         <ArticleEvidence slug={article.slug} />
-
-        <CaseStudyCta slug={article.slug} />
 
         <div className="mt-12 border-t border-line pt-8">{backLink}</div>
       </article>
