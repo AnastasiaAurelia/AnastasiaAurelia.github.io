@@ -143,6 +143,23 @@ describe('portableTextComponents', () => {
     expect(image.closest('a')).toHaveAttribute('target', '_blank')
   })
 
+  it('renders a sequence-aware image gallery with responsive images and full-size links', () => {
+    const gallery: ProjectContentBlock[] = [{
+      _type: 'imageGallery',
+      _key: 'gallery-1',
+      images: [
+        { _key: 'page-02', asset: { _type: 'reference', _ref: fixtureAssetRef }, alt: 'CNN notes page 2', label: '02 / INPUT', caption: 'The calculation starts here.' },
+        { _key: 'page-03', asset: { _type: 'reference', _ref: fixtureAssetRef }, alt: 'CNN notes page 3', label: '03 / CONV2', caption: 'The calculation continues.' },
+      ],
+    }]
+    const { container } = render(<PortableText value={gallery} components={portableTextComponents} />)
+    expect(screen.getAllByRole('img')).toHaveLength(2)
+    expect(screen.getByText('02 / INPUT')).toBeInTheDocument()
+    expect(screen.getByText('The calculation continues.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /CNN notes page 2/ })).toHaveAttribute('target', '_blank')
+    expect(container.querySelector('.md\\:grid-cols-2')).toBeInTheDocument()
+  })
+
   it('renders a code block without a syntax-highlighter dependency', () => {
     render(<PortableText value={sampleContent} components={portableTextComponents} />)
     expect(screen.getByText('const x = 1')).toBeInTheDocument()

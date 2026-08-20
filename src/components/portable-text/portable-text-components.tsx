@@ -11,6 +11,7 @@ import { DataTable } from './data-table'
 import { Callout } from './callout'
 import { ProcessDiagram } from './process-diagram'
 import { SwimlaneDiagram } from './swimlane-diagram'
+import { ImageGallery } from './image-gallery'
 
 /**
  * Everything Portable Text can render, mapped to the app's own styled
@@ -25,6 +26,7 @@ export const portableTextComponents: PortableTextComponents = {
     normal: ({ children }) => <p className="text-ink">{children}</p>,
     h2: ({ children }) => <h3 className="mt-6 text-xl first:mt-0">{children}</h3>,
     h3: ({ children }) => <h4 className="mt-4 text-lg first:mt-0">{children}</h4>,
+    eyebrow: ({ children }) => <p className="label-mono mt-5 text-accent first:mt-0">{children}</p>,
     blockquote: ({ children }) => (
       <blockquote className="border-l-2 border-accent pl-4 font-serif text-xl leading-snug text-ink-muted">
         {children}
@@ -81,5 +83,6 @@ export const portableTextComponents: PortableTextComponents = {
     callout: Callout,
     processDiagram: ProcessDiagram,
     swimlaneDiagram: SwimlaneDiagram,
+    imageGallery: ImageGallery,
   },
 }

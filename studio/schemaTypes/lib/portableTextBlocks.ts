@@ -13,6 +13,7 @@ export const standardBlockStyle = defineArrayMember({
     { title: 'H2', value: 'h2' },
     { title: 'H3', value: 'h3' },
     { title: 'Quote', value: 'blockquote' },
+    { title: 'Eyebrow', value: 'eyebrow' },
   ],
   lists: [
     { title: 'Bullet', value: 'bullet' },

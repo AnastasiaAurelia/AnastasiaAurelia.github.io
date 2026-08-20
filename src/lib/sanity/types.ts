@@ -13,7 +13,14 @@ export interface SanityImageWithAlt extends SanityImageObject {
 }
 
 export interface GalleryImage extends SanityImageWithAlt {
+  _key?: string
   label?: string
+}
+
+export interface ImageGalleryBlock {
+  _type: 'imageGallery'
+  _key: string
+  images: Array<GalleryImage & { _key: string }>
 }
 
 export type ProjectType =
@@ -73,6 +80,7 @@ export type ProjectContentBlock =
   | DecisionCalloutBlock
   | ArchitectureDiagramBlock
   | CodeBlock
+  | ImageGalleryBlock
   | (SanityImageObject & { _type: 'image'; _key: string; alt: string; caption?: string })
 
 export interface SanityProject {

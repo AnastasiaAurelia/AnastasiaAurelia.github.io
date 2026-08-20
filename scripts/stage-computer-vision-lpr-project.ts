@@ -16,7 +16,7 @@ const publishedId = 'project-computer-vision-lpr'
 const draftId = `drafts.${publishedId}`
 let sequence = 0
 const key = () => `cv-lpr-${++sequence}`
-const block = (text: string, style: 'normal' | 'h2' | 'h3' = 'normal', listItem?: 'bullet' | 'number') => ({ _type: 'block', _key: key(), style, ...(listItem ? { listItem, level: 1 } : {}), markDefs: [], children: [{ _type: 'span', _key: key(), text, marks: [] }] })
+const block = (text: string, style: 'normal' | 'h2' | 'h3' | 'eyebrow' = 'normal', listItem?: 'bullet' | 'number') => ({ _type: 'block', _key: key(), style, ...(listItem ? { listItem, level: 1 } : {}), markDefs: [], children: [{ _type: 'span', _key: key(), text, marks: [] }] })
 const bullets = (...items: string[]) => items.map((item) => block(item, 'normal', 'bullet'))
 const section = (title: string, identifier: string) => ({ _type: 'projectSection', _key: key(), title, identifier })
 const metric = (label: string, value: string, context: string) => ({ _type: 'metricHighlight', _key: key(), label, value, context })
@@ -26,6 +26,16 @@ const math = (latex: string, databaseDefinition: string) => ({ _type: 'math', _k
 const table = (headers: string[], rows: string[][], caption?: string) => ({ _type: 'dataTable', _key: key(), headers, rows: rows.map((cells) => ({ _type: 'tableRow', _key: key(), cells })), ...(caption ? { caption } : {}) })
 const diagram = (title: string, variant: 'pipeline' | 'timeline', steps: Array<[string, string?]>, relationships?: string[], warning?: string, caption?: string) => ({ _type: 'processDiagram', _key: key(), title, variant, steps: steps.map(([label, field]) => ({ _type: 'processStep', _key: key(), label, ...(field ? { field } : {}) })), ...(relationships ? { relationships } : {}), ...(warning ? { warning } : {}), ...(caption ? { caption } : {}) })
 const imageDiagram = (assetRef: string, alt: string, caption: string, explanation?: string) => ({ _type: 'architectureDiagram', _key: key(), image: { _type: 'image', asset: { _type: 'reference', _ref: assetRef } }, alt, caption, ...(explanation ? { explanation } : {}) })
+const gallery = (images: Array<{ assetRef: string; alt: string; caption: string; label: string }>) => ({
+  _type: 'imageGallery',
+  _key: key(),
+  images: images.map(({ assetRef, ...image }) => ({
+    _type: 'galleryImage',
+    _key: key(),
+    asset: { _type: 'reference', _ref: assetRef },
+    ...image,
+  })),
+})
 
 const assetSources = {
   planes: 'public/assets/cv-lpr/two-plane-reliability-system.png',
@@ -37,18 +47,24 @@ const assetSources = {
   measurementTriangle: 'public/assets/cv-lpr/calibration/measurement-triangle-geometry.jpg',
   coilCameraFocus: 'public/assets/cv-lpr/calibration/coil-camera-focus-relationship.jpg',
   inclinometerCheck: 'public/assets/cv-lpr/calibration/inclinometer-field-check.jpg',
+  cnn02: '/home/anas/Downloads/CNN/2.jpeg',
+  cnn03: '/home/anas/Downloads/CNN/3.jpeg',
+  cnn04: '/home/anas/Downloads/CNN/4.jpeg',
+  cnn05: '/home/anas/Downloads/CNN/5.jpeg',
+  cnn06: '/home/anas/Downloads/CNN/6.jpeg',
+  cnn07: '/home/anas/Downloads/CNN/7.jpeg',
+  cnn08: '/home/anas/Downloads/CNN/8.jpeg',
 } as const
 
-async function uploadOrReuse(path: string) {
+async function uploadOrReuse(path: string, filename = basename(path)) {
   const absolutePath = resolve(path)
-  const filename = basename(path)
   const existing = await client.fetch<string | null>('*[_type == "sanity.imageAsset" && originalFilename == $filename][0]._id', { filename })
   if (existing) return existing
   const asset = await client.assets.upload('image', createReadStream(absolutePath), { filename })
   return asset._id
 }
 
-const refs = Object.fromEntries(await Promise.all(Object.entries(assetSources).map(async ([name, path]) => [name, await uploadOrReuse(path)]))) as Record<keyof typeof assetSources, string>
+const refs = Object.fromEntries(await Promise.all(Object.entries(assetSources).map(async ([name, path]) => [name, await uploadOrReuse(path, name.startsWith('cnn') ? `cnn-hand-calculation-${name.slice(3)}.jpeg` : basename(path))]))) as Record<keyof typeof assetSources, string>
 
 const content = [
   section('Making recognition failures easier to resolve', 'overview'),
@@ -197,6 +213,31 @@ const content = [
   math('p(y=1\\mid x)=\\sigma(\\theta^T x)', 'Conceptual binary motorcycle-versus-background classifier used only to explain supervised-learning framing.'),
   imageDiagram(refs.biasVariance, 'Conceptual bias-variance panels showing underfit, balanced validation-selected, and overfit models.', 'Bias and variance are model-selection questions, not production KPI claims.', 'Andrew Ng’s model-selection principle is the theoretical source: training error alone cannot choose a model; evaluate generalization on held-out evidence or an appropriate cross-validation design.'),
   callout('Controlled portfolio reconstruction', 'No reconstructed accuracy, loss or threshold result is presented as a production metric. The public claim is about dataset design, leakage control, model-selection discipline and error-driven recollection.', 'warning'),
+
+  section('I worked through the CNN dimensions by hand.', 'cnn-hand-calculation'),
+  block('ML FOUNDATIONS / HAND CALCULATION', 'eyebrow'),
+  block('I followed the tensor through convolution, pooling, flattening, and fully connected layers, checking output dimensions, activations, and parameter counts at each stage. These handwritten calculations are evidence of understanding the mechanics behind the model—not a specification of the production LPR architecture.'),
+  block('I worked through the network in order—from the input tensor, through convolution and pooling, into flattening and fully connected layers—checking the dimensions and parameter count at each stage.'),
+  block('Part A — Following one CNN end to end', 'h3'),
+  block('28×28×1 → Conv1 → Pool1 → Conv2 → Pool2 → Flatten 256 → FC 120 → FC 84 → Output 10'),
+  gallery([
+    { assetRef: refs.cnn02, label: '02 / INPUT → CONV1 → POOL1', alt: 'Handwritten CNN calculation page 2, starting with a 28 by 28 by 1 input and working through Conv1, ReLU1, and Pool1 dimensions, parameters, and activations.', caption: 'Starting from 28×28×1: Conv1 dimensions, filters, parameters, activations, ReLU, and the first pooling reduction.' },
+    { assetRef: refs.cnn03, label: '03 / CONV2 → POOL2 → FLATTEN', alt: 'Handwritten CNN calculation page 3, continuing from the pooled feature maps through Conv2, ReLU2, Pool2, and flattening to 256 features.', caption: 'Continuing the same network: Conv2 inherits the previous feature-map depth, then reduces through Pool2 and flattens to 256 features.' },
+    { assetRef: refs.cnn04, label: '04 / FULLY CONNECTED LAYERS', alt: 'Handwritten CNN calculation page 4, carrying 256 flattened features through fully connected layers of 120, 84, and 10 units with parameter counts.', caption: 'Continuing from the 256-feature vector into 120 → 84 → 10 fully connected layers, with dense parameter counts calculated explicitly.' },
+    { assetRef: refs.cnn05, label: '05 / COMPLETE NETWORK CHECK', alt: 'Handwritten CNN calculation page 5, reconciling the complete network layer by layer with shapes, activation counts, and parameter totals.', caption: 'A consolidated layer-by-layer check of the same CNN: shapes, activations, parameters, and the complete network total.' },
+  ]),
+  block('Part B — Scaling the same reasoning', 'h3'),
+  block('The notes then move from the small complete example into larger feature representations, character-level outputs, deeper convolutional stages, and larger dense layers. The bookkeeping stays the same as the architecture grows.'),
+  math('(K_h\\times K_w\\times C_{in}+1)\\times C_{out}', 'Convolution parameters: kernel height × kernel width × input channels, plus one bias, multiplied by the number of output filters. Activation count: H × W × C.'),
+  gallery([
+    { assetRef: refs.cnn06, label: '06 / CLASSIFIER OUTPUT SIZING', alt: 'Handwritten CNN calculation page 6, reasoning from a larger feature representation into character-level classes and multi-character output sizing.', caption: 'Extending the calculation from feature representation into character-level classifier and output sizing.' },
+    { assetRef: refs.cnn07, label: '07 / DEEPER CNN', alt: 'Handwritten CNN calculation page 7, applying convolution parameter and activation formulas across deeper convolutional and dense layers.', caption: 'Applying the general convolution and activation formulas across a deeper CNN, including larger convolutional and dense stages.' },
+  ]),
+  block('Part C — Architecture summary', 'h3'),
+  block('A second architecture summary applies the same bookkeeping to a deeper CNN: shape changes, activation functions, parameter growth, pooling, flattening, and dense outputs.'),
+  gallery([
+    { assetRef: refs.cnn08, label: '08 / SECOND ARCHITECTURE SUMMARY', alt: 'Handwritten CNN calculation page 8, a second layer-by-layer architecture table covering convolution, ReLU, pooling, flattening, dense layers, parameter growth, and classification output.', caption: 'A second layer-by-layer architecture summary combining output shapes, activations, pooling, parameter growth, flattening, and dense classification stages.' },
+  ]),
 
   section('The feedback loop', 'feedback-loop'),
   diagram('Reliability improvement loop', 'pipeline', [

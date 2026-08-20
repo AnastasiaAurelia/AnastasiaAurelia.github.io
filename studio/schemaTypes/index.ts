@@ -8,6 +8,7 @@ import decisionCallout from './objects/decisionCallout'
 import architectureDiagram from './objects/architectureDiagram'
 import projectSection from './objects/projectSection'
 import galleryImage from './objects/galleryImage'
+import imageGallery from './objects/imageGallery'
 import credibilityPoint from './objects/credibilityPoint'
 import capabilityGroup from './objects/capabilityGroup'
 import articleImage from './objects/articleImage'
@@ -34,6 +35,7 @@ export const schemaTypes = [
   architectureDiagram,
   projectSection,
   galleryImage,
+  imageGallery,
   credibilityPoint,
   capabilityGroup,
   articleImage,
