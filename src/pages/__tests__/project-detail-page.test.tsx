@@ -8,7 +8,7 @@ import { useProject } from '@/hooks/use-project'
 
 vi.mock('@/hooks/use-project', () => ({ useProject: vi.fn() }))
 
-function renderProject(slug = 'computer-vision-lpr', identifier = 'technical-view') {
+function renderProject(slug = 'computer-vision-lpr', identifier = 'technical-view', incidentTitle: string | null = 'TTL incident') {
   const paragraph = (text: string) => ({ _type: 'block', _key: text, style: 'normal', markDefs: [], children: [{ _type: 'span', text, marks: [] }] })
   vi.mocked(useProject).mockReturnValue({
     status: 'success',
@@ -18,7 +18,8 @@ function renderProject(slug = 'computer-vision-lpr', identifier = 'technical-vie
         { _type: 'projectSection', _key: 'technical', identifier, title: 'Technical view — where can the journey break?' },
         { _type: 'processDiagram', _key: 'chain', title: 'The transaction reliability chain', steps: [{ label: 'Capture' }, { label: 'Transport' }] },
         paragraph('The existing explanatory paragraph.'),
-        { _type: 'processDiagram', _key: 'ttl', title: 'OCR succeeded; the transaction failed later', steps: [{ label: 'TTL expires' }] },
+        { _type: 'processDiagram', _key: 'ttl', title: incidentTitle ?? undefined, steps: [{ label: 'TTL expires' }] },
+        paragraph('Incident lesson.'),
       ],
     },
   } as ReturnType<typeof useProject>)
@@ -26,8 +27,8 @@ function renderProject(slug = 'computer-vision-lpr', identifier = 'technical-vie
 }
 
 describe('LPR camera-side schematic placement', () => {
-  it('renders an accessible native figure after the chain paragraph and before the TTL timeline', () => {
-    const { container } = renderProject()
+  it.each(['TTL incident', null])('renders before the second process diagram with title %s', (title) => {
+    const { container } = renderProject('computer-vision-lpr', 'technical-view', title)
     const chapter = container.querySelector('#technical-view')!
     const svg = within(chapter as HTMLElement).getByRole('img', { name: 'Camera-side event delivery' })
     const figure = svg.closest('figure')!
@@ -39,7 +40,11 @@ describe('LPR camera-side schematic placement', () => {
       expect(within(svg).getByText(label)).toBeInTheDocument()
     }
     expect(screen.getByText('The existing explanatory paragraph.').compareDocumentPosition(figure) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(figure.compareDocumentPosition(screen.getByRole('figure', { name: 'OCR succeeded; the transaction failed later' })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    const ttlFigure = screen.getByText('TTL expires').closest('figure')!
+    expect(figure.nextElementSibling).toBe(ttlFigure)
+    expect(ttlFigure.nextElementSibling).toBe(screen.getByText('Incident lesson.'))
+    expect(chapter.querySelectorAll('figure')).toHaveLength(3)
+    expect(chapter.querySelector('figure')).toBe(screen.getByRole('figure', { name: 'The transaction reliability chain' }))
     expect(figure.querySelector('img, image, foreignObject, [href], [src]')).toBeNull()
     expect(figure.textContent).not.toMatch(/Downloads|vendor|Driver Board|\.png|\.jpg|\/home\//i)
     expect(svg).toHaveClass('min-w-[780px]', 'w-full')

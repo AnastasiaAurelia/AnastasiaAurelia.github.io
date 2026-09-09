@@ -127,9 +127,10 @@ export function ProjectDetailPage() {
                   title={chapter.title}
                 >
                   {(() => {
-                    // Keep the zoom-in inside this chapter, before its TTL incident.
+                    // The second process diagram is the TTL incident; CMS titles may vary.
+                    let processDiagramCount = 0
                     const incidentIndex = project.slug === 'computer-vision-lpr' && chapter.id === 'technical-view'
-                      ? chapter.blocks.findIndex((block) => block._type === 'processDiagram' && 'title' in block && block.title === 'OCR succeeded; the transaction failed later')
+                      ? chapter.blocks.findIndex((block) => block._type === 'processDiagram' && ++processDiagramCount === 2)
                       : -1
                     if (incidentIndex < 0) return <PortableText value={chapter.blocks} components={portableTextComponents} />
                     return <>
