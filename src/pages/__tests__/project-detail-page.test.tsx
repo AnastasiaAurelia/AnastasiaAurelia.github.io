@@ -117,6 +117,17 @@ describe('LPR daily operating loop', () => {
     expect(evidence).toHaveClass('h-auto', 'w-full')
     expect(diagram.closest('figure')!.nextElementSibling).toBe(evidence.closest('figure'))
     expect(evidence.closest('figure')!.querySelector('figcaption')).toHaveTextContent('Production output. The automated workflow generated and delivered')
+    const recurring = within(section).getByRole('region', { name: 'Recurring production runs' })
+    expect(evidence.closest('figure')!.nextElementSibling).toBe(recurring)
+    expect(within(recurring).getAllByRole('img')).toHaveLength(3)
+    expect(within(recurring).getAllByRole('link')).toHaveLength(3)
+    for (const [index, name] of ['location-health', 'gate-diagnostics', 'trend-action'].entries()) {
+      const expected = `/evidence/lpr-run-0${index + 1}-${name}.png`
+      expect(within(recurring).getAllByRole('img')[index]).toHaveAttribute('src', expected)
+      expect(within(recurring).getAllByRole('link')[index]).toHaveAttribute('href', expected)
+    }
+    expect(within(recurring).getByRole('list')).toHaveClass('grid-cols-1', 'lg:grid-cols-3')
+    expect(recurring.querySelector('time, button')).toBeNull()
     expect(within(section).getByRole('complementary')).toHaveTextContent('FROM MONITORING TO OPERATING SYSTEM')
     expect(section.innerHTML).not.toMatch(/https?:|@g\.us|\.config\.json|lpr_validate|lpr_prompt|SKILL\.md/)
   })
@@ -126,6 +137,7 @@ describe('LPR daily operating loop', () => {
     expect(container.querySelector('#operating-loop')).toBeNull()
     expect(screen.queryByRole('img', { name: 'Fail-closed daily LPR reporting automation' })).not.toBeInTheDocument()
     expect(container.querySelector('img[src="/evidence/nano.png"]')).toBeNull()
+    expect(screen.queryByRole('region', { name: 'Recurring production runs' })).not.toBeInTheDocument()
     expect(container.querySelector('#program-loops')!.nextElementSibling).toBe(container.querySelector('#management-view'))
   })
 })

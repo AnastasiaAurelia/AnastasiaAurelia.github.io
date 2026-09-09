@@ -1,4 +1,5 @@
 import { useId } from 'react'
+import { LprRecurringRuns } from './lpr-recurring-runs'
 
 function WorkflowNode({ x, y, width, label, detail }: { x: number; y: number; width: number; label: string; detail?: string }) {
   return <g>
@@ -71,6 +72,7 @@ export function LprOperatingLoop() {
       </a>
       <figcaption className="mt-2 text-sm text-ink-muted">Production output. The automated workflow generated and delivered the daily LPR performance report directly into the operating channel, including location-level trends and gate-level diagnostics.</figcaption>
     </figure>
+    <LprRecurringRuns />
     <aside className="my-8 border-l-2 border-accent bg-surface p-4 sm:p-6" aria-label="From monitoring to operating system">
       <p className="label-mono leading-relaxed text-accent">FROM MONITORING TO OPERATING SYSTEM</p>
       <p className="mt-3 text-sm text-ink-muted">The automation separated data retrieval, validation, formatting, and delivery into distinct layers. That made the workflow easier to audit, safer to run unattended, and less dependent on one person manually preparing the report.</p>
