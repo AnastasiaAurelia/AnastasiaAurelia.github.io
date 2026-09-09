@@ -1,10 +1,15 @@
 /** Stage the existing Computer Vision & LPR project as an unpublished draft revision.
+ * Set CNN_ASSET_ROOT to the directory containing 2.jpeg through 8.jpeg.
+ * Relative input directories are resolved from the working directory.
  * Run with:
  *   node --env-file=studio/.env --env-file=scripts/.env.migration scripts/stage-computer-vision-lpr-project.ts
  */
 import { createClient } from '@sanity/client'
 import { createReadStream } from 'node:fs'
 import { basename, resolve } from 'node:path'
+
+const cnnAssetRoot = process.env.CNN_ASSET_ROOT
+if (!cnnAssetRoot?.trim()) throw new Error('CNN_ASSET_ROOT is required: set it to the directory containing 2.jpeg through 8.jpeg.')
 
 const projectId = process.env.SANITY_STUDIO_PROJECT_ID
 const dataset = process.env.SANITY_STUDIO_DATASET
@@ -47,13 +52,13 @@ const assetSources = {
   measurementTriangle: 'public/assets/cv-lpr/calibration/measurement-triangle-geometry.jpg',
   coilCameraFocus: 'public/assets/cv-lpr/calibration/coil-camera-focus-relationship.jpg',
   inclinometerCheck: 'public/assets/cv-lpr/calibration/inclinometer-field-check.jpg',
-  cnn02: '/home/anas/Downloads/CNN/2.jpeg',
-  cnn03: '/home/anas/Downloads/CNN/3.jpeg',
-  cnn04: '/home/anas/Downloads/CNN/4.jpeg',
-  cnn05: '/home/anas/Downloads/CNN/5.jpeg',
-  cnn06: '/home/anas/Downloads/CNN/6.jpeg',
-  cnn07: '/home/anas/Downloads/CNN/7.jpeg',
-  cnn08: '/home/anas/Downloads/CNN/8.jpeg',
+  cnn02: resolve(cnnAssetRoot, '2.jpeg'),
+  cnn03: resolve(cnnAssetRoot, '3.jpeg'),
+  cnn04: resolve(cnnAssetRoot, '4.jpeg'),
+  cnn05: resolve(cnnAssetRoot, '5.jpeg'),
+  cnn06: resolve(cnnAssetRoot, '6.jpeg'),
+  cnn07: resolve(cnnAssetRoot, '7.jpeg'),
+  cnn08: resolve(cnnAssetRoot, '8.jpeg'),
 } as const
 
 async function uploadOrReuse(path: string, filename = basename(path)) {
@@ -72,6 +77,20 @@ const content = [
   block('I created a measurable reliability loop connecting production metrics, field evidence, camera infrastructure, transaction state, and model behavior. Production performance became measurable and consistently high, operations spent less time repeatedly investigating the same problems, and engineering received clearer evidence when failures occurred.'),
   block('The work still crossed both the management layer and the technical layer of a real-world license-plate-recognition product. The management problem was deciding where to act. The technical problem was locating the exact layer where a recognition event stopped surviving the transaction.'),
   block('That distinction changed the work. A low site percentage could point to OCR, but it could also come from a trigger, camera geometry, transport, cache timing, an Agent handoff, a gate bottleneck, a denominator mismatch, or ordinary lane behavior. The camera was one component in a longer reliability chain.'),
+  table(['Question', 'Answer'], [
+    ['Problem', 'Recognition failures created repeated investigation, unclear ownership, and operational uncertainty because one accuracy number could not show where the transaction journey had broken.'],
+    ['My ownership', 'Reliability measurement, investigation structure, product definition, vendor and engineering coordination, validation, and product-side follow-through.'],
+    ['What changed', 'A measurable loop connected production metrics, field evidence, camera infrastructure, transaction state, anomaly classes, and model-improvement inputs.'],
+    ['Result', 'Production performance became measurable and consistently high, while failures could be routed using evidence from the layer where they occurred.'],
+    ['Why it mattered to people', 'Operations spent less time repeatedly investigating recognition failures, while engineering received clearer evidence and ownership when action was required.'],
+  ], 'Executive summary: expensive problem → intervention → result → human relief.'),
+  table(['Evidence priority', 'Strongest available evidence'], [
+    ['Metric', 'Approximately 97.7% over the preceding week and 100% across 353 vehicles on the referenced day.'],
+    ['Artifact', 'The production reliability loop: metric contract, cross-system reconciliation, failure taxonomy, field evidence, and intervention validation.'],
+    ['Validation', 'Sanitized CTO recognition of the LPR team’s sustained performance, including my contribution.'],
+    ['Ownership proof', 'Documented measurement contracts, diagnostic analyses, field-calibration work, coordination decisions, and closed-loop validation artifacts.'],
+  ], 'Strongest metric → strongest artifact → strongest validation → ownership proof.'),
+  callout('Whose day became easier?', 'Operations spent less time repeatedly investigating recognition failures because the system became measurable and easier to diagnose; engineering received clearer evidence when failures required action.', 'success'),
   metric('Sites in the diagnostic program', '5', 'Project 3 historical cross-site analysis: CFX, Matraman, JRP, Menteng Central, and Gading Riverview.'),
   metric('Recurring anomaly classes', '17', 'Verified taxonomy spanning operations, environment, camera/OCR, triggers, data timing, and transaction state.'),
   metric('Motorcycle samples organized', '1,000', 'Documented field-collection and handoff program; not a claim of production model uplift.'),

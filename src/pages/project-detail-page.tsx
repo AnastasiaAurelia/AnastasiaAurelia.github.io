@@ -5,6 +5,7 @@ import { NarrativeSection } from '@/components/work/narrative-section'
 import { PendingSections } from '@/components/work/pending-sections'
 import { ChapterNav } from '@/components/work/chapter-nav'
 import { EvidenceList, type Evidence } from '@/components/work/evidence-list'
+import { LprHttpPostFlow } from '@/components/work/lpr-http-post-flow'
 import { LprEvidenceSection } from '@/components/work/lpr-evidence-section'
 import { LoadingState, ErrorState } from '@/components/state/query-states'
 import { portableTextComponents } from '@/components/portable-text/portable-text-components'
@@ -13,6 +14,7 @@ import { urlForImage } from '@/lib/sanity/image'
 import { useProject } from '@/hooks/use-project'
 import { SITE } from '@/content/site'
 import { NotFoundPage } from './not-found-page'
+import { CaseStudyCta } from '@/components/work/case-study-cta'
 
 /**
  * The single template every project renders through. Adding a project
@@ -125,7 +127,18 @@ export function ProjectDetailPage() {
                   number={String(index + 1).padStart(2, '0')}
                   title={chapter.title}
                 >
-                  <PortableText value={chapter.blocks} components={portableTextComponents} />
+                  {(() => {
+                    // Keep the zoom-in inside this chapter, before its TTL incident.
+                    const incidentIndex = project.slug === 'computer-vision-lpr' && chapter.id === 'technical-view'
+                      ? chapter.blocks.findIndex((block) => block._type === 'processDiagram' && 'title' in block && block.title === 'OCR succeeded; the transaction failed later')
+                      : -1
+                    if (incidentIndex < 0) return <PortableText value={chapter.blocks} components={portableTextComponents} />
+                    return <>
+                      <PortableText value={chapter.blocks.slice(0, incidentIndex)} components={portableTextComponents} />
+                      <LprHttpPostFlow />
+                      <PortableText value={chapter.blocks.slice(incidentIndex)} components={portableTextComponents} />
+                    </>
+                  })()}
                 </NarrativeSection>
               ))}
 
@@ -151,6 +164,10 @@ export function ProjectDetailPage() {
               )}
             </section>
           </div>
+        </div>
+
+        <div className="container-editorial">
+          <CaseStudyCta slug={project.slug} />
         </div>
       </article>
     </>
