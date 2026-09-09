@@ -5,6 +5,7 @@ import { NarrativeSection } from '@/components/work/narrative-section'
 import { PendingSections } from '@/components/work/pending-sections'
 import { ChapterNav } from '@/components/work/chapter-nav'
 import { EvidenceList, type Evidence } from '@/components/work/evidence-list'
+import { LprOperatingLoop } from '@/components/work/lpr-operating-loop'
 import { LprBackendSizing } from '@/components/work/lpr-backend-sizing'
 import { LprHttpPostFlow } from '@/components/work/lpr-http-post-flow'
 import { LprEvidenceSection } from '@/components/work/lpr-evidence-section'
@@ -60,6 +61,13 @@ export function ProjectDetailPage() {
     const technicalIndex = chapters.findIndex((chapter) => chapter.id === 'technical-view')
     chapters.splice(technicalIndex < 0 ? chapters.length : technicalIndex + 1, 0, {
       id: sizingChapterId, title: 'Sizing the backend for 100 sites', blocks: [],
+    })
+  }
+  if (project.slug === 'computer-vision-lpr') {
+    const programIndex = chapters.findIndex((chapter) => chapter.id === 'program-loops')
+    const diagnosticsIndex = chapters.findIndex((chapter) => chapter.id === 'management-view' || chapter.id === 'technical-view')
+    chapters.splice(programIndex >= 0 ? programIndex + 1 : diagnosticsIndex >= 0 ? diagnosticsIndex : chapters.length, 0, {
+      id: 'operating-loop', title: 'Automating the operating loop', blocks: [],
     })
   }
   const showPendingSections = project.slug !== 'computer-vision-lpr' && pendingTitles.length > 0
@@ -139,6 +147,7 @@ export function ProjectDetailPage() {
                   title={chapter.title}
                 >
                   {(() => {
+                    if (project.slug === 'computer-vision-lpr' && chapter.id === 'operating-loop') return <LprOperatingLoop />
                     if (project.slug === 'computer-vision-lpr' && chapter.id === sizingChapterId) return <LprBackendSizing />
                     // The second process diagram is the TTL incident; CMS titles may vary.
                     let processDiagramCount = 0

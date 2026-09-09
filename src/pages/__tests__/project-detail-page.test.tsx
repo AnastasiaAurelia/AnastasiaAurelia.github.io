@@ -15,6 +15,10 @@ function renderProject(slug = 'computer-vision-lpr', identifier = 'technical-vie
     data: {
       ...fixtureProjects[0], slug, caseStudyArticle: undefined,
       content: [
+        { _type: 'projectSection', _key: 'program', identifier: 'program-loops', title: 'The program in three loops' },
+        paragraph('Measure, diagnose, improve.'),
+        { _type: 'projectSection', _key: 'management', identifier: 'management-view', title: 'Management view — where should we act?' },
+        paragraph('Existing management diagnostics.'),
         { _type: 'projectSection', _key: 'technical', identifier, title: 'Technical view — where can the journey break?' },
         { _type: 'processDiagram', _key: 'chain', title: 'The transaction reliability chain', steps: [{ label: 'Capture' }, { label: 'Transport' }] },
         paragraph('The existing explanatory paragraph.'),
@@ -91,5 +95,37 @@ describe('LPR backend sizing chapter', () => {
     renderProject('agentic-workflows', 'technical-view', 'TTL incident', true)
     expect(screen.queryByRole('img', { name: '100-site LPR infrastructure' })).not.toBeInTheDocument()
     expect(screen.getByText('Previous detailed sizing prose.')).toBeInTheDocument()
+  })
+})
+
+
+describe('LPR daily operating loop', () => {
+  it('inserts the workflow and actual evidence between the program and diagnostics chapters', () => {
+    const { container } = renderProject()
+    const section = container.querySelector('#operating-loop')! as HTMLElement
+    expect(container.querySelector('#program-loops')!.nextElementSibling).toBe(section)
+    expect(section.nextElementSibling).toBe(container.querySelector('#management-view'))
+    expect(screen.getByRole('link', { name: /Automating the operating loop/ })).toHaveAttribute('href', '#operating-loop')
+    const diagram = within(section).getByRole('img', { name: 'Fail-closed daily LPR reporting automation' })
+    for (const label of ['Daily 08:00 WIB', 'Metabase Card 512', 'Normalize', 'Fail-closed validation', 'PASS', 'FAIL', 'Render approved report', 'Failure notice only', 'WhatsApp delivery', 'Daily operating loop']) {
+      expect(within(diagram).getByText(label)).toBeInTheDocument()
+    }
+    const evidence = within(section).getByRole('img', { name: 'Automated LPR accuracy report delivered in WhatsApp showing executive summary, location status, recent-day trends, and gate-level breakdowns.' })
+    expect(evidence).toHaveAttribute('src', '/evidence/nano.png')
+    expect(evidence).toHaveAttribute('width', '622')
+    expect(evidence).toHaveAttribute('height', '1082')
+    expect(evidence).toHaveClass('h-auto', 'w-full')
+    expect(diagram.closest('figure')!.nextElementSibling).toBe(evidence.closest('figure'))
+    expect(evidence.closest('figure')!.querySelector('figcaption')).toHaveTextContent('Production output. The automated workflow generated and delivered')
+    expect(within(section).getByRole('complementary')).toHaveTextContent('FROM MONITORING TO OPERATING SYSTEM')
+    expect(section.innerHTML).not.toMatch(/https?:|@g\.us|\.config\.json|lpr_validate|lpr_prompt|SKILL\.md/)
+  })
+
+  it('does not add the automation section or evidence to other projects', () => {
+    const { container } = renderProject('agentic-workflows')
+    expect(container.querySelector('#operating-loop')).toBeNull()
+    expect(screen.queryByRole('img', { name: 'Fail-closed daily LPR reporting automation' })).not.toBeInTheDocument()
+    expect(container.querySelector('img[src="/evidence/nano.png"]')).toBeNull()
+    expect(container.querySelector('#program-loops')!.nextElementSibling).toBe(container.querySelector('#management-view'))
   })
 })
