@@ -14,7 +14,6 @@ import { urlForImage } from '@/lib/sanity/image'
 import { useProject } from '@/hooks/use-project'
 import { SITE } from '@/content/site'
 import { NotFoundPage } from './not-found-page'
-import { CaseStudyCta } from '@/components/work/case-study-cta'
 
 /**
  * The single template every project renders through. Adding a project
@@ -164,10 +163,6 @@ export function ProjectDetailPage() {
               )}
             </section>
           </div>
-        </div>
-
-        <div className="container-editorial">
-          <CaseStudyCta slug={project.slug} />
         </div>
       </article>
     </>
