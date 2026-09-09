@@ -8,7 +8,7 @@ import { useProject } from '@/hooks/use-project'
 
 vi.mock('@/hooks/use-project', () => ({ useProject: vi.fn() }))
 
-function renderProject(slug = 'computer-vision-lpr', identifier = 'technical-view', incidentTitle: string | null = 'TTL incident') {
+function renderProject(slug = 'computer-vision-lpr', identifier = 'technical-view', incidentTitle: string | null = 'TTL incident', existingSizing = false) {
   const paragraph = (text: string) => ({ _type: 'block', _key: text, style: 'normal', markDefs: [], children: [{ _type: 'span', text, marks: [] }] })
   vi.mocked(useProject).mockReturnValue({
     status: 'success',
@@ -20,6 +20,10 @@ function renderProject(slug = 'computer-vision-lpr', identifier = 'technical-vie
         paragraph('The existing explanatory paragraph.'),
         { _type: 'processDiagram', _key: 'ttl', title: incidentTitle ?? undefined, steps: [{ label: 'TTL expires' }] },
         paragraph('Incident lesson.'),
+        ...(existingSizing ? [
+          { _type: 'projectSection', _key: 'sizing', identifier: 'capacity-planning', title: 'Sizing the backend for 100 sites' },
+          paragraph('Previous detailed sizing prose.'),
+        ] : []),
       ],
     },
   } as ReturnType<typeof useProject>)
@@ -61,5 +65,31 @@ describe('LPR camera-side schematic placement', () => {
   it('uses the section identifier rather than its display title', () => {
     renderProject('computer-vision-lpr', 'other-chapter')
     expect(screen.queryByRole('img', { name: 'Camera-side event delivery' })).not.toBeInTheDocument()
+  })
+})
+
+
+describe('LPR backend sizing chapter', () => {
+  it('adds the visual chapter after technical-view with working chapter navigation', () => {
+    const { container } = renderProject()
+    const sizing = container.querySelector('#backend-sizing')!
+    expect(container.querySelector('#technical-view')!.nextElementSibling).toBe(sizing)
+    expect(within(sizing as HTMLElement).getByRole('img', { name: '100-site LPR infrastructure' })).toBeInTheDocument()
+    expect(within(sizing as HTMLElement).getByText('RMB 59,130.05', { exact: false })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Sizing the backend for 100 sites/ })).toHaveAttribute('href', '#backend-sizing')
+  })
+
+  it('uses an existing sizing chapter without duplicating its title or long prose', () => {
+    const { container } = renderProject('computer-vision-lpr', 'technical-view', 'TTL incident', true)
+    expect(screen.getAllByRole('heading', { name: 'Sizing the backend for 100 sites' })).toHaveLength(1)
+    expect(container.querySelector('#backend-sizing')).toBeNull()
+    expect(container.querySelector('#capacity-planning')).toContainElement(screen.getByRole('img', { name: '100-site LPR infrastructure' }))
+    expect(screen.queryByText('Previous detailed sizing prose.')).not.toBeInTheDocument()
+  })
+
+  it('preserves other projects even when they have a sizing chapter', () => {
+    renderProject('agentic-workflows', 'technical-view', 'TTL incident', true)
+    expect(screen.queryByRole('img', { name: '100-site LPR infrastructure' })).not.toBeInTheDocument()
+    expect(screen.getByText('Previous detailed sizing prose.')).toBeInTheDocument()
   })
 })

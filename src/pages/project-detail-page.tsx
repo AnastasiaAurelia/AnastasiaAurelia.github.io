@@ -5,6 +5,7 @@ import { NarrativeSection } from '@/components/work/narrative-section'
 import { PendingSections } from '@/components/work/pending-sections'
 import { ChapterNav } from '@/components/work/chapter-nav'
 import { EvidenceList, type Evidence } from '@/components/work/evidence-list'
+import { LprBackendSizing } from '@/components/work/lpr-backend-sizing'
 import { LprHttpPostFlow } from '@/components/work/lpr-http-post-flow'
 import { LprEvidenceSection } from '@/components/work/lpr-evidence-section'
 import { LoadingState, ErrorState } from '@/components/state/query-states'
@@ -50,6 +51,17 @@ export function ProjectDetailPage() {
   }
 
   const { chapters, pendingTitles } = splitProjectContent(project.content)
+  // Render this visual chapter locally; no CMS migration or workbook embedding.
+  const sizingChapter = project.slug === 'computer-vision-lpr'
+    ? chapters.find((chapter) => chapter.id === 'backend-sizing' || chapter.title === 'Sizing the backend for 100 sites')
+    : undefined
+  const sizingChapterId = sizingChapter?.id ?? 'backend-sizing'
+  if (project.slug === 'computer-vision-lpr' && !sizingChapter) {
+    const technicalIndex = chapters.findIndex((chapter) => chapter.id === 'technical-view')
+    chapters.splice(technicalIndex < 0 ? chapters.length : technicalIndex + 1, 0, {
+      id: sizingChapterId, title: 'Sizing the backend for 100 sites', blocks: [],
+    })
+  }
   const showPendingSections = project.slug !== 'computer-vision-lpr' && pendingTitles.length > 0
 
   const evidence: Evidence[] = [
@@ -127,6 +139,7 @@ export function ProjectDetailPage() {
                   title={chapter.title}
                 >
                   {(() => {
+                    if (project.slug === 'computer-vision-lpr' && chapter.id === sizingChapterId) return <LprBackendSizing />
                     // The second process diagram is the TTL incident; CMS titles may vary.
                     let processDiagramCount = 0
                     const incidentIndex = project.slug === 'computer-vision-lpr' && chapter.id === 'technical-view'
