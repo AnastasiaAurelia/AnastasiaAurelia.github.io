@@ -1,0 +1,1066 @@
+{
+  "_id": "drafts.article-diana-nightshift-deterministic-control",
+  "_type": "article",
+  "body": [
+    {
+      "_type": "block",
+      "_key": "block-h2-17",
+      "style": "h2",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-17",
+          "text": "Executive summary",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-link-1",
+      "style": "normal",
+      "markDefs": [
+        {
+          "_type": "link",
+          "_key": "link-github-source",
+          "href": "https://github.com/AnastasiaAurelia/agent-orchestration",
+          "newTab": true,
+          "linkType": "external"
+        }
+      ],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-link-prefix",
+          "text": "Source repository: ",
+          "marks": []
+        },
+        {
+          "_type": "span",
+          "_key": "span-link-target",
+          "text": "GitHub",
+          "marks": [
+            "link-github-source"
+          ]
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-h2-lifecycle",
+      "style": "h2",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-lifecycle-h2",
+          "text": "Current engineering lifecycle",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-normal-lifecycle",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-lifecycle-text",
+          "text": "The simplest useful mental model is still plan → inspect → implement / fix → test → review → ship. The correction is that current Diana main does not expose every stage as a standalone slash command. In practice, the current repository maps that loop to plan-review, research-first, /fix plus minimal-solution, workflow verification discipline, /review, and /ship. The larger /diana-ship flow is the controlled orchestration layer around that lifecycle.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "processDiagram",
+      "_key": "diagram-lifecycle-1",
+      "title": "Current Diana engineering lifecycle",
+      "variant": "pipeline",
+      "steps": [
+        {
+          "_type": "processStep",
+          "_key": "step-lifecycle-0",
+          "label": "plan → plan-review"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-lifecycle-1",
+          "label": "inspect → research-first"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-lifecycle-2",
+          "label": "implement / fix → /fix + minimal-solution"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-lifecycle-3",
+          "label": "test → workflow verification discipline"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-lifecycle-4",
+          "label": "review → /review"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-lifecycle-5",
+          "label": "ship → /ship"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-lifecycle-6",
+          "label": "larger /diana-ship orchestration"
+        }
+      ],
+      "caption": "The lifecycle stays readable, but current main adds a larger controlled pipeline around /ship that owns AO-backed execution, reviewer safety, Preflight, Diana Gate, Security Gate, and protected-branch governance."
+    },
+    {
+      "_type": "block",
+      "_key": "block-h2-boundaries",
+      "style": "h2",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-boundaries-h2",
+          "text": "Current ownership boundaries",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "processDiagram",
+      "_key": "diagram-boundaries-1",
+      "title": "Current Diana control flow",
+      "variant": "pipeline",
+      "steps": [
+        {
+          "_type": "processStep",
+          "_key": "step-boundaries-0",
+          "label": "User / task"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-boundaries-1",
+          "label": "Diana: policy / DoD / memory / risk"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-boundaries-2",
+          "label": "AO: worker sessions / worktrees"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-boundaries-3",
+          "label": "Actor A / optional Agent B"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-boundaries-4",
+          "label": "Independent reviewer"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-boundaries-5",
+          "label": "Verification"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-boundaries-6",
+          "label": "Preflight"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-boundaries-7",
+          "label": "Diana Gate"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-boundaries-8",
+          "label": "Security Gate"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-boundaries-9",
+          "label": "PR"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-boundaries-10",
+          "label": "Human merge"
+        }
+      ],
+      "caption": "The most important architectural fact is that Diana owns policy, memory, Definition of Done, risk, gates, and evidence normalization; AO, Playwright, GitHub, and the model provider own execution and platform state."
+    },
+    {
+      "_type": "block",
+      "_key": "block-normal-boundaries",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-boundaries-text",
+          "text": "That boundary matters because it makes a strong claim about what Diana is and is not. Diana is not a model host, browser engine, worker scheduler, merge engine, or hosted AgentOps cloud. It is the deterministic control plane: policy, canonical memory, Definition of Done, risk classification, Preflight, Diana Gate, normalized security evidence, and human governance. AO owns worker sessions and worktrees, Playwright handles browser verification when a check genuinely needs a browser surface, GitHub owns PR review and merge-state semantics, and the model/provider owns reasoning and implementation inside a bounded session.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-h2-actors",
+      "style": "h2",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-actors-h2",
+          "text": "Single actor vs two writers",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-normal-actors",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-actors-text",
+          "text": "The default bounded model is simple: one write actor, then one fresh independent reviewer. In the optional two-writer mode, Agent A and Agent B can both write, but Reviewer C remains a read-only verifier. Agent B is not the reviewer, and the two writers must operate with disjoint file scopes so the write path is still meaningfully bounded. In practice, that means the reviewer is not a second author, not a committer, not a merger, and not a fixer: it is there to check the change and then stop if the system needs human intervention.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-h2-reviewer",
+      "style": "h2",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-reviewer-h2",
+          "text": "Independent reviewer safety",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-normal-reviewer",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-reviewer-text",
+          "text": "This is one of the strongest Diana design points. The reviewer session is fresh, read-only, and cannot commit, push, merge, deploy, or fix. If the reviewer asks for mutation or needs input, Diana stops that path rather than approving it. The important technical detail is that this rule is enforced independently rather than trusted from a reviewer self-report, which is how the system preserves a real separation between authoring and verification.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-h2-preflight-gate",
+      "style": "h2",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-preflight-gate-h2",
+          "text": "Preflight vs Diana Gate",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-normal-preflight-gate",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-preflight-gate-text",
+          "text": "Preflight detects. Diana Gate decides. That is the current distinction in the repository. Preflight is a deterministic, applicability-aware scanner that reports what is applicable and what passed or failed. Diana Gate is the separate decision layer that interprets that evidence and produces the actual gate result: PASS, REQUIRE_HUMAN, or FAIL. The model never becomes the authority here; the system turns evidence into an explicit decision rather than trusting the worker’s own completion claim.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-h2-merge-authority",
+      "style": "h2",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-merge-authority-h2",
+          "text": "Human merge authority",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-normal-merge-authority",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-merge-authority-text",
+          "text": "Diana does not auto-merge protected main. Human review and human merge remain the floor. That distinction is important: branch protection protects the trunk, while worker isolation and reviewer read-only enforcement protect the execution environment. The goal is not to make the system magically safe by itself; it is to make the trust boundaries explicit and to keep the merge decision separate from the worker that wrote the change.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "dataTable",
+      "_key": "table-2-5",
+      "headers": [
+        "Question",
+        "Current answer"
+      ],
+      "rows": [
+        {
+          "_type": "tableRow",
+          "_key": "row-0",
+          "cells": [
+            "What Diana is",
+            "A deterministic control and governance layer around nondeterministic coding agents: policy, canonical memory, Definition of Done, preflight, gate logic, evidence normalization, and merge-boundary decisions."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-1",
+          "cells": [
+            "What is live in current main",
+            "Current main contains genuine live-wired verifier families in diana/security/ci_verifier_runs.py: Semgrep STATIC_ANALYZER, Gitleaks SECRET_SCANNER, deterministic repo/deployment-tree scanning, the local-only SEC-064 sensitive-file-paths-not-fetchable dynamic scenario, and GitHub-backed human-review collection code."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-2",
+          "cells": [
+            "What is not live or universal",
+            "The current repo does not claim universal 75/75 enforcement. Cataloged/evaluated, capability exists, live verifier exists, and evidence satisfied are distinct states, and some controls remain UNPROVEN, NOT_COVERED, or capability-only."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-3",
+          "cells": [
+            "What historical README sections mean",
+            "Sections describing ci_verifier_runs.py as “today empty” or claiming all verifier execution is future work are historical phase-state, not current main. They describe earlier stages of the Security Track, not the post-remediation implementation."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-4",
+          "cells": [
+            "What the strongest real proof is",
+            "The strongest concrete proof is the PR #40 activation probe: current main already included `pull-requests: read`, `DIANA_PR_NUMBER`, and `GH_TOKEN` in the Security Gate workflow, and PR #40 then exercised that live path end-to-end by proving exact `DIANA_HEAD_SHA` binding, collecting a real independent `DIANA:HUMAN-REVIEW` approval, and accepting that human-review evidence while the aggregate result stayed `REQUIRE_HUMAN` because other controls remained unresolved."
+          ]
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-normal-286",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-286",
+          "text": "The most important correction is this: current main is no longer the historical “Phase 5/6 future work” story. It contains real live-wired verifier families, but they remain partial, bounded, and intentionally non-universal, so the honest claim is evidence-driven governance rather than blanket security coverage.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-h2-50",
+      "style": "h2",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-50",
+          "text": "Why agentic coding needs an external control plane",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-normal-351",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-351",
+          "text": "A coding agent can generate useful code, but the hard problem is no longer writing the patch. It is deciding who is allowed to say the patch is safe enough, complete enough, and ready to merge. That question cannot be answered by the same process that is trying to solve the task, because the worker is already the least independent party in the loop.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-normal-316",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-316",
+          "text": "Diana moves authority outside the worker: AGENTS.md owns engineering policy, diana/memory/ owns canonical project memory, AO owns execution, and the Security Track normalizes evidence into PASS, FAIL, or REQUIRE_HUMAN. Human merge remains authoritative.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-h2-18",
+      "style": "h2",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-18",
+          "text": "Diana control flow",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "processDiagram",
+      "_key": "diagram-18-8",
+      "title": "Diana control flow",
+      "variant": "pipeline",
+      "steps": [
+        {
+          "_type": "processStep",
+          "_key": "step-0",
+          "label": "Task"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-1",
+          "label": "Policy / AGENTS.md"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-2",
+          "label": "Execution safety / worker"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-3",
+          "label": "Worktree"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-4",
+          "label": "Diana Gate"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-5",
+          "label": "Diana Security Gate"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-6",
+          "label": "Human review"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-7",
+          "label": "Merge"
+        }
+      ],
+      "caption": "The control flow is intentionally linear in authority: policy first, worker second, independent evidence next, and merge last."
+    },
+    {
+      "_type": "block",
+      "_key": "block-normal-332",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-332",
+          "text": "The critical design move is that the system does not treat the worker’s own completion claim as the final verdict. Evidence is gathered, normalized, reduced, and then turned into one explicit gate result. The worker may still do real work, but it never becomes the sole authority over whether that work meets the definition of done.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-h2-23",
+      "style": "h2",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-23",
+          "text": "Responsibility boundary",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "dataTable",
+      "_key": "table-3-5",
+      "headers": [
+        "Layer",
+        "Owns",
+        "Leaves to external systems"
+      ],
+      "rows": [
+        {
+          "_type": "tableRow",
+          "_key": "row-0",
+          "cells": [
+            "Diana",
+            "policy, canonical memory, Definition of Done, preflight, gate logic, security evidence normalization, evidence reduction, and merge-boundary governance.",
+            "model inference, worker/session/worktree lifecycle, browser execution, GitHub PR/merge state, and review state."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-1",
+          "cells": [
+            "AO adapter",
+            "the single AO compatibility boundary: check/spawn/status/stop, pinned-version handling, and bounded worker orchestration.",
+            "AO runtime internals and private vendor behavior."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-2",
+          "cells": [
+            "GitHub / gh",
+            "PR state, required checks, review metadata, and protected-base trust semantics.",
+            "Diana does not own merge authority or the PR’s own code definitions."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-3",
+          "cells": [
+            "Playwright",
+            "browser-based verification when a check genuinely needs a browser surface.",
+            "Diana itself does not own a browser engine."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-4",
+          "cells": [
+            "Claude / Codex / providers",
+            "inference and task execution inside a bounded session.",
+            "Diana does not become a model router or hosted platform."
+          ]
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-h2-58",
+      "style": "h2",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-58",
+          "text": "Current main: live-wired Security Track, but still partial",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "dataTable",
+      "_key": "table-3-6",
+      "headers": [
+        "Verifier family",
+        "Current source status",
+        "What it currently proves"
+      ],
+      "rows": [
+        {
+          "_type": "tableRow",
+          "_key": "row-0",
+          "cells": [
+            "Semgrep STATIC_ANALYZER",
+            "Real live-wired path in ci_verifier_runs.py using the committed semgrep-rules.yml file.",
+            "Real Semgrep runs can contribute accepted evidence for the controls that the configured rule map authorizes."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-1",
+          "cells": [
+            "Gitleaks SECRET_SCANNER",
+            "Real live-wired path in ci_verifier_runs.py with version-pinned, checksum-verified download and committed config.",
+            "Real secret-scan contributions can be accepted for SEC-007, with scope bounded by the actual detected web-root / build-output directories."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-2",
+          "cells": [
+            "Deterministic repo/deployment-tree scan",
+            "Real deterministic filesystem scan in ci_verifier_runs.py and its deterministic_repo_adapter.",
+            "The repo can build deterministic served-path evidence when a real deployment surface is detected; otherwise it stays UNPROVEN rather than fabricating a deployment surface."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-3",
+          "cells": [
+            "SEC-064 sensitive-file-paths-not-fetchable dynamic scenario",
+            "Real local-only dynamic scenario in ci_verifier_runs.py using a temporary localhost HTTP server.",
+            "SEC-064’s dynamic half can be evaluated against actually served content without exposing a production target."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-4",
+          "cells": [
+            "GitHub-backed human review collection",
+            "collect_trusted_runs() includes collect_github_review_runs(), which reads PR metadata and structured reviews through github_review_adapter.py. The workflow supplies pull-requests: read, DIANA_PR_NUMBER, and GH_TOKEN.",
+            "PR #40 proved the live path: a real, independent APPROVED review with a `DIANA:HUMAN-REVIEW` block was collected, bound to the exact PR head commit, and accepted by the evidence pipeline."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-5",
+          "cells": [
+            "Protected-base executor trust root",
+            "Current workflow in .github/workflows/diana-security-gate.yml runs under pull_request_target, checks out the protected base, and already includes `pull-requests: read`, `DIANA_PR_NUMBER`, and `GH_TOKEN`.",
+            "PR #40 exercised that live workflow path: the protected base executed the evaluator, the PR head remained target identity/data only, and the workflow bound evidence to the exact PR head SHA."
+          ]
+        }
+      ]
+    },
+    {
+      "_type": "callout",
+      "_key": "callout-21",
+      "title": "Important distinction",
+      "body": "Cataloged controls, available capabilities, live verifiers, and satisfied evidence are distinct. A green Security Gate does not prove all 75 controls. NO FINDING != PASS; missing required evidence remains unresolved.",
+      "tone": "info"
+    },
+    {
+      "_type": "block",
+      "_key": "block-h2-26",
+      "style": "h2",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-26",
+          "text": "Security evidence pipeline",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "processDiagram",
+      "_key": "diagram-26-7",
+      "title": "Security evidence pipeline",
+      "variant": "pipeline",
+      "steps": [
+        {
+          "_type": "processStep",
+          "_key": "step-0",
+          "label": "75-control catalog"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-1",
+          "label": "applicability / capability"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-2",
+          "label": "Static / Dynamic / Semantic / Human evidence"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-3",
+          "label": "normalized evidence"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-4",
+          "label": "PASS / FAIL / NOT_APPLICABLE / UNPROVEN / ERROR"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-5",
+          "label": "reducer"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-6",
+          "label": "PASS / REQUIRE_HUMAN / FAIL"
+        }
+      ],
+      "caption": "The pipeline is evidence-first and reducer-last: catalog, applicability, evidence collection, normalization, and then one final consequence-bound decision."
+    },
+    {
+      "_type": "dataTable",
+      "_key": "table-3-5-b",
+      "headers": [
+        "Result state",
+        "Meaning",
+        "Gate effect"
+      ],
+      "rows": [
+        {
+          "_type": "tableRow",
+          "_key": "row-0",
+          "cells": [
+            "PASS",
+            "A control has real, trusted, applicable evidence and met its required evidence item(s).",
+            "No penalty."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-1",
+          "cells": [
+            "FAIL",
+            "A trusted verifier produced an explicit failure or the bundle itself is untrustworthy.",
+            "Hard FAIL."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-2",
+          "cells": [
+            "NOT_APPLICABLE",
+            "The control is genuinely not relevant to this repository/state.",
+            "No penalty."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-3",
+          "cells": [
+            "UNPROVEN",
+            "The control may be applicable, but required evidence is missing, not yet live, or not satisfied.",
+            "REQUIRE_HUMAN."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-4",
+          "cells": [
+            "ERROR",
+            "Evidence was malformed, out-of-capability, or structurally invalid.",
+            "REQUIRE_HUMAN."
+          ]
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-h2-34",
+      "style": "h2",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-34",
+          "text": "Real activation case study: PR #40",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-normal-374",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-374",
+          "text": "One of the strongest real-world proofs of Diana’s trust model is the disposable activation probe in PR #40. DIANA-AGENT authored the probe, the Security Gate executed from the protected base under pull_request_target, and the PR head was used only as target identity/data rather than executor code. That is the precise trust boundary the current design is trying to enforce.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "dataTable",
+      "_key": "table-2-9",
+      "headers": [
+        "Claim from the activation probe",
+        "What the current source and GitHub history support"
+      ],
+      "rows": [
+        {
+          "_type": "tableRow",
+          "_key": "row-0",
+          "cells": [
+            "DIANA-AGENT authored the disposable probe",
+            "PR #40 was opened by DIANA-AGENT with the explicit purpose of testing the post-merge activation path without merging the branch."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-1",
+          "cells": [
+            "Security Gate executed from protected base",
+            "Current main already includes `pull-requests: read`, `DIANA_PR_NUMBER`, and `GH_TOKEN` in .github/workflows/diana-security-gate.yml, and PR #40 proved that the live workflow executed under pull_request_target from the protected base while the PR head remained target identity/data only."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-2",
+          "cells": [
+            "PR head remained target identity/data, not executor code",
+            "The workflow passes `DIANA_HEAD_SHA` as the PR head identity for bundle binding, and PR #40 proved the exact binding path: the live workflow collected and accepted review evidence only for the exact PR head commit, while never checking out or running the PR head ref."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-3",
+          "cells": [
+            "Human reviewer was independent",
+            "The probe created a real PR, and the review body in the fetched GitHub history demonstrated an independent approval path rather than a self-approval."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-4",
+          "cells": [
+            "Review was bound to exact PR HEAD",
+            "Current ci_verifier_runs.py explicitly rejects reviews whose commit_id does not exactly match the commit being evaluated, so stale reviews are skipped rather than trusted."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-5",
+          "cells": [
+            "Structured DIANA:HUMAN-REVIEW evidence was parsed",
+            "The current collector parsed a real `DIANA:HUMAN-REVIEW` block from PR #40 and built an accepted human-review artifact for `SEC-061`, which is exactly the live path the current pipeline is meant to normalize."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-6",
+          "cells": [
+            "Gitleaks produced a real accepted contribution",
+            "PR #40 also produced a real accepted `SEC-007` contribution from Gitleaks, so the evidence pipeline saw live scan output from the current Gitleaks path as well as the accepted human-review evidence."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-7",
+          "cells": [
+            "Aggregate gate still remained REQUIRE_HUMAN",
+            "The live evidence from PR #40 was accepted, but the aggregate result still remained `REQUIRE_HUMAN` because other controls remained unresolved; this was the correct partial-live-enforcement outcome, not a PASS."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-8",
+          "cells": [
+            "The probe was closed without merge",
+            "That is the exact outcome described in the PR itself: PR #40 was a disposable activation probe for observing the live trust model, not a production merge."
+          ]
+        }
+      ]
+    },
+    {
+      "_type": "processDiagram",
+      "_key": "diagram-34-8",
+      "title": "Trust boundary exercised by PR #40",
+      "variant": "pipeline",
+      "steps": [
+        {
+          "_type": "processStep",
+          "_key": "step-0",
+          "label": "Protected base"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-1",
+          "label": "Trusted evaluator"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-2",
+          "label": "PR head"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-3",
+          "label": "Target identity / data only"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-4",
+          "label": "Independent human reviewer"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-5",
+          "label": "Structured DIANA:HUMAN-REVIEW evidence"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-6",
+          "label": "Normalized evidence"
+        },
+        {
+          "_type": "processStep",
+          "_key": "step-7",
+          "label": "REQUIRE_HUMAN if other controls remain unresolved"
+        }
+      ],
+      "caption": "The activation probe is a concise proof that the system separates executor code, target identity, human evidence, and aggregate decision-making."
+    },
+    {
+      "_type": "block",
+      "_key": "block-h2-19",
+      "style": "h2",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-19",
+          "text": "Current limitations",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "dataTable",
+      "_key": "table-2-6",
+      "headers": [
+        "Limitation",
+        "Accurate current-state statement"
+      ],
+      "rows": [
+        {
+          "_type": "tableRow",
+          "_key": "row-0",
+          "cells": [
+            "Partial live enforcement",
+            "Current main has live paths for several families, but it does not claim universal 75-control enforcement. The Security Track is deliberately partial and evidence-driven."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-1",
+          "cells": [
+            "Unresolved controls",
+            "Some controls remain UNPROVEN, NOT_COVERED, or capability-only depending on repository reality and the available verifier families."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-2",
+          "cells": [
+            "Applicability remains incomplete",
+            "Deterministic repo scanning and sensitive-path dynamic checks only contribute when a real deployment surface exists; otherwise the correct state is UNPROVEN, not fabricated evidence."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-3",
+          "cells": [
+            "Personal GitHub repositories have same-name required-check ambiguity",
+            "A repository that already has a required check with the same name may make a green result ambiguous unless its CI setup is carefully designed and understood."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-4",
+          "cells": [
+            "Some verifier families remain capability-only",
+            "The code includes live collection for several families, but some families are deliberately not wired everywhere yet, and some controls are still not represented by a live scenario or verifier in this repository."
+          ]
+        },
+        {
+          "_type": "tableRow",
+          "_key": "row-5",
+          "cells": [
+            "A green GitHub check may still mean REQUIRE_HUMAN",
+            "Security gate outcomes are not synonymous with “all good.” A check can be green in one sense while the reducer still returns REQUIRE_HUMAN because another control remains unresolved."
+          ]
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-h2-32",
+      "style": "h2",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-32",
+          "text": "What this article does not claim",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "block-normal-535",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "span-535",
+          "text": "This article does not claim that Diana is a generic AgentOps platform, a hosted cloud service, a browser engine, or a universal 75-control enforcement product. It also does not claim that the Security Track is complete across every possible deployment surface. The honest current claim is narrower: Diana is a deterministic control and governance layer that turns agentic coding into a system with explicit trust boundaries, bounded evidence, and a real reducer that can stop a low-evidence change from being mistaken for a secure one.",
+          "marks": []
+        }
+      ]
+    }
+  ],
+  "category": "Agentic Workflows",
+  "coreQuestion": "What does Diana actually own today, what remains external, and how does the current Security Track turn evidence into a deterministic merge decision?",
+  "evidence": "Current Diana main in AGENTS.md, diana/memory/, diana/security/ci_verifier_runs.py, .github/workflows/diana-security-gate.yml, diana/security/reviewer/github_review_adapter.py, diana/security/security_reducer.py, plus the relevant merged remediation PRs and workflow/probe history.",
+  "excerpt": "Diana is a deterministic control and governance layer around nondeterministic coding agents: policy, execution safety, evidence normalization, and human authority are explicitly separated from model inference and worker lifecycle.",
+  "featured": false,
+  "projectType": "Provider-neutral agentic coding control plane",
+  "publishedAt": "2026-09-09T00:00:00.000Z",
+  "role": "Systems Designer / Engineer",
+  "seoDescription": "A corrected Diana article describing the current main implementation: live-wired Security Track families, the protected-base trust model, the PR #40 activation probe, and the real limits of current enforcement.",
+  "seoTitle": "Diana: current main state and the live security trust model | Anastasia Aurelia",
+  "slug": "diana-nightshift-deterministic-control",
+  "status": "Current main includes live-wired Semgrep, Gitleaks, deterministic repo/deployment-tree scanning, the local-only sensitive-path dynamic scenario, and GitHub-backed human-review evidence collection. Coverage remains partial, not universal 75/75 enforcement, and some controls still require human governance.",
+  "system": "Diana control plane (policy / memory / preflight / gate / evidence normalization) + AO / Playwright / GitHub / provider workers",
+  "tags": [
+    "Agent Orchestration",
+    "Coding Agents",
+    "Deterministic Systems",
+    "Policy",
+    "Governance",
+    "Security",
+    "Verification",
+    "Systems Design",
+    "Claude Code",
+    "Python",
+    "AO",
+    "GitHub"
+  ],
+  "title": "Diana: deterministic control for agentic coding"
+}

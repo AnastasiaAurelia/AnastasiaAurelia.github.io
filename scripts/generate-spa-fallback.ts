@@ -16,7 +16,7 @@
  *
  * Pattern: https://github.com/rafgraph/spa-github-pages (MIT).
  */
-import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 
 const INDEX_PATH = 'dist/index.html'
 const OUTPUT_PATH = 'dist/404.html'
@@ -104,3 +104,10 @@ const fallbackHtml = `<!doctype html>
 
 writeFileSync(OUTPUT_PATH, fallbackHtml)
 console.log(`Generated ${OUTPUT_PATH} (SPA fallback, pathSegmentsToKeep=${PATH_SEGMENTS_TO_KEEP}).`)
+
+// Give the published Diana article a real HTTP entry point on Pages.
+// Reuse the built app shell; React still reads published content from Sanity.
+const dianaDirectory = 'dist/articles/diana-nightshift-deterministic-control'
+mkdirSync(dianaDirectory, { recursive: true })
+writeFileSync(`${dianaDirectory}/index.html`, indexHtml)
+console.log(`Generated ${dianaDirectory}/index.html.`)
