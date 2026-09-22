@@ -1,13 +1,6 @@
 /**
  * Build-time sitemap generator. Runs as a `postbuild` step against Node's
  * native TypeScript support (no bundler).
- *
- * Queries Sanity directly (published perspective, no token) for project
- * and article slugs — this used to read the old static `src/content`
- * module, which no longer reflects reality now that both are Sanity-
- * backed; that made the sitemap silently wrong. A self-contained client
- * (rather than importing `src/lib/sanity/client.ts`) because that module
- * reads `import.meta.env`, which only exists under Vite, not plain Node.
  */
 import { writeFileSync } from 'node:fs'
 import { createClient } from '@sanity/client'
@@ -15,6 +8,7 @@ import { SITE } from '../src/content/site.ts'
 
 const projectId = process.env.SANITY_STUDIO_PROJECT_ID || 'l3uxv1lk'
 const dataset = process.env.SANITY_STUDIO_DATASET || 'production'
+const localArticleSlugs = ['semiconductor-systems-guide']
 
 const client = createClient({
   projectId,
@@ -25,13 +19,12 @@ const client = createClient({
 })
 
 async function main() {
-  const [projectSlugs, articleSlugs] = await Promise.all([
+  const [projectSlugs, sanityArticleSlugs] = await Promise.all([
     client.fetch<string[]>('*[_type == "project"].slug.current'),
-    // Draft-only articles are invisible to this client (`perspective:
-    // "published"`), so this can never include an unpublished article.
     client.fetch<string[]>('*[_type == "article"].slug.current'),
   ])
 
+  const articleSlugs = Array.from(new Set([...localArticleSlugs, ...sanityArticleSlugs]))
   const staticRoutes = ['/', '/work', '/articles', '/about']
   const projectRoutes = projectSlugs.map((slug) => `/work/${slug}`)
   const articleRoutes = articleSlugs.map((slug) => `/articles/${slug}`)

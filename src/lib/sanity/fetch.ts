@@ -21,6 +21,15 @@ import type {
   SanityProjectSummary,
   SanitySiteSettings,
 } from './types'
+import { STATIC_ARTICLE_SUMMARY, SEMICONDUCTOR_SYSTEMS_GUIDE_SLUG } from '@/content/static-articles'
+
+function withStaticArticle(articles: SanityArticleSummary[]) {
+  const withoutDuplicate = articles.filter((article) => article.slug !== SEMICONDUCTOR_SYSTEMS_GUIDE_SLUG)
+  return [STATIC_ARTICLE_SUMMARY, ...withoutDuplicate].sort((a, b) => {
+    if (a.featured !== b.featured) return a.featured ? -1 : 1
+    return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+  })
+}
 
 export function getFeaturedProjects(): Promise<SanityProjectSummary[]> {
   return sanityClient.fetch(featuredProjectsQuery)
@@ -46,28 +55,32 @@ export function getAboutPageSettings(): Promise<SanitySiteSettings | null> {
   return sanityClient.fetch(aboutPageSiteSettingsQuery)
 }
 
-export function getAllArticles(): Promise<SanityArticleSummary[]> {
-  return sanityClient.fetch(allArticlesQuery)
+export async function getAllArticles(): Promise<SanityArticleSummary[]> {
+  const articles = await sanityClient.fetch<SanityArticleSummary[]>(allArticlesQuery)
+  return withStaticArticle(articles)
 }
 
 export function getFeaturedArticles(): Promise<SanityArticleSummary[]> {
   return sanityClient.fetch(featuredArticlesQuery)
 }
 
-export function getLatestArticles(limit = 3): Promise<SanityArticleSummary[]> {
-  return sanityClient.fetch(latestArticlesQuery, { limit })
+export async function getLatestArticles(limit = 3): Promise<SanityArticleSummary[]> {
+  const articles = await sanityClient.fetch<SanityArticleSummary[]>(latestArticlesQuery, { limit })
+  return withStaticArticle(articles).slice(0, limit)
 }
 
 export function getArticleBySlug(slug: string): Promise<SanityArticle | null> {
   return sanityClient.fetch(articleBySlugQuery, { slug })
 }
 
-/** Published article slugs only — used by sitemap generation. */
-export function getPublishedArticleSlugs(): Promise<string[]> {
-  return sanityClient.fetch(publishedArticleSlugsQuery)
+/** Published article slugs including code-backed editorial pages. */
+export async function getPublishedArticleSlugs(): Promise<string[]> {
+  const slugs = await sanityClient.fetch<string[]>(publishedArticleSlugsQuery)
+  return Array.from(new Set([SEMICONDUCTOR_SYSTEMS_GUIDE_SLUG, ...slugs]))
 }
 
-/** Total published article count — backs the homepage Evidence Index Methods card. */
-export function getPublishedArticleCount(): Promise<number> {
-  return sanityClient.fetch(publishedArticleCountQuery)
+/** Total published article count including code-backed editorial pages. */
+export async function getPublishedArticleCount(): Promise<number> {
+  const count = await sanityClient.fetch<number>(publishedArticleCountQuery)
+  return count + 1
 }

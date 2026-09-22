@@ -5,6 +5,7 @@ import { WorkIndexPage } from '@/pages/work-index-page'
 import { ProjectDetailPage } from '@/pages/project-detail-page'
 import { WritingIndexPage } from '@/pages/writing-index-page'
 import { ArticleDetailPage } from '@/pages/article-detail-page'
+import { SemiconductorSystemsGuidePage } from '@/pages/semiconductor-systems-guide-page'
 import { AboutPage } from '@/pages/about-page'
 import { NotFoundPage } from '@/pages/not-found-page'
 
@@ -16,6 +17,7 @@ function App() {
         <Route path="work" element={<WorkIndexPage />} />
         <Route path="work/:slug" element={<ProjectDetailPage />} />
         <Route path="articles" element={<WritingIndexPage />} />
+        <Route path="articles/semiconductor-systems-guide" element={<SemiconductorSystemsGuidePage />} />
         <Route path="articles/:slug" element={<ArticleDetailPage />} />
         <Route path="about" element={<AboutPage />} />
         <Route path="*" element={<NotFoundPage />} />
