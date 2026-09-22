@@ -1,6 +1,36 @@
 import { vi } from 'vitest'
 import '@testing-library/jest-dom/vitest'
 import { fixtureArticleBody, fixtureArticles, fixtureExperience, fixtureProjects, fixtureSiteSettings } from './fixtures'
+const localStorageMock = (() => {
+  let store: Record<string, string> = {}
+
+  return {
+    getItem(key: string) {
+      return Object.prototype.hasOwnProperty.call(store, key) ? store[key] : null
+    },
+    setItem(key: string, value: string) {
+      store[key] = String(value)
+    },
+    removeItem(key: string) {
+      delete store[key]
+    },
+    clear() {
+      store = {}
+    },
+    key(index: number) {
+      return Object.keys(store)[index] ?? null
+    },
+    get length() {
+      return Object.keys(store).length
+    },
+  }
+})()
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  configurable: true,
+})
+
 
 // Tests never hit the real Sanity API — every page's data hook is backed
 // by this mock, seeded with realistic fixtures. The mock deliberately
