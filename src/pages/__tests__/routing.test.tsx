@@ -135,3 +135,18 @@ describe('routing', () => {
     expect(screen.getByRole('navigation', { name: 'Footer' })).toContainElement(aboutLinks[1])
   })
 })
+
+describe('The Hidden Structure of Work article', () => {
+  it('renders the long-form article with every chapter and the references', async () => {
+    renderAt('/articles/hidden-structure-of-work')
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'The Hidden Structure of Work' }),
+    ).toBeInTheDocument()
+    for (const title of ['The Org Chart Is Not the Organization', 'Where These Models Break', 'References']) {
+      expect(screen.getByRole('heading', { level: 2, name: new RegExp(title) })).toBeInTheDocument()
+    }
+    expect(screen.getAllByRole('heading', { level: 2, name: /^Chapter \d+/ })).toHaveLength(12)
+    expect(screen.getByText(/Not validated · Not predictive · Not an equation · Not a score/)).toBeInTheDocument()
+    expect(screen.queryByText(/Visual Implementation Plan/)).not.toBeInTheDocument()
+  })
+})

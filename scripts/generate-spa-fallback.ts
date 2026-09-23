@@ -105,9 +105,15 @@ const fallbackHtml = `<!doctype html>
 writeFileSync(OUTPUT_PATH, fallbackHtml)
 console.log(`Generated ${OUTPUT_PATH} (SPA fallback, pathSegmentsToKeep=${PATH_SEGMENTS_TO_KEEP}).`)
 
-// Give the published Diana article a real HTTP entry point on Pages.
-// Reuse the built app shell; React still reads published content from Sanity.
-const dianaDirectory = 'dist/articles/diana-nightshift-deterministic-control'
-mkdirSync(dianaDirectory, { recursive: true })
-writeFileSync(`${dianaDirectory}/index.html`, indexHtml)
-console.log(`Generated ${dianaDirectory}/index.html.`)
+// Give selected published articles a real HTTP entry point on Pages, so a
+// direct request (or a crawler / link-preview fetch) gets a 200 with the
+// app shell instead of the 404 redirect. Reuse the built app shell; React
+// still renders the content (Diana from Sanity, the long-form essay from
+// its code-backed page).
+const ENTRY_POINT_ARTICLES = ['diana-nightshift-deterministic-control', 'hidden-structure-of-work']
+for (const slug of ENTRY_POINT_ARTICLES) {
+  const directory = `dist/articles/${slug}`
+  mkdirSync(directory, { recursive: true })
+  writeFileSync(`${directory}/index.html`, indexHtml)
+  console.log(`Generated ${directory}/index.html.`)
+}

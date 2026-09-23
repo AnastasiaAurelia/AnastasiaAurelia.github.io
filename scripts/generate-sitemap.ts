@@ -8,7 +8,7 @@ import { SITE } from '../src/content/site.ts'
 
 const projectId = process.env.SANITY_STUDIO_PROJECT_ID || 'l3uxv1lk'
 const dataset = process.env.SANITY_STUDIO_DATASET || 'production'
-const localArticleSlugs = ['semiconductor-systems-guide']
+const localArticleSlugs = ['semiconductor-systems-guide', 'hidden-structure-of-work']
 
 const client = createClient({
   projectId,

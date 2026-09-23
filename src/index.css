@@ -401,3 +401,133 @@
     }
   }
 }
+
+/*
+ * Long-form research articles (code-backed pages such as
+ * "The Hidden Structure of Work"). Prose keeps a ~42rem measure;
+ * figures and tables may use the full column. Evidence labels are
+ * deliberately quiet: a muted monospace word plus a shape glyph.
+ */
+@layer components {
+  .long-form-section + .long-form-section {
+    margin-top: 5.5rem;
+  }
+
+  .long-form .article-paragraph,
+  .long-form .article-list,
+  .long-form h3,
+  .long-form aside {
+    max-width: 42rem;
+  }
+
+  .article-paragraph {
+    margin-top: 1.15rem;
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    color: var(--color-ink-muted);
+  }
+
+  .article-list {
+    margin-top: 1.15rem;
+    padding-left: 1.35rem;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--color-ink-muted);
+  }
+  .article-list > li + li {
+    margin-top: 0.6rem;
+  }
+  .article-list > li::marker {
+    color: var(--color-ink-faint);
+  }
+
+  aside .article-paragraph,
+  aside .article-list {
+    font-size: 0.95rem;
+    margin-top: 0;
+  }
+
+  .evidence-tag {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35em;
+    margin-right: 0.55em;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+    white-space: nowrap;
+    cursor: help;
+    vertical-align: 0.12em;
+  }
+  .evidence-tag-glyph {
+    color: var(--color-accent);
+    font-size: 0.9em;
+  }
+
+  .article-figure {
+    margin-block: 3rem;
+    padding-block: 1.75rem;
+    border-block: 1px solid var(--color-line);
+  }
+
+  .article-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  .article-table th,
+  .article-table td {
+    padding: 0.7rem 0.85rem;
+    border-bottom: 1px solid var(--color-line);
+    text-align: left;
+    vertical-align: top;
+    color: var(--color-ink-muted);
+  }
+  .article-table thead th {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+    border-bottom-color: var(--color-line-strong);
+  }
+  .article-table tbody th {
+    font-weight: 500;
+    color: var(--color-ink);
+  }
+  /* Three or more text columns get a readable minimum width and scroll
+     inside their own container on phones instead of crushing the text. */
+  .article-table--wide {
+    min-width: 34rem;
+  }
+  .article-table--matrix {
+    min-width: 18rem;
+  }
+  .article-table--matrix td {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    color: var(--color-ink);
+  }
+  .article-table--matrix td[data-stable] {
+    outline: 1.5px solid var(--color-accent);
+    outline-offset: -4px;
+    background: var(--color-accent-soft);
+  }
+
+  .long-form-references .article-list {
+    list-style: none;
+    padding-left: 0;
+    font-size: 0.95rem;
+  }
+  .long-form-references .article-list > li {
+    padding-left: 1.25rem;
+    text-indent: -1.25rem;
+  }
+  .long-form-references .article-paragraph {
+    font-size: 0.95rem;
+  }
+}
