@@ -40,13 +40,13 @@ describe('code-backed articles in the article index', async () => {
     const slugs = articles.map((a) => a.slug)
     expect(slugs.filter((s) => s === 'hidden-structure-of-work')).toHaveLength(1)
     expect(articles.find((a) => a.slug === 'hidden-structure-of-work')?.title).toBe('The Hidden Structure of Work')
-    expect(slugs).toEqual(['hidden-structure-of-work', 'semiconductor-systems-guide', 'sanity-article'])
+    expect(slugs).toEqual(['from-capability-to-value', 'hidden-structure-of-work', 'semiconductor-systems-guide', 'sanity-article'])
   })
 
   it('includes both code-backed slugs in published slugs and counts', async () => {
     expect(await actual.getPublishedArticleSlugs()).toEqual(
-      expect.arrayContaining(['hidden-structure-of-work', 'semiconductor-systems-guide', 'sanity-article']),
+      expect.arrayContaining(['from-capability-to-value', 'hidden-structure-of-work', 'semiconductor-systems-guide', 'sanity-article']),
     )
-    expect(await actual.getPublishedArticleCount()).toBe(4)
+    expect(await actual.getPublishedArticleCount()).toBe(5)
   })
 })

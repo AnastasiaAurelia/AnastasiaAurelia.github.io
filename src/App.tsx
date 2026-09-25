@@ -14,6 +14,7 @@ import { LoadingState } from '@/components/state/query-states'
 // ~16k-word code-backed article: split into its own chunk so its text
 // never weighs on the initial load of every other page.
 const HiddenStructureOfWorkPage = lazy(() => import('@/pages/hidden-structure-of-work-page'))
+const FromCapabilityToValuePage = lazy(() => import('@/pages/from-capability-to-value-page'))
 
 function App() {
   return (
@@ -29,6 +30,14 @@ function App() {
           element={
             <Suspense fallback={<LoadingState label="Loading article" />}>
               <HiddenStructureOfWorkPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="articles/from-capability-to-value"
+          element={
+            <Suspense fallback={null}>
+              <FromCapabilityToValuePage />
             </Suspense>
           }
         />

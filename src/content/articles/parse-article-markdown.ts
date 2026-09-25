@@ -20,9 +20,13 @@ export type Inline =
   | { type: 'em'; children: Inline[] }
   | { type: 'code'; value: string }
   | { type: 'label'; label: EvidenceLabel }
+  | { type: 'cite'; value: string }
+  | { type: 'link'; href: string; children: Inline[] }
 
 export type Block =
-  | { type: 'heading'; level: 3; id: string; text: string }
+  | { type: 'heading'; level: 3 | 4; id: string; text: string }
+  | { type: 'math'; latex: string }
+  | { type: 'code'; value: string }
   | { type: 'paragraph'; id?: string; children: Inline[]; variant?: string }
   | { type: 'list'; ordered: boolean; items: Inline[][]; variant?: string }
   | { type: 'table'; header: Inline[][]; rows: Inline[][][]; variant?: string }
@@ -38,6 +42,8 @@ export interface ArticleSection {
 }
 
 const LABEL_PATTERN = new RegExp(`^\\[(${EVIDENCE_LABELS.join('|')})\\]`)
+/** Source citations such as "[TH 15:43]" or "[repo: pstack …]", rendered as quiet reference marks. */
+const CITE_PATTERN = /^\[(?:TH|LM|LT-full|LT|SA|slides|repo|docs|YC video|x\.ai)\b[^\]]*\]/
 
 export function slugify(text: string): string {
   return text
@@ -60,11 +66,32 @@ export function parseInline(source: string): Inline[] {
   while (i < source.length) {
     const rest = source.slice(i)
 
+    // Only explicit HTTPS/HTTP and local fragment links are supported.
+    // Reject executable schemes rather than passing author text to href.
+    const link = rest.match(/^\[([^\]\n]+)\]\((https?:\/\/[^\s)]+|#[A-Za-z0-9_-]+)\)/)
+    if (link) {
+      flush()
+      const citation = `[${link[1]}]`.match(CITE_PATTERN)
+      out.push({ type: 'link', href: link[2], children: citation
+        ? [{ type: 'cite', value: link[1] }]
+        : parseInline(link[1]) })
+      i += link[0].length
+      continue
+    }
+
     const label = rest.match(LABEL_PATTERN)
     if (label) {
       flush()
       out.push({ type: 'label', label: label[1] as EvidenceLabel })
       i += label[0].length
+      continue
+    }
+
+    const cite = rest.match(CITE_PATTERN)
+    if (cite) {
+      flush()
+      out.push({ type: 'cite', value: cite[0].slice(1, -1) })
+      i += cite[0].length
       continue
     }
 
@@ -120,6 +147,8 @@ export function inlineText(nodes: Inline[]): string {
         case 'text':
         case 'code':
           return node.value
+        case 'cite':
+          return `[${node.value}]`
         case 'label':
           return `[${node.label}]`
         default:
@@ -162,6 +191,37 @@ function parseBlocks(lines: string[], sectionId: string): Block[] {
       if (directive[1] === 'visual') blocks.push({ type: 'visual', id: directive[2] })
       else pendingVariant = directive[2]
       i++
+      continue
+    }
+
+    if (trimmed.startsWith('#### ')) {
+      const text = trimmed.slice(5)
+      blocks.push({ type: 'heading', level: 4, id: `${sectionId}-${slugify(text)}`, text })
+      i++
+      continue
+    }
+
+    if (trimmed.startsWith('$$')) {
+      // Display math: a single "$$…$$" line, or "$$" … "$$" across lines.
+      const inner: string[] = []
+      if (trimmed.length > 4 && trimmed.endsWith('$$')) {
+        inner.push(trimmed.slice(2, -2))
+        i++
+      } else {
+        i++
+        while (i < lines.length && !lines[i].trim().startsWith('$$')) inner.push(lines[i++])
+        i++
+      }
+      blocks.push({ type: 'math', latex: inner.join('\n').trim() })
+      continue
+    }
+
+    if (trimmed.startsWith('```')) {
+      const inner: string[] = []
+      i++
+      while (i < lines.length && !lines[i].trim().startsWith('```')) inner.push(lines[i++])
+      i++
+      blocks.push({ type: 'code', value: inner.join('\n') })
       continue
     }
 
@@ -228,7 +288,7 @@ function parseBlocks(lines: string[], sectionId: string): Block[] {
     const paragraph: string[] = []
     while (i < lines.length) {
       const t = lines[i].trim()
-      if (!t || t.startsWith('#') || t.startsWith('>') || t.startsWith('|') || t.startsWith('<!--')) break
+      if (!t || t.startsWith('#') || t.startsWith('>') || t.startsWith('|') || t.startsWith('<!--') || t.startsWith('$$') || t.startsWith('```')) break
       if (paragraph.length > 0 && (bullet.test(t) || numbered.test(t))) break
       paragraph.push(t)
       i++
@@ -256,11 +316,13 @@ export function parseArticle(markdown: string): ArticleSection[] {
     const [headingLine, ...rest] = chunk.split('\n')
     const heading = headingLine.trim()
     const chapter = heading.match(/^Chapter (\d+)\.\s+(.+)$/)
-    const id = chapter ? `chapter-${chapter[1]}` : slugify(heading)
+    // "Part II — Context" and "Appendix C — …" get an eyebrow too.
+    const division = chapter ? null : heading.match(/^(Part [IVX]+|Appendix [A-Z])\s+—\s+(.+)$/)
+    const id = chapter ? `chapter-${chapter[1]}` : division ? slugify(division[1]) : slugify(heading)
     sections.push({
       id,
-      eyebrow: chapter ? `Chapter ${chapter[1]}` : undefined,
-      title: chapter ? chapter[2] : heading,
+      eyebrow: chapter ? `Chapter ${chapter[1]}` : division ? division[1] : undefined,
+      title: chapter ? chapter[2] : division ? division[2] : heading,
       blocks: parseBlocks(rest, id),
     })
   }
@@ -272,6 +334,10 @@ function blockText(block: Block): string {
   switch (block.type) {
     case 'heading':
       return block.text
+    case 'math':
+      return ''
+    case 'code':
+      return block.value
     case 'paragraph':
       return inlineText(block.children)
     case 'list':

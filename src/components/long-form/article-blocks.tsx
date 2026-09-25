@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import type { Block, EvidenceLabel, Inline } from '@/content/articles/parse-article-markdown'
 import { EVIDENCE_META } from './evidence-meta'
+import { MathBlock } from '@/components/portable-text/math'
 
 export function EvidenceTag({ label, className }: { label: EvidenceLabel; className?: string }) {
   const meta = EVIDENCE_META[label]
@@ -47,6 +48,14 @@ export function InlineContent({ nodes }: { nodes: Inline[] }) {
             )
           case 'label':
             return <EvidenceTag key={index} label={node.label} />
+          case 'link':
+            return <a key={index} href={node.href} className="underline decoration-accent/50 underline-offset-4 hover:decoration-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"><InlineContent nodes={node.children} /></a>
+          case 'cite':
+            return (
+              <cite key={index} className="article-cite">
+                [{node.value}]
+              </cite>
+            )
         }
       })}
     </>
@@ -141,10 +150,26 @@ export function ArticleBlock({
 }) {
   switch (block.type) {
     case 'heading':
-      return (
+      return block.level === 4 ? (
+        <h4 id={block.id} className="article-h4 scroll-mt-28">
+          {block.text}
+        </h4>
+      ) : (
         <h3 id={block.id} className="mt-12 scroll-mt-28 text-2xl leading-snug">
           {block.text}
         </h3>
+      )
+    case 'math':
+      return (
+        <div className="long-form-math">
+          <MathBlock value={{ latex: block.latex, display: true }} />
+        </div>
+      )
+    case 'code':
+      return (
+        <pre className="article-code">
+          <code>{block.value}</code>
+        </pre>
       )
     case 'paragraph':
       return (
