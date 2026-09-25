@@ -55,7 +55,7 @@ The article moves up through six layers. Each layer answers a question that the 
 
 <!-- visual:layer-map -->
 
-The running case comes from Lauren Tan. She describes her team's agents struggling with user reports as vague as "the left sidebar is like laggy" or a screenshot captioned with question marks [LT V01 10:46](https://youtu.be/KwOX7vJyoOk?t=646) / [LT V02 10:32; V01 12:32 / V02 12:20](https://youtu.be/7urwyHZwtEo?t=632). *What she documents* is the problem, the tools she built for it, and the kinds of checks her codebase enforces. *What she does not document* is a specific sidebar bug, its cause, its fix, or any measurement. Where I walk the case through a layer, I mark which steps are hers and which are my **teaching reconstruction** built from her description and from her team's published tooling. The reconstruction never invents a measurement, an outcome, or a business result.
+The running case comes from Lauren Tan. She describes her team's agents struggling with user reports as vague as "the left sidebar is like laggy" [LT V01 10:46](https://youtu.be/KwOX7vJyoOk?t=646) / [LT V02 10:32](https://youtu.be/7urwyHZwtEo?t=632). Another example is a screenshot captioned with question marks [LT V01 12:32](https://youtu.be/KwOX7vJyoOk?t=752) / [LT V02 12:20](https://youtu.be/7urwyHZwtEo?t=740). *What she documents* is the problem, the tools she built for it, and the kinds of checks her codebase enforces. *What she does not document* is a specific sidebar bug, its cause, its fix, or any measurement. Where I walk the case through a layer, I mark which steps are hers and which are my **teaching reconstruction** built from her description and from her team's published tooling. The reconstruction never invents a measurement, an outcome, or a business result.
 
 We start at the bottom, inside the model.
 
@@ -450,15 +450,15 @@ Sources: slides p. 58, 60 and 61, which follow Shazeer (2019).
 - **Memory traffic.** It changes completely. In decode, each of the n steps re-reads the projection weights (the nd² term) and the growing cache of keys and values (the bn²d term).
 - **Intensity.** Dividing operations by traffic gives the last column. For decode that is (n/d + 1/b)⁻¹, "not good", and it needs "large batches plus short sequence length or … really big model dimensions" [slides p. 60; TH 1:19:05](https://raw.githubusercontent.com/stanford-cs336/lectures/main/lecture_03.pdf#page=60).
 
-**Worked example [my arithmetic, orders of magnitude only].** Use d = 4096, b = 8, n = 2048, h = 32, k = 128.
+**Scale illustration [my arithmetic, constants omitted].** Use d = 4096, b = 8, n = 2048, h = 32, k = 128. Evaluating only the expressions inside the big-O notation gives the following illustrative values; these are not FLOP/byte estimates or precise numerical comparisons between phases.
 
-- **Prefill:** 1/k + 1/(bn) = 1/128 + 1/16,384 ≈ 0.0079, so the intensity is about **127**.
-- **Decode:** n/d + 1/b = 0.5 + 0.125 = 0.625, so the intensity is about **1.6**.
-- **Multi-query decode:** 1/d + n/(dh) + 1/b ≈ 0.0002 + 0.0156 + 0.125 = 0.141, so the intensity is about **7.1**.
+- **Prefill:** 1/k + 1/(bn) = 1/128 + 1/16,384 ≈ 0.0079, so the reciprocal expression evaluates to about **127**.
+- **Decode:** n/d + 1/b = 0.5 + 0.125 = 0.625, so the reciprocal expression evaluates to about **1.6**.
+- **Multi-query decode:** 1/d + n/(dh) + 1/b ≈ 0.0002 + 0.0156 + 0.125 = 0.141, so the reciprocal expression evaluates to about **7.1**.
 
-**Intuition.** In decode, the n/d term is the obstacle: the longer the context relative to the model's width, the more bytes move per useful operation. "The n/d term is difficult to reduce" [slides p. 60](https://raw.githubusercontent.com/stanford-cs336/lectures/main/lecture_03.pdf#page=60). Multi-query attention divides that term by h. What remains is dominated by 1/b, which is one reason serving systems batch many users together.
+**Intuition.** Prefill can amortise weight traffic across the batch and sequence; decode repeatedly reads weights and the growing KV cache. In decode, the n/d term is the obstacle: the longer the context relative to the model's width, the more bytes move per useful operation. "The n/d term is difficult to reduce" [slides p. 60](https://raw.githubusercontent.com/stanford-cs336/lectures/main/lecture_03.pdf#page=60). Multi-query attention divides that term by h. What remains is dominated by 1/b, which is one reason serving systems batch many users together.
 
-**Assumptions and limits.** These are big-O expressions with constant factors dropped. Ratios *between* rows are meaningful, but the absolute numbers cannot be compared with the ≈300 FLOP/byte ridge point from Equation 5. The derivation is for one attention layer and ignores the feed-forward layers, kernel fusion and hardware detail. Appendix C counts every term.
+**Assumptions and limits.** These are big-O expressions with constant factors dropped. The omitted constants can differ between rows, and the expressions do not specify a conversion from memory elements to bytes. Neither the illustrative values nor their ratios are quantitative intensity or speedup estimates; they cannot be compared with the ≈300 FLOP/byte ridge point from Equation 5. The comparison supports the qualitative scaling intuition for prefill, decode and multi-query attention. The derivation is for one attention layer and ignores the feed-forward layers, kernel fusion and hardware detail. Appendix C counts every term.
 
 ### 3.3 Why context length is a cost, not only a capacity
 
