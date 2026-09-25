@@ -31,8 +31,27 @@ export const HIDDEN_STRUCTURE_ARTICLE_SUMMARY: SanityArticleSummary = {
   featured: false,
 }
 
+export const CAPABILITY_VALUE_SLUG = 'from-capability-to-value'
+
+export const CAPABILITY_VALUE_SUBTITLE =
+  "How a language model's raw ability becomes work you can trust"
+
+export const CAPABILITY_VALUE_ARTICLE_SUMMARY: SanityArticleSummary = {
+  _id: 'static.from-capability-to-value',
+  title: 'From Capability to Value',
+  slug: CAPABILITY_VALUE_SLUG,
+  excerpt:
+    'One vague bug report followed through six layers (model, context, action, trust, learning, value), built from a Stanford architecture lecture and three practitioner talks, with every equation derived and every claim traced to its source.',
+  // Publication edition date, aligned with the chapter source (Asia/Jakarta).
+  publishedAt: '2026-09-25',
+  tags: ['AI Systems', 'Agents', 'Transformers'],
+  category: 'Research',
+  featured: false,
+}
+
 /** Code-backed editorial pages that live outside Sanity, newest first. */
 export const STATIC_ARTICLE_SUMMARIES: SanityArticleSummary[] = [
+  CAPABILITY_VALUE_ARTICLE_SUMMARY,
   HIDDEN_STRUCTURE_ARTICLE_SUMMARY,
   STATIC_ARTICLE_SUMMARY,
 ]
