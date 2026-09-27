@@ -105,14 +105,23 @@ const fallbackHtml = `<!doctype html>
 writeFileSync(OUTPUT_PATH, fallbackHtml)
 console.log(`Generated ${OUTPUT_PATH} (SPA fallback, pathSegmentsToKeep=${PATH_SEGMENTS_TO_KEEP}).`)
 
-// Give selected published articles a real HTTP entry point on Pages, so a
-// direct request (or a crawler / link-preview fetch) gets a 200 with the
-// app shell instead of the 404 redirect. Reuse the built app shell; React
-// still renders the content (Diana from Sanity, the long-form essay from
-// its code-backed page).
-const ENTRY_POINT_ARTICLES = ['diana-nightshift-deterministic-control', 'hidden-structure-of-work', 'from-capability-to-value', 'the-binding-link']
-for (const slug of ENTRY_POINT_ARTICLES) {
-  const directory = `dist/articles/${slug}`
+// Give the article index and selected published articles a real HTTP entry
+// point on Pages, so a direct request (or a crawler / link-preview fetch)
+// gets a 200 with the app shell instead of the 404 redirect. Without this
+// the route still *renders* — 404.html boots the SPA — but the response
+// status is 404, which crawlers and link-preview fetchers act on.
+// Reuse the built app shell; React still renders the content (the index
+// from Sanity plus the code-backed summaries, Diana from Sanity, the
+// long-form essays from their code-backed pages).
+const ENTRY_POINT_ROUTES = [
+  'articles',
+  'articles/diana-nightshift-deterministic-control',
+  'articles/hidden-structure-of-work',
+  'articles/from-capability-to-value',
+  'articles/the-binding-link',
+]
+for (const route of ENTRY_POINT_ROUTES) {
+  const directory = `dist/${route}`
   mkdirSync(directory, { recursive: true })
   writeFileSync(`${directory}/index.html`, indexHtml)
   console.log(`Generated ${directory}/index.html.`)

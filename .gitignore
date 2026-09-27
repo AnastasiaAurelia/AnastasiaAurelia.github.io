@@ -34,3 +34,8 @@ scripts/.env.migration
 .claude/costs.jsonl
 .claude/**/*.bak.*
 CLAUDE.md.bak.*
+
+# Local business-systems research artifacts
+research/business-systems-synthesis/.extracts/
+research/business-systems-synthesis/.venv-ocr/
+research/business-systems-synthesis/corpus-inventory.json

@@ -93,6 +93,14 @@ afterAll(() => {
 })
 
 describe('generate-spa-fallback: generated dist/404.html', () => {
+  it('gives the /articles index a bootable entry point without the 404 redirect', () => {
+    const indexHtml = readFileSync(path.join(tempDir, 'dist/articles/index.html'), 'utf8')
+    expect(indexHtml).toContain('<div id="root"></div>')
+    expect(indexHtml).toContain('src="/assets/index-abc123.js"')
+    expect(indexHtml).toContain('href="/assets/index-abc123.css"')
+    expect(indexHtml).not.toContain('l.replace(')
+  })
+
   it('gives the Diana article a bootable entry point without the 404 redirect', () => {
     const articleHtml = readFileSync(
       path.join(tempDir, 'dist/articles/diana-nightshift-deterministic-control/index.html'),
