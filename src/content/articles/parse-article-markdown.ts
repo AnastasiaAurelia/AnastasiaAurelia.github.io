@@ -42,8 +42,13 @@ export interface ArticleSection {
 }
 
 const LABEL_PATTERN = new RegExp(`^\\[(${EVIDENCE_LABELS.join('|')})\\]`)
-/** Source citations such as "[TH 15:43]" or "[repo: pstack …]", rendered as quiet reference marks. */
-const CITE_PATTERN = /^\[(?:TH|LM|LT-full|LT|SA|slides|repo|docs|YC video|x\.ai)\b[^\]]*\]/
+/**
+ * Source citations, rendered as quiet reference marks. The first group is the
+ * recording keys of "From Capability to Value"; the second is the book keys of
+ * "The Binding Link", whose locators are pages, chapters, or named sections.
+ */
+const CITE_PATTERN =
+  /^\[(?:TH|LM|LT-full|LT|SA|slides|repo|docs|YC video|x\.ai|Leads|Offers|Money|Bezos|Traction|RFA|Predictable|SalesFormula|WoL|Motive|Courage|Influence|PreSuasion|Yes|Expert|OneMany|Friends)\b[^\]]*\]/
 
 export function slugify(text: string): string {
   return text

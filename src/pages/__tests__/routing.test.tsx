@@ -136,6 +136,18 @@ describe('routing', () => {
   })
 })
 
+describe('The Binding Link article', () => {
+  it('renders the long-form article with every part, chapter, and appendix', async () => {
+    renderAt('/articles/the-binding-link')
+    expect(await screen.findByRole('heading', { level: 1, name: 'The Binding Link' })).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { level: 2, name: /^Chapter \d+/ })).toHaveLength(14)
+    expect(screen.getAllByRole('heading', { level: 2, name: /^Part [IVX]+/ })).toHaveLength(4)
+    expect(screen.getAllByRole('heading', { level: 2, name: /^Appendix [A-E]/ })).toHaveLength(5)
+    expect(screen.getByRole('heading', { level: 2, name: /Trust debt and complexity debt/ })).toBeInTheDocument()
+    expect(screen.getAllByText(/refusal remains reasonably easy/i).length).toBeGreaterThan(0)
+  })
+})
+
 describe('The Hidden Structure of Work article', () => {
   it('renders the long-form article with every chapter and the references', async () => {
     renderAt('/articles/hidden-structure-of-work')

@@ -110,7 +110,7 @@ console.log(`Generated ${OUTPUT_PATH} (SPA fallback, pathSegmentsToKeep=${PATH_S
 // app shell instead of the 404 redirect. Reuse the built app shell; React
 // still renders the content (Diana from Sanity, the long-form essay from
 // its code-backed page).
-const ENTRY_POINT_ARTICLES = ['diana-nightshift-deterministic-control', 'hidden-structure-of-work', 'from-capability-to-value']
+const ENTRY_POINT_ARTICLES = ['diana-nightshift-deterministic-control', 'hidden-structure-of-work', 'from-capability-to-value', 'the-binding-link']
 for (const slug of ENTRY_POINT_ARTICLES) {
   const directory = `dist/articles/${slug}`
   mkdirSync(directory, { recursive: true })
