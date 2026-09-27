@@ -15,6 +15,7 @@ import { LoadingState } from '@/components/state/query-states'
 // never weighs on the initial load of every other page.
 const HiddenStructureOfWorkPage = lazy(() => import('@/pages/hidden-structure-of-work-page'))
 const FromCapabilityToValuePage = lazy(() => import('@/pages/from-capability-to-value-page'))
+const TheBindingLinkPage = lazy(() => import('@/pages/the-binding-link-page'))
 
 function App() {
   return (
@@ -38,6 +39,14 @@ function App() {
           element={
             <Suspense fallback={null}>
               <FromCapabilityToValuePage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="articles/the-binding-link"
+          element={
+            <Suspense fallback={<LoadingState label="Loading article" />}>
+              <TheBindingLinkPage />
             </Suspense>
           }
         />

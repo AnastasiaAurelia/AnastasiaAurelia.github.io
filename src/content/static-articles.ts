@@ -49,8 +49,25 @@ export const CAPABILITY_VALUE_ARTICLE_SUMMARY: SanityArticleSummary = {
   featured: false,
 }
 
+export const BINDING_LINK_SLUG = 'the-binding-link'
+
+export const BINDING_LINK_SUBTITLE = 'How a business compounds, and why most growth is borrowed'
+
+export const BINDING_LINK_ARTICLE_SUMMARY: SanityArticleSummary = {
+  _id: 'static.the-binding-link',
+  title: 'The Binding Link',
+  slug: BINDING_LINK_SLUG,
+  excerpt:
+    'Eighteen practitioner books on offers, demand, sales systems, operating cadence, persuasion, and leadership, resolved into one compounding loop in which only one link binds at a time — with the two debts that turn this quarter’s growth into next year’s constraint, and a diagnostic for finding your own.',
+  publishedAt: '2026-09-27',
+  tags: ['Business Systems', 'Growth', 'Operating Leadership'],
+  category: 'Research',
+  featured: false,
+}
+
 /** Code-backed editorial pages that live outside Sanity, newest first. */
 export const STATIC_ARTICLE_SUMMARIES: SanityArticleSummary[] = [
+  BINDING_LINK_ARTICLE_SUMMARY,
   CAPABILITY_VALUE_ARTICLE_SUMMARY,
   HIDDEN_STRUCTURE_ARTICLE_SUMMARY,
   STATIC_ARTICLE_SUMMARY,
