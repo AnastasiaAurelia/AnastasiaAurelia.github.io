@@ -1095,115 +1095,221 @@ const tradingResearchLabDocument = { _type: 'article', title: 'I stopped treatin
 
 const project9Document = { _type: 'article', title: 'A plate-number edit was actually a distributed transaction.', excerpt: 'A product-systems case study turning Change Plate and Transfer WUZZ into deterministic cross-system state transitions with membership sync, consent, privacy, rollback, recovery and release gates.', publishedAt: '2026-08-10T00:00:00.000Z', tags: ['Product Architecture', 'Systems Design', 'Distributed Systems', 'Product Management', 'State Machines', 'WUZZ', 'LPR', 'Membership', 'Workflow Design', 'Data Consistency', 'Privacy', 'QA', 'Risk Management', 'Operational Design', 'System Integration'], category: 'Product Systems / Systems Design', featured: false, role: 'Product Manager', projectType: 'Product Architecture / Cross-System Workflow Design', system: 'WUZZ / App + CMS + Cloud + Agent + LPR + Membership', coreQuestion: 'When is a distributed identity or ownership mutation safe enough to expose as success?', evidence: 'Product architecture, risk discovery, cross-system validation, PRD consolidation, and release contract', status: 'Completed Product Definition', seoTitle: 'WUZZ Change Plate & Transfer System Design | Anastasia Aurelia', seoDescription: 'A product architecture case study on safe plate and WUZZ ownership mutations across App, CMS, Cloud, Agent, LPR, membership, operations, and privacy.', body: project9Body }
 
+const dianaRepo = 'https://github.com/AnastasiaAurelia/agent-orchestration'
+const dianaDoc = (path: string) => `${dianaRepo}/blob/main/${path}`
+const textDiagram = (filename: string, code: string) => ({ _type: 'code', _key: key(), language: 'text', filename, code })
+
 const dianaNightshiftBody = [
-  block('The moment that changed this project wasn’t a clever prompt or a bigger model. It was noticing that every time I asked an agent to confirm its own work was finished, I was asking the one party in the loop with the least standing to say no.'),
-  block('This is the story of two systems built on top of that realization: Diana, an operating protocol that gives a coding agent explicit rules to work by instead of an open-ended goal, and Nightshift, a deterministic controller that takes the question of whether a task is actually done away from the model entirely. They solve different halves of the same problem, and the second one only exists because the first one wasn’t enough on its own.'),
+  block('Executive summary', 'h2'),
+  block('Diana is a deterministic authority and governance layer around nondeterministic coding agents. A model may reason, propose, edit and execute inside authority it was granted. It does not own the permissions, the durable run state, the run identity, the verification, the recovery, the approval, the merge or the deployment. Those live in Diana, or with a human.'),
+  callout('The thesis', 'Models may be nondeterministic. Authority does not have to be. Diana does not make the model deterministic; it makes the model’s authority deterministic. Intelligence proposes. Diana governs.'),
+  block('Current main contains two related but distinct systems. The governed runtime (milestones M1–M7, plus later post-M7 work) turns a natural-language goal into a bounded, digest-approved run that Diana executes through Hermes, verifies itself, and records in a durable journal. Around it sits the older, still-active governance pipeline: policy, Preflight, the Diana Gate, the Security Gate and human-approved merge. This article explains both, what each one actually enforces, and what neither one claims.'),
+  linkedBlock('Source repository: ', 'AnastasiaAurelia/agent-orchestration', dianaRepo, '. Its README is the entry point for current product and runtime behaviour.'),
+  linkedBlock('Architecture record: ', 'docs/architecture/DIANA-ARCHITECTURE.md', dianaDoc('docs/architecture/DIANA-ARCHITECTURE.md'), ', the accepted M1–M7 architecture plus explicitly marked post-M7 deltas. Frozen milestone specifications and the historical MEMORY.md handoff are treated as history, not as descriptions of current main.'),
 
-  block('Coding agents don’t usually fail because they can’t write code', 'h2'),
-  block('Most of the failures I ran into were not about capability. A modern coding agent can write correct code, most of the time, for a well-scoped task. The failures were about scope and self-assessment: a fix that touched a dozen files when three would do, an assumption about how a function worked that turned out to be wrong, a change shipped without the test that would have caught the regression, a session that reported “done” when what actually happened was closer to “I ran out of things to try.”'),
-  block('None of that is a knock on the model. It’s a description of what happens when you hand an open-ended goal to something optimized to produce a plausible continuation, then trust its own account of whether that continuation was correct. The model has no privileged access to ground truth about its own work — it has roughly the same evidence a human reviewer would have, minus the habit of actually going to check it.'),
+  block('The real problem: intelligence is not authority', 'h2'),
+  block('A coding agent can write useful code. The hard problem is no longer the patch; it is who is allowed to decide what the agent may touch, whether the result is done, whether it is safe to merge, and what happens when the process dies halfway through. None of those questions can be answered by the same process that is trying to solve the task, because the worker is the least independent party in the loop.'),
+  block('The usual answers are to trust the model or to watch it. Diana takes a third: put the permissions outside it. Before anything runs, Diana derives a concrete envelope, shows it to a human, and requires approval of that exact object. During the run, Diana owns the state and the evidence. Afterwards it reports what happened from its own records, not from what the model says happened.'),
 
-  block('Diana: put discipline around the model', 'h2'),
-  block('Diana is a small, portable operating base I install into a project that needs disciplined agentic work. It isn’t a framework, and it deliberately isn’t trying to become one — its own stated philosophy rules out dashboards, agent marketplaces, router services, and generic plugin systems. It’s closer to a checklist with teeth: an operating-rules file, a handful of skills, a few slash commands, and a hook, all aimed at getting a coding agent to behave like a careful engineer instead of an eager one.'),
-  diagram('Diana’s core loop', 'pipeline', [
-    ['Task'],
-    ['Inspect'],
-    ['Plan'],
-    ['Implement'],
-    ['Test'],
-    ['Review'],
-    ['Ship'],
-  ], undefined, undefined, 'Every non-trivial change moves through this shape before it counts as finished.'),
-  block('The rules themselves are simple to state and easy to skip if nothing pushes back: read the actual code before proposing a fix, make the smallest change that satisfies the task, run the tests that already exist before claiming something works, review your own diff before calling it done. Diana wraps that into a research-first discipline, a minimal-change bias, and explicit plan/fix/review/ship stages, plus a hook that intercepts a short list of genuinely dangerous shell patterns before they run.'),
-  callout('A rule I didn’t expect to outgrow its original problem', 'Diana’s loop registry states this as non-negotiable for any recurring automated task: “A loop that certifies its own work is the single biggest way this goes wrong.” I wrote that about a narrower problem — repeating loops, specifically — and only later noticed it was quietly true of every single-shot task too.', 'info'),
-
-  block('Prompting solved only half of the problem', 'h2'),
-  block('Diana genuinely helped. Sessions that followed the operating rules produced smaller, better-reasoned changes than sessions that didn’t. But every one of those rules — a kill switch, a required separation between the step that makes a change and the step that checks it, a budget cap — was enforced by a Claude session reading a markdown file and choosing to comply. There was no code anywhere that parsed a state file and refused to proceed on its own. That’s a reasonable trade for a supervised, interactive session, where I’m reading every message and would notice a skipped step. It stops being a reasonable trade the moment nobody’s watching.'),
-  block('The gap wasn’t “the model doesn’t follow instructions well enough.” It followed them fine, most of the time. The gap was structural: the same session doing the work was also the session I was trusting to tell me whether the work was good. Prompt discipline can shape how a model approaches a task. It can’t put a hard floor under whether the model’s own verdict about that task is trustworthy, because the verdict comes out of the same process as the work.'),
-
-  block('I stopped asking the model whether it was done', 'h2'),
-  diagram('From operating rules to a deterministic controller', 'timeline', [
-    ['Diana v0.1', 'reusable operating base'],
-    ['Diana v0.2', 'loop policy, kill switch, budget'],
-    ['Nightshift research brief', 'MVP scope decided'],
-    ['Deterministic queue + claim + retry + acceptance'],
-    ['First supervised Claude run', 'false-success bug found'],
-    ['Completion invariant fix', '187/187 tests'],
-    ['One-command smoke procedure', 'run against the real VPS'],
-  ], undefined, undefined, 'Milestones from this project’s own git history, not a projected roadmap.'),
-  block('Nightshift is the answer to that gap, and it’s a narrower thing than the name might suggest. It is not an autonomous agent that works overnight while I sleep — that’s explicitly not what’s built or approved yet, and I’d rather be precise about that than let the name do marketing work it hasn’t earned. What Nightshift actually is: a deterministic runtime that claims one bounded task, launches exactly one fresh model process against it, and decides — independently of anything that process reports about itself — whether the task is actually finished.'),
-  block('The reframe that mattered wasn’t “how do I make the model more autonomous.” It was “how much of this decision can I take away from the model without taking away its ability to do the work.” The model still reads the task and writes the change. It just doesn’t get a vote on whether that change counts.'),
-
-  block('Put the state machine outside the model', 'h2'),
-  block('Every task Nightshift runs moves through the same shape:'),
-  diagram('Bounded task lifecycle', 'pipeline', [
-    ['Bounded task'],
-    ['Preflight & claim'],
-    ['Fresh model process'],
-    ['Execute'],
-    ['Independent acceptance'],
-    ['State transition & evidence'],
-    ['Stop'],
-  ], undefined, undefined, 'The model owns one box in the middle of this. The controller owns everything on either side of it.'),
-  block('Claiming a task is a two-part operation. A short-lived, non-blocking OS-level file lock guarantees that if two claim attempts race, exactly one wins and the other is told immediately, rather than left waiting. The claim itself — which process, at what time — is then written durably into the queue, so ownership and liveness can be checked long after that lock is released. The model process launched against it is always fresh: no resumed conversation, no context carried over from a previous attempt on the same task. It works inside a bounded working directory and exits.'),
-  swimlane('Task state machine', 'Simplified for publication — real state names, simplified transitions.', [
-    ['Normal path', [
-      ['pending', 'Waiting in the queue for a claim.', 'pending', ['claimed']],
-      ['claimed', 'Locked by one process; a fresh model session runs inside the bounded working directory.', 'process', ['done']],
-      ['done', 'Terminal. Reached only when the executor succeeded and acceptance passed together.', 'success'],
-    ]],
-    ['Failure & recovery path', [
-      ['execution or acceptance fails', 'The process didn’t exit cleanly, timed out, or acceptance rejected the result — or a claim was abandoned and later found stale.', 'decision', ['retry allowed?']],
-      ['retry allowed?', 'Checked against that task’s own retry ceiling.', 'decision', ['pending (requeued)', 'failed']],
-      ['pending (requeued)', 'Goes back into the queue for another attempt.', 'pending'],
-      ['failed', 'Terminal. No further claims or retries.', 'blocked'],
-    ]],
-  ], 'An abandoned claim is only ever recovered once its process is confirmed dead and it has sat past a staleness threshold — a live or recently-dead claim is left alone.'),
-  block('That branch is bounded by a simple rule: a task can be retried only while its attempt count sits under its own configured ceiling.'),
-  math('0 \\leq \\text{attempts} \\leq A_{max}', 'attempts = how many times this specific task has already been claimed and attempted. A_max = a retry ceiling set per task, not one global constant. Reached, the task fails permanently instead of retrying again.'),
-  block('Execution itself is bounded the same way, but on the clock instead of the counter — enforced externally, at the process level, not as a limit the model observes or agrees to.'),
-  math('T_{run} \\leq T_{max}', 'T_run = wall-clock time since the task was claimed. T_max = a per-task execution timeout. On expiry the controller signals the whole process group, not just the top-level process, so anything the model itself spawned is reaped too.'),
-
-  block('What the model owns — and what it doesn’t', 'h2'),
-  block('This is the boundary the whole design turns on, and it’s worth stating plainly, since it’s easy to blur once you start describing the pieces one at a time:'),
-  table(['Layer', 'Owns'], [
-    ['Model', 'Reasoning about the one bounded task it was given; making the change inside its own working directory.'],
-    ['Controller', 'Canonical task state; claim ownership; attempt count; retry ceiling; execution timeout; policy checks; the acceptance result; the completion transition; durable evidence.'],
-    ['Human', 'Approving a task before it runs; sensitive credentials; production deployment; every push and merge decision; deciding what happens when deterministic progress stalls on its own.'],
+  block('What Diana is — and is not', 'h2'),
+  table(['Diana owns', 'Diana delegates', 'Diana is not'], [
+    ['Authority envelopes, proposal identity, digest-bound approval, run budgets, the durable journal, reconciliation, recovery, verdict admission, terminal run state.', 'Reasoning and execution to Hermes; worker sessions to AO; browser checks to Playwright; PR, review and merge state to GitHub.', 'A model, a router, a worker-fleet scheduler, a browser engine, a hosted AgentOps cloud, a deployment system, or an autonomous protected-branch merge bot.'],
+    ['Engineering policy (AGENTS.md), Definition of Done, risk classification, Preflight, the Diana Gate, security evidence normalization and reduction.', 'Branch protection and required-review enforcement to GitHub rulesets.', 'A universal security scanner or a "fully secure" guarantee.'],
   ]),
-  block('The Controller row is the one that used to not exist as code at all in Diana — it existed as instructions a model was supposed to follow. Nightshift is what happens when every item on that row moves into a runtime that doesn’t get tired, doesn’t rationalize, and has no stake in looking finished.'),
 
-  block('A task is not complete because the model says “done”', 'h2'),
-  block('Completion is not inferred from the model’s final message, and it’s not inferred from a single passing check either. A task reaches its terminal done state only when two independent things agree: the model process itself actually succeeded — completed normally, with a clean exit — and a separate acceptance command, run afterward against the working directory, passes.'),
-  math('\\text{DONE} = \\text{executor\\_pass} \\land \\text{acceptance\\_pass} \\land \\text{valid\\_transition}', 'executor_pass = the model process exited cleanly, not merely “exited.” acceptance_pass = an independent check of the resulting files passed. valid_transition = the task was actually claimed by whoever is attempting to complete it, and isn’t already terminal. All three, never any one alone.'),
-  block('Acceptance runs against whatever the model actually left on disk, using a check the model didn’t write and, in the version I tested most carefully, had no way to reach or tamper with.'),
-
-  block('The failure that changed the controller', 'h2'),
-  block('The clearest reason this separation matters isn’t hypothetical — it’s the first real thing that went wrong when I ran this against a live Claude session instead of a mocked one. That first supervised run’s authentication had actually failed; the process exited with a real error. But the acceptance command I’d written for that first version was a generic “discover and run any tests in this directory” command, and an empty directory with no tests in it still exits 0. Zero tests found reads, by exit code alone, exactly like every test passed. The task was marked done. It hadn’t done anything.'),
-  block('I’d built independent acceptance and then, without meaning to, let a single passing signal override everything else — including the fact that the model process itself had failed. The fix was a completion invariant: a passing acceptance result is only ever allowed to drive a done transition when the executor process also genuinely succeeded. A failed, timed-out, or authentication-failed process now forces the task to fail regardless of what acceptance decided on its own. Acceptance still runs either way, for evidence — it just stopped being sufficient by itself. I also replaced the acceptance command with one that requires a minimum number of tests to actually be discovered, not merely attempted, so an empty suite can’t pass by omission again.'),
-  callout('What the bug actually revealed', 'I’d built the whole architecture specifically to avoid trusting a single self-reported signal, then done exactly that one layer down — trusting an independent-looking signal without first checking that the thing it was independently verifying had actually run at all.', 'warning'),
-
-  block('What I actually validated', 'h2'),
-  table(['Check', 'Result'], [
-    ['Full Nightshift test suite', '187 of 187 tests passing'],
-    ['Two concurrent claim attempts on the same task', 'Exactly one succeeds; the other is rejected immediately, not left waiting'],
-    ['A claim held by a dead process, past the recovery threshold', 'Recoverable — a live or recently-dead claim is left untouched'],
-    ['Completion invariant under executor failure + passing acceptance', 'Forces failure, not completion — covered by regression tests added after the incident above'],
-    ['One supervised end-to-end run against a real Claude session', 'Exposed the false-success bug described above'],
-    ['A corrected, one-command supervised run against the real VPS', 'Caught and fixed a separate environment-isolation bug that only appeared outside the test suite'],
+  block('Two layers on current main', 'h2'),
+  block('The easiest way to misread Diana is to treat it as one pipeline. It is two, and M1–M7 did not delete the older one.'),
+  swimlane('Two layers of Diana on current main', 'The governed runtime is driven by diana-do; the surrounding pipeline is the operator workflow around pull requests.', [
+    ['Layer 1 — governed runtime (diana-do)', [
+      ['Goal → bounded proposal', 'Diana derives read scope, write scope, exact commands and budget from one sentence.', 'process'],
+      ['Exact digest approved', 'A human approves one proposal digest; nothing exists before that.', 'decision'],
+      ['Builder → Diana verification → read-only Reviewer', 'Hermes executes under Diana-installed projections.', 'process'],
+      ['Journal · reconciliation · recovery', 'Diana-owned durable state decides the outcome.', 'process'],
+      ['COMPLETE | FAILED | BLOCKED', 'Changes stay in the working tree; diana-do has no code path to GitHub.', 'decision'],
+    ]],
+    ['Layer 2 — surrounding governance pipeline (/diana-ship, CI)', [
+      ['Goal / DoD / risk → plan + inspect', 'Policy, canonical memory and risk tiers.', 'process'],
+      ['Actor implementation → verification → independent reviewer', 'AO-backed actor sessions; reviewer read-only status checked afterwards.', 'process'],
+      ['Preflight → Diana Gate → Security Gate', 'Deterministic evidence gates.', 'decision'],
+      ['PR → human merge', 'A human code owner approves that exact revision.', 'success'],
+    ]],
+  ], 'diana-do and /diana-ship are different execution models. A human, or /diana-ship, carries runtime changes into the pull-request pipeline.'),
+  table(['', 'Layer 1: governed runtime', 'Layer 2: surrounding pipeline'], [
+    ['Entry point', 'diana-do "<goal>", then diana-do approve <digest>', '/diana-ship, /fix, /review, /ship; the CI gates on every PR'],
+    ['Executor', 'Hermes, under a projection Diana installs at the dispatch boundary', 'AO worker sessions (Claude Code harness)'],
+    ['Reviewer read-only', 'Enforced: forbidden tools are refused at dispatch', 'Checked after the fact: no commit, no uncommitted change'],
+    ['Durable state', 'Diana’s crash-atomic run journal', 'Git, PR metadata, and the external runtime’s own telemetry'],
+    ['Ends in', 'COMPLETE / FAILED / BLOCKED in the working tree', 'A pull request and a human merge decision'],
   ]),
-  block('That last row matters as much as the numbers above it. A test suite proves the logic is internally consistent. It doesn’t prove the logic survives contact with a real filesystem, a real permission model, and a real authenticated session — and it didn’t, the first two times I actually ran it for real. Both real-world failures were caught by running the real thing and looking at what happened, not because the design had anticipated them in advance.'),
 
-  block('Why Nightshift still stops', 'h2'),
-  block('There is no scheduler in this codebase. No cron entry, no systemd timer, no daemon mode, no loop that claims a second task once the first one finishes. The run-one cycle does exactly what its name says: claim at most one task, run it, write a report, stop. That’s a deliberate, current-state limitation, not a detail I’m eliding — unattended scheduling is explicitly not approved yet, pending a check I haven’t done: whether the same authentication that works from an interactive terminal actually survives being launched by a scheduler in a stripped-down environment, hours later, with nobody there to notice if it doesn’t.'),
-  block('The same restraint applies to everything downstream of a task finishing. There is no git push in the model’s reachable command set, no deployment path, no package installation it can trigger — each one is either denied outright by the controller’s own policy layer or was never wired in to begin with. Those stay human actions on purpose. A controller that can’t be fooled about whether a task passed is a different property from a controller I’d trust to decide, unsupervised, that a change is safe to ship.'),
-  linkedBlock('The name is honest about a direction, not a current claim: the eventual goal is work that can survive beyond an interactive terminal session while staying bounded and inspectable the whole way through. I tested the isolation boundary specifically by checking that a real production tree next to it — ', 'ResearchLens', 'https://anastasiaaurelia.github.io/articles/researchlens-from-search-to-research-workflow', ', another project I actually maintain — was untouched before and after a cycle. Getting further than that is gated on the scheduler-authentication question above, not on anything this article’s numbers already prove.'),
+  block('The governed runtime', 'h2'),
+  diagram('Governed runtime flow', 'pipeline', [
+    ['Natural-language goal'],
+    ['Bounded proposal', 'derived by Diana'],
+    ['Proposal digest'],
+    ['Human approval', 'of that exact digest'],
+    ['Builder'],
+    ['Diana verification'],
+    ['Read-only Reviewer'],
+    ['Journal / reconciliation / recovery'],
+    ['COMPLETE | FAILED | BLOCKED'],
+  ], undefined, undefined, 'diana-do is the product surface of this path. It is not installed on PATH, and install.sh does not ship it; packaging is future work.'),
+  block('The product surface is five commands: diana-do "<goal>" proposes and shows Goal, Plan and Authority; diana-do approve <digest> approves that exact proposal and runs it; show re-displays a proposal; status and result render progress and outcome from Diana’s own journal and run report. Exit codes distinguish ok (0), refused (2) and blocked (3).'),
+  block('Natural language may propose intent; it never grants authority. The intent schema has no field for risk or depth. Classification is a deterministic keyword rule over a fixed vocabulary, so no model decides what a request is. A user exclusion such as "don’t touch auth" is not a note in the prompt: it removes that path from the write scope, and a run that writes there is stopped by reconciliation.'),
 
-  block('What I learned', 'h2'),
-  block('Diana taught me that a coding agent behaves better with explicit operating constraints than with an open-ended goal. Nightshift taught me something I didn’t expect going in: the more interesting question was never how autonomous I could make the model. It was how much authority I could remove from it — over its own state, its own retries, its own verdict — without removing its ability to do useful work at all. Everything that actually got safer in this project came from subtraction, not from making the model smarter.'),
+  block('Hermes: the execution seam', 'h2'),
+  block('Hermes is the reasoning and execution backend. It reasons, reads, writes, patches and runs the commands on the exact allowlist, all under a projection Diana installed before the turn started. Diana is the authority layer.'),
+  table(['Hermes may', 'Hermes does not own'], [
+    ['Model reasoning; reading and searching; writing and patching inside the approved write scope; running exactly the approved commands.', 'Permissions, durable state, run identity, budget, approval, merge authority, deployment authority.'],
+  ]),
+  callout('Replacing the executor does not create new authority', 'Switching the backend, provider or model leaves the contract byte-identical, keeps the run id, and continues attempt numbering from the same run-level budget. Under autonomous recovery, which executor was approved is itself bound into the approval, but binding it grants the executor nothing.'),
+
+  block('Proposal and digest-bound approval', 'h2'),
+  diagram('Approval binds an exact object', 'pipeline', [
+    ['Proposal'],
+    ['Canonical bounded object', 'contract, work items, actor topology, run budget'],
+    ['Digest'],
+    ['Explicit approval of that digest'],
+    ['Run (or session) creation'],
+  ], undefined, undefined, 'Approval is re-derived against the live repository first. A new commit, a dirty tree or even a gitignored change moves the digest, and the approval is refused with no run created.'),
+  block('The approval API takes a digest by type. "yes", "go ahead" and an approving paraphrase cannot become approval, because agreeable text is not the input type. Approval grants one bounded run, not open-ended agent authority, and it is never silently rebuilt against a repository that moved.'),
+  textDiagram('Five authorities that never convert into one another', 'run approval\n  ≠ reviewer verdict\n  ≠ PR approval\n  ≠ merge approval\n  ≠ deployment approval'),
+  table(['Authority', 'Meaning', 'Who holds it'], [
+    ['Run approval', 'Start this exact bounded run.', 'A human, via diana-do approve <digest>.'],
+    ['Reviewer verdict', 'Evidence inside a run. It authorizes nothing.', 'The read-only Reviewer produces it; Diana decides what it is worth.'],
+    ['PR / merge approval', 'This exact revision may merge.', 'A human code owner, enforced by GitHub rulesets.'],
+    ['Deployment approval', 'Unaddressed: there is no deployment, and Diana holds no deploy authority.', 'Nobody, today.'],
+  ]),
+
+  block('Builder and Reviewer: separated by enforcement', 'h2'),
+  block('Two actors run under one approved envelope, strictly one at a time, spending one run-level budget. The Builder is the bounded mutation actor: it may read, search, write, patch and run the exact approved commands inside the approved write scope. The Reviewer is the enforced read-only verifier: it is presented and permitted only read_file and search_files. It gets no write, no patch, no shell, and no commit, push, merge or deploy. Those tools are refused at the real dispatch boundary, not merely omitted from a prompt.'),
+  callout('Reviewer PASS is evidence, not authority', 'A verdict is admitted only against the digest-covered journal and only for the exact build Diana scheduled it for. A PASS cannot override a write outside the approved scope, a failed Diana verification, an invalid journal, an exhausted budget or any other contract violation.', 'warning'),
+
+  block('Verification and evidence', 'h2'),
+  block('Diana, not the Reviewer, runs deterministic verification. That is deliberate: a test command executes repository code and can mutate the repository, which is exactly the authority the read-only role exists to withhold. The Reviewer is scheduled only after Diana’s own verification of that build has passed, and it is briefed with evidence Diana composed from the journal and that build’s reconciliation record, not with the Builder’s self-report.'),
+  block('Reconciliation is detection, never prevention. It compares two views that fail differently, a hash snapshot of every regular file and git status, so a change git cannot see (a gitignored file) is still caught.'),
+
+  block('Crash recovery: the same run continues', 'h2'),
+  block('The run journal is the only authoritative record, written crash-atomically. After an interruption, recovery never asks the model what happened; it establishes facts from Diana-owned state.'),
+  textDiagram('Crash recovery (M5)', 'process dies\n    ↓\njournal remains\n(an open turn is an obligation)\n    ↓\nprove no process of the run\nis still alive\n    ↓\nre-verify contract + run policy\nby digest; re-check that the\nrepository is unchanged\n    ↓\nreconcile what changed on disk\n    ↓\nsame run · same run id\nsame contract\nsame remaining budget\n    ↓\nresume — or BLOCKED,\nnaming what drifted'),
+  block('Recovery creates no fresh envelope, no new run identity and no budget reset. If the repository moved while the process was down, the run ends BLOCKED: the approval is reused, never regenerated. Status after a restart shows the same run, because the view is a projection of the journal and there is no second copy to disagree with it.'),
+
+  block('One-approval autonomous recovery: a bounded session', 'h2'),
+  block('Post-M7, and opt-in through diana-do’s autonomy flag; off by default. Without the flag nothing changes, and a manual proposal hashes to exactly the bytes it did before the feature existed.'),
+  block('With the flag, the proposal also carries a digest-bound standing approval: the approved envelope, the executor, and a closed autonomy policy with allowed recovery kinds, a fixed deny list and finite session limits. It is approved once, together with the root run. If a run ends in a failure Diana classifies as recoverable (an unfinished turn, exhausted attempts or time, a missing or malformed reviewer verdict, an out-of-scope change, a blocked dependency), a planner may recommend a recovery. The recommendation is not authority.'),
+  textDiagram('Autonomous recovery (post-M7)', 'standing digest-bound approval\n    ↓\nbounded session\n    ↓\nroot run (the one a human\napproved)\n    ↓\nchild recovery runs,\none at a time\n    ↓\neach child has its own run id\n    ↓\neach child proven ⊆ the\nstanding approval (tools, write\nscope, commands, read scope)\n    ↓\naggregate budget across\nthe whole lineage\n    ↓\nCOMPLETE | BLOCKED_FOR_HUMAN'),
+  block('Diana, never the planner, derives each child contract, proves it is a subset of the standing approval on every axis, checks every cumulative budget (child runs, depth, attempts, wall clock, changed files, planner calls), and checks that the workspace transition is safe before starting it. Diana reverts only files it can prove this lineage wrote, that are unverified, and that nobody has edited since. The deny list (deploy, merge, credentials, network writes, git history rewrite, policy mutation, authority expansion) cannot be switched off.'),
+  callout('One approval authorizes one bounded session, rooted at one approved run', 'It is not permanent autonomy, and it does not keep the same run id: crash recovery continues the same run; autonomous recovery starts new, provably narrower runs under the same standing approval.', 'info'),
+  table(['', 'Crash recovery (M5)', 'Autonomous recovery (post-M7, opt-in)'], [
+    ['Run identity', 'Same run id', 'Root run plus child runs, each with its own run id'],
+    ['Authority', 'Same approved contract', 'Each child proven a subset of the standing approval'],
+    ['Budget', 'Same remaining run budget', 'Cumulative budget across the lineage'],
+    ['Triggered by', 'A process interruption', 'A run ending in a recoverable failure'],
+    ['Stops with', 'BLOCKED if the repository moved', 'BLOCKED_FOR_HUMAN when the next step needs a human or new authority'],
+  ]),
+
+  block('The surrounding governance pipeline', 'h2'),
+  block('The older pipeline still governs engineering work around the runtime, and it is still in use. Its simple mental model is plan → inspect → implement / fix → test → review → ship, mapped to the plan-review and research-first skills, /fix with minimal-solution, workflow verification discipline, /review and /ship. /diana-ship is the attended orchestration around that loop: one or two AO-backed actors with disjoint file scopes, then a fresh independent reviewer, then the gates, then a pull request.'),
+  diagram('Surrounding governance pipeline', 'pipeline', [
+    ['Goal / DoD / risk'],
+    ['Plan + inspect'],
+    ['Actor implementation', 'AO'],
+    ['Verification'],
+    ['Independent reviewer'],
+    ['Preflight'],
+    ['Diana Gate'],
+    ['Security Gate'],
+    ['PR'],
+    ['Human merge'],
+  ], undefined, undefined, 'AO, Playwright, GitHub and model providers remain external systems. Diana owns the policy and evidence, not their runtimes.'),
+  block('In this layer the reviewer is fresh and read-only, and its independence is checked rather than trusted: a verdict-structure check rejects self-contradictory results, and a read-only check proves the reviewer made no commit and left no uncommitted change. A reviewer that asks for input is treated as a safety defect and stopped, not answered.'),
+  table(['Layer', 'Owns', 'Leaves to external systems'], [
+    ['Diana', 'Policy, canonical memory, Definition of Done, Preflight, gate logic, security evidence normalization and reduction, merge-boundary governance.', 'Model inference, worker/session/worktree lifecycle, browser execution, GitHub PR and merge state.'],
+    ['AO adapter', 'The single AO compatibility boundary: check, spawn, status, stop, and pinned-version handling.', 'AO runtime internals and private vendor behaviour.'],
+    ['GitHub / gh', 'PR state, required checks, review metadata, protected-base trust semantics, and ruleset enforcement of merge approval.', 'Diana does not merge.'],
+    ['Playwright', 'Browser-based verification when a check genuinely needs a browser surface.', 'Diana owns no browser engine.'],
+  ]),
+
+  block('Preflight vs Diana Gate', 'h2'),
+  block('Preflight detects; the Diana Gate decides. Preflight is a deterministic, applicability-aware scanner that makes no model calls and no network requests. The Gate is the separate decision layer that interprets Definition-of-Done evidence, verification evidence, blocker findings, diff risk, human-only conditions and sensitive paths, and returns PASS, REQUIRE_HUMAN or FAIL. REQUIRE_HUMAN maps to a passing GitHub check on purpose: a required check that failed on REQUIRE_HUMAN would deadlock the pull request against itself, so the human requirement is enforced by the review ruleset instead.'),
+  block('Post-M7 hardening of the gate’s input path made refusals more specific without admitting anything new: per-cause refusal reasons, a deleted review-sensitive path now visible to the Gate, and a summary that renders FAIL instead of a traceback. The closed input schema, decision paths and exit codes are unchanged.'),
+
+  block('Security Track: evidence, not assertion', 'h2'),
+  block('The Security Track catalogs 75 controls. Being in the catalog is not the same as being proven, and each step toward "satisfied" is a separate fact.'),
+  diagram('From cataloged control to satisfied control', 'pipeline', [
+    ['Cataloged'],
+    ['Applicable'],
+    ['Permitted verifier capability exists'],
+    ['Verifier live-wired'],
+    ['Evidence accepted'],
+    ['Control satisfied'],
+  ], undefined, 'NO FINDING ≠ PASS. UNPROVEN ≠ PASS. ERROR ≠ PASS.', 'Capability coverage is classified separately (FULLY_COVERED, PARTIALLY_COVERED, NOT_COVERED); coverage says what could be proven, not what has been.'),
+  table(['Verifier family', 'Current status', 'What it can contribute'], [
+    ['Semgrep (static analyzer)', 'Live-wired in ci_verifier_runs.py with committed rules.', 'Accepted evidence for the controls its rule map authorizes.'],
+    ['Gitleaks (secret scanner)', 'Live-wired; version-pinned, checksum-verified download.', 'Secret-scan evidence for SEC-007, scoped to detected web-root / build-output directories.'],
+    ['Deterministic repo / deployment-tree scan', 'Live-wired.', 'Served-path evidence when a real deployment surface exists; otherwise UNPROVEN, never fabricated.'],
+    ['SEC-064 local dynamic scenario', 'Live-wired, localhost only.', 'The dynamic half of SEC-064 against actually served content.'],
+    ['GitHub-backed human review', 'Live-wired; the workflow grants pull-requests: read and passes the PR number.', 'Only a structured DIANA:HUMAN-REVIEW block, in an APPROVED or CHANGES_REQUESTED review of the exact head commit, by a reviewer independent of the PR author and DIANA-AGENT. A bare approval produces nothing.'],
+    ['Other dynamic scenarios, semantic reviewers', 'Capability-only.', 'Nothing live yet.'],
+  ]),
+  table(['Per-control result', 'Meaning', 'Effect on the gate'], [
+    ['PASS', 'Applicable, and every required evidence item satisfied by an accepted contribution from a permitted capability.', 'No penalty.'],
+    ['FAIL', 'A permitted verifier produced an explicit violation, or the bundle is untrustworthy.', 'FAIL.'],
+    ['NOT_APPLICABLE', 'Genuinely not relevant to this repository state.', 'No penalty.'],
+    ['UNPROVEN', 'Possibly applicable; required evidence missing, not live, or not satisfied.', 'REQUIRE_HUMAN.'],
+    ['ERROR', 'Evidence malformed, out-of-capability or structurally invalid.', 'REQUIRE_HUMAN.'],
+  ]),
+  callout('The latest recorded measurement', 'At the accepted M1–M7 revision, the Security Gate recorded 75/75 UNPROVEN, reducing to REQUIRE_HUMAN. The security code is unchanged on current main, but no later measurement is recorded. "75 controls" is the size of the catalog, not a count of verified controls, and no control is certified.', 'warning'),
+  block('The Security Gate runs under pull_request_target and resolves its workflow and evaluator from the protected base. The pull-request head is bound as data (its SHA identifies the target) and is never checked out or executed. That separation of executor from target is the trust model.'),
+  block('Case study: the PR #40 activation probe', 'h3'),
+  block('PR #40 was a disposable probe authored by DIANA-AGENT to exercise the live human-review path, and it was closed without merging. What GitHub still shows today: two APPROVED reviews by the human owner, both on the exact head commit, one carrying a structured DIANA:HUMAN-REVIEW block; both the Diana Gate and the Security Gate completed green, which is consistent with a REQUIRE_HUMAN outcome, since REQUIRE_HUMAN maps to a passing check.'),
+  block('As recorded at the time from the run logs, the probe produced accepted human-review evidence for SEC-061 and an accepted Gitleaks contribution for SEC-007, while the aggregate stayed REQUIRE_HUMAN because other controls remained unresolved. Those run logs are no longer retrievable, and the repository does not itself record the outcome, so those three details rest on the contemporaneous record rather than on anything re-checkable now. An accepted evidence item is also not a satisfied control, which is why this is consistent with 75/75 UNPROVEN.'),
+  diagram('What the probe separates', 'pipeline', [
+    ['Protected base'],
+    ['Trusted evaluator'],
+    ['PR head as identity / data only'],
+    ['Independent structured human review'],
+    ['Normalized evidence'],
+    ['Aggregate reducer decision'],
+  ]),
+
+  block('Mechanical human merge approval', 'h2'),
+  block('Track B discharged the gap tracked as M5-D20: before it, the repository ruleset required zero approvals, so REQUIRE_HUMAN was advisory. Measured on live pull requests, not inferred from configuration: an automation-authored pull request with zero approvals is blocked with required checks green; automation cannot approve its own pull request; a human code-owner approval opens the merge path for that exact revision; a diff-affecting push dismisses it.'),
+  callout('The discharge is conditional', 'It holds only while the automation runtime cannot authenticate as the human owner. That is an operational and security assumption, not something GitHub enforces or detects, and it failed twice during Track B before being held by provider-side credential revocation. Merge approval is not deployment approval; deployment approval remains unaddressed.', 'warning'),
+  block('Diana is not an autonomous merge bot. The governed runtime has no code path to GitHub at all, so no run approval, reviewer verdict or recovery session can become a merge.'),
+
+  block('Post-M7 evolution', 'h2'),
+  block('The M1–M7 architecture is preserved in the repository as an acceptance snapshot; the frozen specifications are never rewritten to match later work. Changes accepted since are documented separately, as deltas.'),
+  table(['Change', 'Where', 'What it means for the architecture'], [
+    ['Generic write-scope derivation', '#66 (3e248fd)', 'A goal that names its own paths gets exactly those paths. A named path policy will not grant is refused, never silently replaced. Still a request inside the intent, enforced at the same boundary.'],
+    ['Builder/Reviewer production-path repair', '#65 (0828801, f724038; merge 97f718a)', 'OAuth provider resolution, reviewer presented only reviewer tools, fail-closed verdict parsing, evidence bound to the exact reviewed build, the Builder given the approved task, explicit reviewer time bound. One controlled real run completed end to end. A validated repair, not a production-hardening claim.'],
+    ['CI gate-input hardening', '0f121ce (in #65)', 'More specific refusals; deleted sensitive paths visible to the Gate. Nothing newly admitted.'],
+    ['Mechanical human merge approval', 'Track B (#64)', 'M5-D20 discharged, conditional on credential separation. Merge ≠ deploy.'],
+    ['One-approval autonomous recovery', '#67 (2f3559f; merge c8d6ecf)', 'Opt-in standing approval; child recovery runs with their own run ids under cumulative budgets; COMPLETE or BLOCKED_FOR_HUMAN.'],
+  ]),
+
+  block('Current limitations', 'h2'),
+  table(['Limitation', 'Current statement'], [
+    ['Linux assumptions', 'Process ownership and quiescence need /proc; the run lease needs flock. macOS and Windows are unproven, not merely untested.'],
+    ['Cooperative run lease', 'The lease decides whether a process may act on a run; it constrains nothing a process does once admitted.'],
+    ['Same-user hostile mutation', 'A same-user process that unlinks and recreates the lease, or rewrites and re-digests the journal, is outside parts of the threat model.'],
+    ['Finite certified workflows', 'Two workflow classes exist; only bounded repair is runnable from diana-do. Adding one is a certification, not a keyword.'],
+    ['Live-model variance', 'Some acceptance behaviour varies with the provider, and that is recorded rather than smoothed over.'],
+    ['Current M7 product suite', 'Similar failures currently reproduce locally in M7-AC-11, 13, 14, 15 and 16, followed by a TypeError, including on clean main. It has not been established that these failures share the same root cause as the earlier #65 production-path incident.'],
+    ['Autonomy loop', 'Opt-in; no session-level resume if the loop’s own process is interrupted; the planner is a model whose recommendations vary and are never authority.'],
+    ['Security coverage', 'Partial and evidence-driven. The latest recorded measurement is 75/75 UNPROVEN; no control is certified.'],
+    ['Merge vs deployment', 'Merge approval is mechanically enforced but conditional on credential separation; deployment approval is unaddressed.'],
+    ['Packaging', 'diana-do is not on PATH and is not shipped by install.sh.'],
+    ['External runtimes', 'AO, Playwright and GitHub are outside Diana’s boundary; quiescence only bounds processes Diana can see. AO + Codex autonomous writes are not certified.'],
+    ['Required-check naming', 'A repository that already has a required check with the same name can make a green result ambiguous unless its CI is designed with that in mind.'],
+  ]),
+
+  block('What this article does not claim', 'h2'),
+  block('It does not claim that Diana is fully secure, production-hardened, a universal AgentOps platform, a hosted agent platform, an autonomous merge system, or a universal 75-control enforcement product. It does not claim the model becomes deterministic, that a reviewer PASS authorizes anything, or that one approval grants lasting autonomy.'),
+  block('The claim is narrower, and it is the strongest thing Diana actually does today: a nondeterministic model can do real work inside an authority envelope that is derived, approved, enforced, recorded and recovered deterministically, by something other than the model.'),
 ]
 
-const dianaNightshiftDocument = { _type: 'article', title: 'I stopped asking the model whether it was done.', excerpt: 'Diana put an operating discipline around a coding agent. Nightshift moved the verdict on whether a task was done outside the model entirely — and one real failure is why that had to be a controller, not a better prompt.', publishedAt: '2026-08-10T00:00:00.000Z', tags: ['Agent Orchestration', 'Coding Agents', 'Deterministic Systems', 'State Machines', 'Claude Code', 'Python', 'Execution Discipline', 'Verification', 'Systems Design', 'Autonomy Boundaries'], category: 'Agentic Workflows', featured: false, role: 'Systems Designer / Engineer', projectType: 'Agent Control / Execution Discipline System', system: 'Diana operating protocol + Nightshift deterministic controller (Python)', coreQuestion: 'How much authority can be removed from a coding agent without removing its ability to do useful work?', evidence: 'Source code, full test suite (187/187 passing), git history, a research brief, and one supervised real-Claude smoke cycle', status: 'Diana: in active use. Nightshift: MVP implemented and unit-tested; unattended scheduling not yet approved.', seoTitle: 'I Stopped Asking the Model Whether It Was Done | Anastasia Aurelia', seoDescription: 'Why I moved task completion out of the model: Diana’s operating discipline, prompt-level control’s limits, and Nightshift’s deterministic completion invariant.', body: dianaNightshiftBody }
+const dianaNightshiftDocument = { _type: 'article', title: 'Diana: deterministic authority for agentic coding', excerpt: 'Diana is a deterministic authority and governance layer around nondeterministic coding agents: a model may reason and act, but permissions, durable run state, verification, recovery and approval live outside it. How the governed runtime and the surrounding governance pipeline fit together on current main, and what neither claims.', publishedAt: '2026-09-09T00:00:00.000Z', updatedAtOverride: '2026-09-27T00:00:00.000Z', tags: ['Agent Orchestration', 'Coding Agents', 'Deterministic Systems', 'Governance', 'Security', 'Verification', 'Systems Design', 'Durable State', 'Human Approval', 'Python', 'GitHub'], category: 'Agentic Workflows', featured: false, role: 'Systems Designer / Engineer', projectType: 'Deterministic authority and governance layer for coding agents', system: 'Diana governed runtime (diana-do: proposal, digest approval, Builder/Reviewer via Hermes, journal, recovery) + surrounding governance pipeline (policy, Preflight, Diana Gate, Security Gate, human merge)', coreQuestion: 'If a model may reason and act, what must it never own, and how does Diana keep that authority deterministic?', evidence: 'Diana current main: README.md, docs/architecture/DIANA-ARCHITECTURE.md, DIANA-POST-M7-ROADMAP.md, DIANA-POST-M7-ERRATA-001.md, the Track B B5 record, and the implementation in diana/product, diana/multiactor, diana/unattended, diana/autonomy and diana/security; merged PRs #40, #64–#67.', status: 'M1–M7 governed runtime accepted; post-M7 write-scope derivation, production-path repair, gate hardening, mechanical merge approval and opt-in autonomous recovery on main. Security coverage partial (latest recorded 75/75 UNPROVEN); deployment approval unaddressed; M7 product suite currently failing locally.', seoTitle: 'Diana: deterministic authority for agentic coding | Anastasia Aurelia', seoDescription: 'How Diana keeps a coding agent’s authority deterministic: digest-bound approval, enforced Builder/Reviewer separation, a durable journal, crash vs autonomous recovery, and an evidence-driven Security Track, with the limits stated.', body: dianaNightshiftBody }
 
 const operationsReportingBody = [
   callout('What I built', 'A multi-site reporting engine that combines system-exported LPR accuracy with operator-reviewed anomaly evidence, then produces one consistent daily operations brief. The calculations are deterministic; interpretation and action remain reviewable human decisions.', 'success'),
