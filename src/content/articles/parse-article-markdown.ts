@@ -48,7 +48,7 @@ const LABEL_PATTERN = new RegExp(`^\\[(${EVIDENCE_LABELS.join('|')})\\]`)
  * "The Binding Link", whose locators are pages, chapters, or named sections.
  */
 const CITE_PATTERN =
-  /^\[(?:TH|LM|LT-full|LT|SA|slides|repo|docs|YC video|x\.ai|Leads|Offers|Money|Bezos|Traction|RFA|Predictable|SalesFormula|WoL|Motive|Courage|Influence|PreSuasion|Yes|Expert|OneMany|Friends)\b[^\]]*\]/
+  /^\[(?:TH|LM|LT-full|LT|SA|slides|repo|docs|YC video|x\.ai|Leads|Offers|Money|Bezos|Traction|RFA|Predictable|SalesFormula|WoL|Motive|Courage|Influence|PreSuasion|Yes|Expert|OneMany|Friends|FP|FA)\b[^\]]*\]/
 
 export function slugify(text: string): string {
   return text

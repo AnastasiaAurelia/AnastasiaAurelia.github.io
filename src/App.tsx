@@ -16,6 +16,7 @@ import { LoadingState } from '@/components/state/query-states'
 const HiddenStructureOfWorkPage = lazy(() => import('@/pages/hidden-structure-of-work-page'))
 const FromCapabilityToValuePage = lazy(() => import('@/pages/from-capability-to-value-page'))
 const TheBindingLinkPage = lazy(() => import('@/pages/the-binding-link-page'))
+const TheControlPlaneProblemPage = lazy(() => import('@/pages/the-control-plane-problem-page'))
 
 function App() {
   return (
@@ -47,6 +48,14 @@ function App() {
           element={
             <Suspense fallback={<LoadingState label="Loading article" />}>
               <TheBindingLinkPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="articles/the-control-plane-problem"
+          element={
+            <Suspense fallback={<LoadingState label="Loading article" />}>
+              <TheControlPlaneProblemPage />
             </Suspense>
           }
         />
