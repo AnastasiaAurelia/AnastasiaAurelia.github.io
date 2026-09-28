@@ -67,8 +67,7 @@ export const BINDING_LINK_ARTICLE_SUMMARY: SanityArticleSummary = {
 
 export const CONTROL_PLANE_SLUG = 'the-control-plane-problem'
 
-export const CONTROL_PLANE_SUBTITLE =
-  "What Gartner and Forrester's platform frameworks reveal about where enterprise AI actually breaks"
+export const CONTROL_PLANE_SUBTITLE = 'Why enterprise AI breaks in the system around the model'
 
 export const CONTROL_PLANE_ARTICLE_SUMMARY: SanityArticleSummary = {
   _id: 'static.the-control-plane-problem',

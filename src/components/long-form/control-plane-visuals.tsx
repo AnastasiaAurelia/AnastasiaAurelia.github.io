@@ -89,9 +89,7 @@ function ReferenceArchitecture() {
 
         <div className="flex sm:flex-col">
           <div className="flex w-full items-center justify-center rounded-sm border border-accent/40 bg-accent-soft px-3 py-4 text-center sm:h-full sm:flex-col">
-            <p className="label-mono text-accent [writing-mode:vertical-lr] sm:[writing-mode:horizontal-tb]">
-              Control plane
-            </p>
+            <p className="label-mono text-accent sm:[writing-mode:vertical-lr]">Control plane</p>
           </div>
         </div>
       </div>
