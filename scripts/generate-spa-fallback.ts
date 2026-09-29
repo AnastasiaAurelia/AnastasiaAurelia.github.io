@@ -119,6 +119,7 @@ const ENTRY_POINT_ROUTES = [
   'articles/hidden-structure-of-work',
   'articles/from-capability-to-value',
   'articles/the-binding-link',
+  'articles/the-control-plane-problem',
 ]
 for (const route of ENTRY_POINT_ROUTES) {
   const directory = `dist/${route}`

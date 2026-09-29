@@ -65,8 +65,25 @@ export const BINDING_LINK_ARTICLE_SUMMARY: SanityArticleSummary = {
   featured: false,
 }
 
+export const CONTROL_PLANE_SLUG = 'the-control-plane-problem'
+
+export const CONTROL_PLANE_SUBTITLE = 'Why enterprise AI breaks in the system around the model'
+
+export const CONTROL_PLANE_ARTICLE_SUMMARY: SanityArticleSummary = {
+  _id: 'static.the-control-plane-problem',
+  title: 'The Control Plane Problem',
+  slug: CONTROL_PLANE_SLUG,
+  excerpt:
+    'Two Forrester reports on AI platforms and agentic architecture, read together, converge on the same claim from two independent directions: value has moved off the model and onto the system around it. The second-order finding is that the control plane — identity, policy, evaluation, observability — is sold as available infrastructure and run as an unfinished discipline.',
+  publishedAt: '2026-09-28',
+  tags: ['AI Platforms', 'Agentic AI', 'Enterprise Architecture'],
+  category: 'Research',
+  featured: false,
+}
+
 /** Code-backed editorial pages that live outside Sanity, newest first. */
 export const STATIC_ARTICLE_SUMMARIES: SanityArticleSummary[] = [
+  CONTROL_PLANE_ARTICLE_SUMMARY,
   BINDING_LINK_ARTICLE_SUMMARY,
   CAPABILITY_VALUE_ARTICLE_SUMMARY,
   HIDDEN_STRUCTURE_ARTICLE_SUMMARY,
