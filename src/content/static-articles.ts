@@ -81,8 +81,26 @@ export const CONTROL_PLANE_ARTICLE_SUMMARY: SanityArticleSummary = {
   featured: false,
 }
 
+export const PROXIMA_BUNDLER_SLUG = 'proxima-bundler-explained'
+
+export const PROXIMA_BUNDLER_SUBTITLE =
+  'Wallet splitting, funders, launch modes, and the transaction graph hidden behind one-click token launches'
+
+export const PROXIMA_BUNDLER_ARTICLE_SUMMARY: SanityArticleSummary = {
+  _id: 'static.proxima-bundler-explained',
+  title: 'What a Token Bundler Is Actually Doing',
+  slug: PROXIMA_BUNDLER_SLUG,
+  excerpt:
+    'A beginner-first teardown of a Proxima token-launch demo: what the funder, wallet roles, Block-0 and Organic modes, coordinated buys, and bulk exits mean on-chain — including what the video claims, what it actually demonstrates, and what it leaves unproven.',
+  publishedAt: '2026-10-06',
+  tags: ['Web3', 'Solana', 'On-chain Analysis'],
+  category: 'Research',
+  featured: false,
+}
+
 /** Code-backed editorial pages that live outside Sanity, newest first. */
 export const STATIC_ARTICLE_SUMMARIES: SanityArticleSummary[] = [
+  PROXIMA_BUNDLER_ARTICLE_SUMMARY,
   CONTROL_PLANE_ARTICLE_SUMMARY,
   BINDING_LINK_ARTICLE_SUMMARY,
   CAPABILITY_VALUE_ARTICLE_SUMMARY,
