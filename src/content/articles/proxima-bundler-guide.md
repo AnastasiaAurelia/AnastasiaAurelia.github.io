@@ -101,7 +101,6 @@ That is why the speaker's repeated use of terms such as "clean," "stealth," and 
 
 After the launch configuration is created, the interface presents a **funder** address. The speaker sends SOL to it, waits for the balance to arrive, and then triggers distribution.
 
-<!-- visual:funder-distribution -->
 
 At roughly **03:48**, the launch view shows the funding state and participating wallets. `[PRACTITIONER]` The speaker explains that the funder sends the required money to the wallets prepared for the launch.
 
@@ -129,7 +128,6 @@ Once the wallets are funded, the speaker clicks **Launch**. The recording then m
 
 `[PRACTITIONER]` The speaker notes that the contract/mint address can be visible before the launch is executed, then triggers the launch and says the coin is live.
 
-<!-- visual:live-launch-dashboard -->
 
 At approximately **05:26**, the UI shows the live market panel alongside wallet rows and creator controls. This is the point where the earlier abstractions become observable state:
 
@@ -193,7 +191,6 @@ That is why holder count alone is a weak measure of decentralization.
 
 The second launch begins around **07:54**, when the speaker switches to **Organic Mode**.
 
-<!-- visual:organic-mode -->
 
 `[PRACTITIONER]` The speaker explains that Organic mode spreads buys across multiple blocks instead of acquiring everything in the first coordinated execution. The stated benefit is that the activity looks more organic; the stated cost is that the operator can be front-run and cannot guarantee the exact supply acquired.
 
@@ -309,4 +306,4 @@ And the critical analytical question is not merely whether the system works. It 
 
 Primary source: B / @bschizojew, X video, approximately 10:58, supplied for this article from the public post: [source video](https://x.com/bschizojew/status/2106126122828361906?s=20).
 
-Screenshots in this article are direct frames from that recording at approximately 01:18, 02:26, 03:18, 03:48, 05:26, 06:19, 07:54, and 09:17. UI labels and claims are described as they appear in the source; where the transcript was ambiguous, the visible UI was used to avoid silently inventing terminology.
+Screenshots in this article are direct frames from that recording at approximately 01:18 and 02:26. UI labels and claims are described as they appear in the source; where the transcript was ambiguous, the visible UI was used to avoid silently inventing terminology.
