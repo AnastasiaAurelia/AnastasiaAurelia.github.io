@@ -82,7 +82,6 @@ That distinction matters because a dashboard that only looks at "number of holde
 
 At roughly **03:18**, the recording moves into wallet selection and import.
 
-<!-- visual:wallet-selection -->
 
 `[PRACTITIONER]` The speaker selects multiple wallets for the holder side and refers to additional wallet roles around the execution path. The recording also mentions centralized-exchange funding as an optional route for additional "stealth."
 
@@ -145,7 +144,6 @@ At approximately **05:26**, the UI shows the live market panel alongside wallet 
 
 Later, around **06:19**, the interface reports that the build succeeded and the speaker says the configured wallets bought the token.
 
-<!-- visual:build-complete -->
 
 `[SYNTHESIS]` "Build" in this interface is not software compilation. It is the completion of the configured launch execution: the wallet set was prepared, funded, and the intended launch transactions reached the required state.
 
@@ -227,7 +225,6 @@ This is one of the most important concepts in the whole recording:
 
 Around **09:17**, the recording shows the wallets funded for the Organic-mode launch.
 
-<!-- visual:organic-wallet-funding -->
 
 The timing of the buys has changed, but the ownership structure has not magically become independent. `[PRACTITIONER]` The speaker still configures the wallets, funds them through the launch flow, and launches them from one interface.
 
