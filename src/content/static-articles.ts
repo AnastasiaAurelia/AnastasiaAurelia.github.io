@@ -81,8 +81,27 @@ export const CONTROL_PLANE_ARTICLE_SUMMARY: SanityArticleSummary = {
   featured: false,
 }
 
+
+export const PROXIMA_BUNDLER_SLUG = 'proxima-bundler-guide'
+
+export const PROXIMA_BUNDLER_SUBTITLE =
+  'A screen-by-screen map of token metadata, wallet funding, launch modes, execution timing, and the line between coordination and manufactured market appearance'
+
+export const PROXIMA_BUNDLER_ARTICLE_SUMMARY: SanityArticleSummary = {
+  _id: 'static.proxima-bundler-guide',
+  title: 'Inside a Token Launch Bundler',
+  slug: PROXIMA_BUNDLER_SLUG,
+  excerpt:
+    'A beginner-first teardown of a Proxima launch demo: what the funder, holder wallets, Block-0, Organic mode, build status, and exit controls actually mean — plus where execution tooling becomes a market-structure risk.',
+  publishedAt: '2026-10-06',
+  tags: ['Solana', 'Web3 Infrastructure', 'Market Structure'],
+  category: 'Research',
+  featured: false,
+}
+
 /** Code-backed editorial pages that live outside Sanity, newest first. */
 export const STATIC_ARTICLE_SUMMARIES: SanityArticleSummary[] = [
+  PROXIMA_BUNDLER_ARTICLE_SUMMARY,
   CONTROL_PLANE_ARTICLE_SUMMARY,
   BINDING_LINK_ARTICLE_SUMMARY,
   CAPABILITY_VALUE_ARTICLE_SUMMARY,
