@@ -41,6 +41,7 @@ describe('code-backed articles in the article index', async () => {
     expect(slugs.filter((s) => s === 'hidden-structure-of-work')).toHaveLength(1)
     expect(articles.find((a) => a.slug === 'hidden-structure-of-work')?.title).toBe('The Hidden Structure of Work')
     expect(slugs).toEqual([
+      'proxima-bundler-guide',
       'the-control-plane-problem',
       'the-binding-link',
       'from-capability-to-value',
@@ -53,6 +54,7 @@ describe('code-backed articles in the article index', async () => {
   it('includes every code-backed slug in published slugs and counts', async () => {
     expect(await actual.getPublishedArticleSlugs()).toEqual(
       expect.arrayContaining([
+        'proxima-bundler-guide',
         'the-control-plane-problem',
         'the-binding-link',
         'from-capability-to-value',
@@ -61,6 +63,6 @@ describe('code-backed articles in the article index', async () => {
         'sanity-article',
       ]),
     )
-    expect(await actual.getPublishedArticleCount()).toBe(7)
+    expect(await actual.getPublishedArticleCount()).toBe(8)
   })
 })
