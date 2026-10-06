@@ -17,6 +17,7 @@ const HiddenStructureOfWorkPage = lazy(() => import('@/pages/hidden-structure-of
 const FromCapabilityToValuePage = lazy(() => import('@/pages/from-capability-to-value-page'))
 const TheBindingLinkPage = lazy(() => import('@/pages/the-binding-link-page'))
 const TheControlPlaneProblemPage = lazy(() => import('@/pages/the-control-plane-problem-page'))
+const ProximaBundlerExplainedPage = lazy(() => import('@/pages/proxima-bundler-explained-page'))
 
 function App() {
   return (
@@ -56,6 +57,14 @@ function App() {
           element={
             <Suspense fallback={<LoadingState label="Loading article" />}>
               <TheControlPlaneProblemPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="articles/proxima-bundler-explained"
+          element={
+            <Suspense fallback={<LoadingState label="Loading article" />}>
+              <ProximaBundlerExplainedPage />
             </Suspense>
           }
         />
