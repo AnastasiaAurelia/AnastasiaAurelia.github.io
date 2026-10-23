@@ -105,25 +105,72 @@ const fallbackHtml = `<!doctype html>
 writeFileSync(OUTPUT_PATH, fallbackHtml)
 console.log(`Generated ${OUTPUT_PATH} (SPA fallback, pathSegmentsToKeep=${PATH_SEGMENTS_TO_KEEP}).`)
 
-// Give the article index and selected published articles a real HTTP entry
-// point on Pages, so a direct request (or a crawler / link-preview fetch)
-// gets a 200 with the app shell instead of the 404 redirect. Without this
-// the route still *renders* — 404.html boots the SPA — but the response
-// status is 404, which crawlers and link-preview fetchers act on.
-// Reuse the built app shell; React still renders the content (the index
-// from Sanity plus the code-backed summaries, Diana from Sanity, the
-// long-form essays from their code-backed pages).
-const ENTRY_POINT_ROUTES = [
+// Give crawler-facing routes a real HTTP entry point on Pages, so a direct
+// request (or a link-preview fetcher such as LinkedIn) gets 200 instead of
+// relying on the SPA 404 redirect. React still renders the final page.
+// Routes may optionally provide static social metadata because many preview
+// crawlers do not execute the client-side react-helmet-async update.
+type EntryPoint = {
+  route: string
+  title?: string
+  description?: string
+  image?: string
+}
+
+const ENTRY_POINTS: EntryPoint[] = [
+  {
+    route: 'work/computer-vision-lpr',
+    title: 'Computer Vision and LPR Reliability · Anastasia Aurelia',
+    description:
+      'Case study on hardening a license-plate-recognition computer vision pipeline for reliability under real-world conditions.',
+    image: 'https://anastasiaaurelia.github.io/assets/cv-lpr/two-plane-reliability-system.png',
+  },
+  'work',
+  'work/researchlens',
+  'work/agentic-workflows',
   'articles',
   'articles/diana-nightshift-deterministic-control',
   'articles/hidden-structure-of-work',
   'articles/from-capability-to-value',
   'articles/the-binding-link',
   'articles/the-control-plane-problem',
-]
-for (const route of ENTRY_POINT_ROUTES) {
-  const directory = `dist/${route}`
+].map((entry) => (typeof entry === 'string' ? { route: entry } : entry))
+
+function withStaticSocialMetadata(html: string, entry: EntryPoint) {
+  if (!entry.title || !entry.description) return html
+
+  const url = `https://anastasiaaurelia.github.io/${entry.route}`
+  const imageTags = entry.image
+    ? `
+    <meta property="og:image" content="${entry.image}" />
+    <meta name="twitter:image" content="${entry.image}" />
+    <meta name="twitter:card" content="summary_large_image" />`
+    : '<meta name="twitter:card" content="summary" />'
+
+  return html
+    .replace(/<title>[\s\S]*?<\/title>/i, `<title>${entry.title}</title>`)
+    .replace(
+      /<meta\s+name="description"[\s\S]*?\/>/i,
+      `<meta name="description" content="${entry.description}" />`,
+    )
+    .replace(
+      '</head>',
+      `    <link rel="canonical" href="${url}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="${entry.title}" />
+    <meta property="og:description" content="${entry.description}" />
+    <meta property="og:url" content="${url}" />
+    <meta property="og:site_name" content="Anastasia Aurelia" />
+    ${imageTags}
+    <meta name="twitter:title" content="${entry.title}" />
+    <meta name="twitter:description" content="${entry.description}" />
+  </head>`,
+    )
+}
+
+for (const entry of ENTRY_POINTS) {
+  const directory = `dist/${entry.route}`
   mkdirSync(directory, { recursive: true })
-  writeFileSync(`${directory}/index.html`, indexHtml)
+  writeFileSync(`${directory}/index.html`, withStaticSocialMetadata(indexHtml, entry))
   console.log(`Generated ${directory}/index.html.`)
 }
