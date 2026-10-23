@@ -55,6 +55,9 @@ jobs:
         run: |
           test -f dist/index.html || { echo "::error::dist/index.html is missing"; exit 1; }
           test -f dist/404.html || { echo "::error::dist/404.html (SPA fallback) is missing"; exit 1; }
+          test -f dist/work/computer-vision-lpr/index.html || { echo "::error::LPR crawler entry point is missing"; exit 1; }
+          grep -q 'property="og:title"' dist/work/computer-vision-lpr/index.html || { echo "::error::LPR og:title is missing"; exit 1; }
+          grep -q 'https://anastasiaaurelia.github.io/work/computer-vision-lpr' dist/work/computer-vision-lpr/index.html || { echo "::error::LPR canonical/og:url is missing"; exit 1; }
           echo "Build output verified."
 
       - name: Setup Pages
